@@ -1,20 +1,29 @@
+import {Logger, ValidationPipe} from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
-import { Logger } from '@nestjs/common';
+import {DocumentBuilder, SwaggerModule} from '@nestjs/swagger';
+import {AppModule} from './app/app.module';
+import {AppSecret} from '@core/types/app-secret.enum';
 
 async function bootstrap() {
-  const logger = new Logger('Bootstrap');
   const app = await NestFactory.create(AppModule);
-  
-  // Set global API prefix
-  app.setGlobalPrefix('api');
-  
-  // Enable CORS for development
-  app.enableCors();
-  
-  const port = process.env.PORT || 3000;
+
+    const globalPrefix = 'api';
+    app.setGlobalPrefix(globalPrefix);
+    app.enableCors({origin: true});
+    app.useGlobalPipes(new ValidationPipe({whitelist: true, forbidNonWhitelisted: true, transform: true}));
+
+    const config = new DocumentBuilder()
+        .setTitle('Open Receipt OCR API')
+        .setDescription('Invoice management and OCR processing API')
+        .setVersion('1.0')
+        .build();
+    const document = SwaggerModule.createDocument(app, config);
+    SwaggerModule.setup('api/docs', app, document);
+
+    const port = process.env[AppSecret.Port] || 3000;
   await app.listen(port);
-  
-  logger.log(`Application is running on: http://localhost:${port}/api`);
+    Logger.log(`🚀 Running on: http://localhost:${port}/${globalPrefix}`);
+    Logger.log(`📚 Swagger docs: http://localhost:${port}/api/docs`);
 }
+
 bootstrap();
