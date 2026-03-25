@@ -5,9 +5,9 @@ import {InvoiceEntity} from '@core/database/entities/invoice.entity';
 
 @Injectable()
 export class ReposService {
-    constructor(
-        @InjectRepository(InvoiceEntity)
-        public readonly invoice: Repository<InvoiceEntity>,
-    ) {
-    }
+  constructor(
+    @InjectRepository(InvoiceEntity)
+    public readonly invoice: Repository<InvoiceEntity>,
+  ) {
+  }
 }

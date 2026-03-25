@@ -13,10 +13,10 @@ import {DataSource, EntityManager} from 'typeorm';
  */
 @Injectable()
 export class DbService {
-    constructor(private readonly dataSource: DataSource) {
-    }
+  constructor(private readonly dataSource: DataSource) {
+  }
 
-    transaction<T>(work: (em: EntityManager) => Promise<T>): Promise<T> {
-        return this.dataSource.transaction(work);
-    }
+  transaction<T>(work: (em: EntityManager) => Promise<T>): Promise<T> {
+    return this.dataSource.transaction(work);
+  }
 }

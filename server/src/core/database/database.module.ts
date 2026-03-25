@@ -9,14 +9,14 @@ const entitiesModule = TypeOrmModule.forFeature([InvoiceEntity]);
 
 @Global()
 @Module({
-    imports: [
-        TypeOrmModule.forRootAsync({
-            useClass: TypeOrmConfigService,
-        }),
-        entitiesModule,
-    ],
-    providers: [TypeOrmConfigService, ReposService, DbService],
-    exports: [TypeOrmConfigService, entitiesModule, ReposService, DbService],
+  imports: [
+    TypeOrmModule.forRootAsync({
+      useClass: TypeOrmConfigService,
+    }),
+    entitiesModule,
+  ],
+  providers: [TypeOrmConfigService, ReposService, DbService],
+  exports: [TypeOrmConfigService, entitiesModule, ReposService, DbService],
 })
 export class DatabaseModule {
 }
