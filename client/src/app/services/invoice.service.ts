@@ -1,6 +1,6 @@
 import { Injectable, signal, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Invoice } from '../models/invoice.model';
+import { Invoice } from '@models/invoice.model';
 import { Observable, tap } from 'rxjs';
 
 @Injectable({

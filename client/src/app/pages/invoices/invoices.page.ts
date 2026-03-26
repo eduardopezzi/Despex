@@ -1,8 +1,8 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { InvoiceService } from '../../services/invoice.service';
-import { Invoice, InvoiceStatus } from '../../models/invoice.model';
-import { UploadDialogComponent } from '../../components/upload-dialog/upload-dialog.component';
+import { InvoiceService } from '@services/invoice.service';
+import { Invoice, InvoiceStatus } from '@models/invoice.model';
+import { UploadDialogComponent } from '@components/upload-dialog/upload-dialog.component';
 
 import { CardModule } from 'primeng/card';
 import { ButtonModule } from 'primeng/button';

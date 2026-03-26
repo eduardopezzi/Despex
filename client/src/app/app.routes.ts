@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { ShellLayoutComponent } from './layouts/shell/shell.layout';
+import { ShellLayoutComponent } from '@layouts/shell/shell.layout';
 
 export const routes: Routes = [
   {
@@ -8,11 +8,11 @@ export const routes: Routes = [
     children: [
       {
         path: '',
-        loadComponent: () => import('./pages/home/home.page').then(m => m.HomePageComponent),
+        loadComponent: () => import('@pages/home/home.page').then(m => m.HomePageComponent),
       },
       {
         path: 'invoices',
-        loadComponent: () => import('./pages/invoices/invoices.page').then(m => m.InvoicesPageComponent),
+        loadComponent: () => import('@pages/invoices/invoices.page').then(m => m.InvoicesPageComponent),
       },
     ],
   },

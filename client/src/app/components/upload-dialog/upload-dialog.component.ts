@@ -1,6 +1,6 @@
 import { Component, EventEmitter, inject, Input, Output, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { InvoiceService } from '../../services/invoice.service';
+import { InvoiceService } from '@services/invoice.service';
 
 import { DialogModule } from 'primeng/dialog';
 import { ButtonModule } from 'primeng/button';

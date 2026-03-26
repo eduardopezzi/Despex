@@ -1,12 +1,12 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { InvoiceService } from '../../services/invoice.service';
-import { InvoiceStatus } from '../../models/invoice.model';
+import { InvoiceService } from '@services/invoice.service';
+import { InvoiceStatus } from '@models/invoice.model';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { TagModule } from 'primeng/tag';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
-import { UploadDialogComponent } from '../../components/upload-dialog/upload-dialog.component';
+import { UploadDialogComponent } from '@components/upload-dialog/upload-dialog.component';
 
 @Component({
   selector: 'app-home-page',
