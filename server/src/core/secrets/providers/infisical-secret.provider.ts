@@ -16,12 +16,13 @@ export class InfisicalSecretProvider extends SecretProvider {
     await this.ensureInitialized();
 
     const projectId = process.env[AppSecret.InfisicalProjectId];
-    const environment = process.env[AppSecret.InfisicalEnvironment] || 'dev';
 
     if (!this.client || !projectId) {
       // Fall back to env if Infisical is not configured
       return process.env[name];
     }
+
+    const environment = process.env[AppSecret.InfisicalEnvironment] || 'dev';
 
     try {
       const secret = await this.client.secrets().getSecret({

@@ -19,6 +19,7 @@ export enum AppSecret {
   // ─── Storage ─────────────────────────────────────────────────────────────────
   StorageProvider = 'STORAGE_PROVIDER',
   UploadsDir = 'UPLOADS_DIR',
+  MaxFileSizeBytes = 'MAX_FILE_SIZE_BYTES',
 
   // ─── Infisical ───────────────────────────────────────────────────────────────
   InfisicalClientId = 'INFISICAL_CLIENT_ID',

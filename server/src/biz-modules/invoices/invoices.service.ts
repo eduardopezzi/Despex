@@ -1,8 +1,23 @@
-import { Injectable, Logger } from '@nestjs/common';
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+} from '@nestjs/common';
 import { InvoicesDao } from '@biz-modules/invoices/invoices.dao';
 import { InvoiceEntity } from '@core/database/entities/invoice.entity';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
+import type { Request } from 'express';
+import Busboy from 'busboy';
+import { AppSecret } from '@core/types/app-secret.enum';
+import { SecretProvider } from '@core/secrets/secret-provider.interface';
+import { StorageProvider } from '@core/storage/storage-provider.interface';
+import {
+  ALLOWED_MIME_TYPES,
+  DEFAULT_MAX_FILE_SIZE_BYTES,
+} from '@core/constants/media.constants';
 
 @Injectable()
 export class InvoicesService {
@@ -11,6 +26,8 @@ export class InvoicesService {
   constructor(
     private readonly invoicesDao: InvoicesDao,
     @InjectQueue('ocr-queue') private readonly ocrQueue: Queue,
+    private readonly secretProvider: SecretProvider,
+    @Inject(StorageProvider) private readonly storage: StorageProvider,
   ) {}
 
   findAll(): Promise<InvoiceEntity[]> {
@@ -21,13 +38,131 @@ export class InvoicesService {
     return this.invoicesDao.getOneByPkOrFail(id);
   }
 
-  async upload(filename: string, originalName: string): Promise<InvoiceEntity> {
-    const invoice = await this.invoicesDao.createAndEnqueue(
-      filename,
-      originalName,
+  async upload(req: Request): Promise<InvoiceEntity> {
+    const contentType = req.headers['content-type'];
+    if (!contentType?.startsWith('multipart/form-data')) {
+      throw new BadRequestException('Expected a multipart/form-data request.');
+    }
+
+    const maxSizeStr = await this.secretProvider.getSecret(
+      AppSecret.MaxFileSizeBytes,
     );
+    const maxSizeBytes = maxSizeStr
+      ? parseInt(maxSizeStr, 10)
+      : DEFAULT_MAX_FILE_SIZE_BYTES;
+
+    const { key, originalName } = await this.parseAndStream(req, maxSizeBytes);
+
+    const invoice = await this.invoicesDao.createAndEnqueue(key, originalName);
     await this.ocrQueue.add('process-ocr', { invoiceId: invoice.id });
     this.logger.log(`Invoice #${invoice.id} queued for OCR`);
+
     return invoice;
+  }
+
+  /**
+   * Parses the multipart body with Busboy and pipes the first file stream
+   * directly into the StorageProvider without any RAM buffering.
+   *
+   * Validation — all checked before or during streaming:
+   *   - Filename must be present (Busboy `info`)
+   *   - MIME type must be in ALLOWED_MIME_TYPES (Busboy `info`)
+   *   - File size must not exceed MAX_FILE_SIZE_BYTES (Busboy `limits.fileSize`)
+   */
+  private parseAndStream(
+    req: Request,
+    maxSizeBytes: number,
+  ): Promise<{ key: string; originalName: string }> {
+    return new Promise((resolve, reject) => {
+      const busboy = Busboy({
+        headers: req.headers,
+        limits: {
+          files: 1, // Accept exactly one file per request
+          fileSize: maxSizeBytes,
+        },
+      });
+
+      let settled = false;
+
+      const settle = (action: () => void) => {
+        if (!settled) {
+          settled = true;
+          action();
+        }
+      };
+
+      busboy.on('file', (fieldname, stream, info) => {
+        const { filename, mimeType } = info;
+
+        if (!filename) {
+          stream.resume(); // drain without piping
+          return settle(() =>
+            reject(new BadRequestException('Upload must include a filename.')),
+          );
+        }
+
+        if (!ALLOWED_MIME_TYPES.has(mimeType)) {
+          stream.resume();
+          return settle(() =>
+            reject(
+              new BadRequestException(
+                `Unsupported file type "${mimeType}". Allowed: ${[
+                  ...ALLOWED_MIME_TYPES,
+                ].join(', ')}.`,
+              ),
+            ),
+          );
+        }
+
+        this.logger.log(`Streaming upload: ${filename} (${mimeType})`);
+
+        stream.on('limit', () => {
+          settle(() =>
+            reject(
+              new BadRequestException(
+                `File exceeds the maximum allowed size of ${maxSizeBytes / 1024 / 1024} MB.`,
+              ),
+            ),
+          );
+        });
+
+        this.storage
+          .uploadStream(stream, filename, mimeType)
+          .then((result) =>
+            settle(() => resolve({ key: result.key, originalName: filename })),
+          )
+          .catch((err: unknown) => {
+            const message = err instanceof Error ? err.message : String(err);
+            settle(() =>
+              reject(
+                new InternalServerErrorException(`Storage error: ${message}`),
+              ),
+            );
+          });
+      });
+
+      busboy.on('error', (err: unknown) => {
+        const message = err instanceof Error ? err.message : String(err);
+        settle(() =>
+          reject(
+            new InternalServerErrorException(
+              `Multipart parse error: ${message}`,
+            ),
+          ),
+        );
+      });
+
+      busboy.on('finish', () => {
+        settle(() =>
+          reject(
+            new BadRequestException(
+              'No file field found in the multipart request.',
+            ),
+          ),
+        );
+      });
+
+      req.pipe(busboy);
+    });
   }
 }
