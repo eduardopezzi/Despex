@@ -1,0 +1,194 @@
+import { Component, inject, OnInit, signal } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { InvoiceService } from '../../services/invoice.service';
+import { Invoice, InvoiceStatus } from '../../models/invoice.model';
+import { UploadDialogComponent } from '../../components/upload-dialog/upload-dialog.component';
+
+import { CardModule } from 'primeng/card';
+import { ButtonModule } from 'primeng/button';
+import { TagModule } from 'primeng/tag';
+import { ProgressSpinnerModule } from 'primeng/progressspinner';
+import { DialogModule } from 'primeng/dialog';
+
+@Component({
+  selector: 'app-invoices-page',
+  standalone: true,
+  imports: [CommonModule, CardModule, ButtonModule, TagModule, ProgressSpinnerModule, DialogModule, UploadDialogComponent],
+  template: `
+    <!-- Page header -->
+    <div class="flex items-center justify-between mb-8">
+      <div>
+        <h1 class="text-2xl font-bold text-surface-900 dark:text-surface-0 mb-1">Invoices</h1>
+        <p class="text-sm text-surface-500 dark:text-surface-400">
+          {{ invoiceService.invoices().length }} {{ invoiceService.invoices().length === 1 ? 'receipt' : 'receipts' }} processed
+        </p>
+      </div>
+      <p-button
+        label="Upload Receipt"
+        icon="pi pi-cloud-upload"
+        (onClick)="showUploadDialog = true"
+        [rounded]="false"
+        styleClass="font-semibold"
+      />
+    </div>
+
+    <!-- Loading state -->
+    @if (invoiceService.loading()) {
+      <div class="flex items-center justify-center py-24">
+        <p-progressSpinner styleClass="w-12 h-12" />
+      </div>
+    }
+
+    <!-- Empty state -->
+    @if (!invoiceService.loading() && invoiceService.invoices().length === 0) {
+      <div class="flex flex-col items-center justify-center py-24 gap-5 text-center">
+        <div class="w-20 h-20 rounded-2xl bg-primary-50 dark:bg-primary-900/30 flex items-center justify-center">
+          <i class="pi pi-receipt text-3xl text-primary-400"></i>
+        </div>
+        <div>
+          <h3 class="text-lg font-semibold text-surface-700 dark:text-surface-200 mb-1">No receipts yet</h3>
+          <p class="text-sm text-surface-500 dark:text-surface-400">Upload your first receipt to start OCR processing.</p>
+        </div>
+        <p-button label="Upload your first receipt" icon="pi pi-plus" (onClick)="showUploadDialog = true" />
+      </div>
+    }
+
+    <!-- Invoice cards grid -->
+    @if (!invoiceService.loading() && invoiceService.invoices().length > 0) {
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+        @for (invoice of invoiceService.invoices(); track invoice.id) {
+          <div
+            class="group bg-surface-0 dark:bg-surface-900 rounded-2xl border border-surface-200 dark:border-surface-800
+                   shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 overflow-hidden cursor-pointer"
+            (click)="selectedInvoice = invoice; showDetail = true"
+          >
+            <!-- Card preview area -->
+            <div class="h-36 flex items-center justify-center"
+                 [ngClass]="getCardBg(invoice.status)">
+              <i [class]="getFileIcon(invoice.originalName)"
+                 class="text-5xl opacity-70 group-hover:scale-110 transition-transform duration-200">
+              </i>
+            </div>
+
+            <!-- Card body -->
+            <div class="p-4">
+              <div class="flex items-start justify-between gap-2 mb-2">
+                <p class="text-sm font-semibold text-surface-800 dark:text-surface-100 truncate leading-snug"
+                   [title]="invoice.originalName">
+                  {{ invoice.originalName }}
+                </p>
+                <p-tag
+                  [value]="invoice.status"
+                  [severity]="getStatusSeverity(invoice.status)"
+                  styleClass="shrink-0 text-xs"
+                />
+              </div>
+              <p class="text-xs text-surface-400 dark:text-surface-500">
+                {{ invoice.createdAt | date:'MMM d, yyyy · HH:mm' }}
+              </p>
+            </div>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Upload dialog -->
+    <app-upload-dialog
+      [(visible)]="showUploadDialog"
+      (uploaded)="onUploaded()"
+    />
+
+    <!-- Detail dialog -->
+    <p-dialog
+      [(visible)]="showDetail"
+      [modal]="true"
+      [closable]="true"
+      [dismissableMask]="true"
+      [style]="{ width: '600px' }"
+      [header]="selectedInvoice?.originalName ?? 'Invoice Detail'"
+    >
+      @if (selectedInvoice) {
+        <div class="flex flex-col gap-4">
+          <div class="flex justify-between items-center border-b border-surface-100 dark:border-surface-800 pb-3">
+            <span class="text-sm text-surface-500">Status</span>
+            <p-tag [value]="selectedInvoice.status" [severity]="getStatusSeverity(selectedInvoice.status)" />
+          </div>
+          <div class="flex justify-between items-center border-b border-surface-100 dark:border-surface-800 pb-3">
+            <span class="text-sm text-surface-500">Uploaded</span>
+            <span class="text-sm font-medium text-surface-800 dark:text-surface-100">{{ selectedInvoice.createdAt | date:'medium' }}</span>
+          </div>
+          <div class="flex justify-between items-center border-b border-surface-100 dark:border-surface-800 pb-3">
+            <span class="text-sm text-surface-500">File Key</span>
+            <span class="text-xs font-mono text-surface-500 truncate max-w-[300px]" [title]="selectedInvoice.filename">{{ selectedInvoice.filename }}</span>
+          </div>
+
+          <!-- OCR data -->
+          <div>
+            <p class="text-sm font-semibold text-surface-700 dark:text-surface-200 mb-2">OCR Extracted Data</p>
+
+            @if (selectedInvoice.status === 'COMPLETED' && selectedInvoice.ocrData) {
+              <pre class="bg-surface-50 dark:bg-surface-800 border border-surface-200 dark:border-surface-700
+                          rounded-xl p-4 text-xs font-mono text-surface-700 dark:text-surface-300
+                          overflow-auto max-h-72 whitespace-pre-wrap">{{ selectedInvoice.ocrData }}</pre>
+            } @else if (selectedInvoice.status === 'PROCESSING') {
+              <div class="flex items-center gap-3 py-4 text-surface-500">
+                <i class="pi pi-spin pi-spinner text-primary-500 text-xl"></i>
+                <span class="text-sm">OCR is processing, please wait...</span>
+              </div>
+            } @else if (selectedInvoice.status === 'PENDING') {
+              <div class="flex items-center gap-3 py-4 text-surface-500">
+                <i class="pi pi-hourglass text-xl"></i>
+                <span class="text-sm">Invoice is queued for processing.</span>
+              </div>
+            } @else if (selectedInvoice.status === 'FAILED') {
+              <div class="flex items-center gap-3 py-4 text-red-500">
+                <i class="pi pi-exclamation-triangle text-xl"></i>
+                <span class="text-sm">OCR processing failed.</span>
+              </div>
+            }
+          </div>
+        </div>
+      }
+    </p-dialog>
+  `,
+})
+export class InvoicesPageComponent implements OnInit {
+  invoiceService = inject(InvoiceService);
+  showUploadDialog = false;
+  showDetail = false;
+  selectedInvoice: Invoice | null = null;
+
+  ngOnInit() {
+    this.invoiceService.fetchInvoices();
+  }
+
+  onUploaded() {
+    this.showUploadDialog = false;
+    this.invoiceService.fetchInvoices();
+  }
+
+  getStatusSeverity(status: InvoiceStatus): 'success' | 'info' | 'warn' | 'danger' | 'secondary' {
+    switch (status) {
+      case InvoiceStatus.PENDING:    return 'secondary';
+      case InvoiceStatus.PROCESSING: return 'info';
+      case InvoiceStatus.COMPLETED:  return 'success';
+      case InvoiceStatus.FAILED:     return 'danger';
+    }
+  }
+
+  getCardBg(status: InvoiceStatus): string {
+    switch (status) {
+      case InvoiceStatus.PENDING:    return 'bg-surface-100 dark:bg-surface-800';
+      case InvoiceStatus.PROCESSING: return 'bg-blue-50 dark:bg-blue-950/40';
+      case InvoiceStatus.COMPLETED:  return 'bg-emerald-50 dark:bg-emerald-950/40';
+      case InvoiceStatus.FAILED:     return 'bg-red-50 dark:bg-red-950/40';
+    }
+  }
+
+  getFileIcon(filename: string): string {
+    const ext = filename.split('.').pop()?.toLowerCase();
+    if (ext === 'pdf') return 'pi pi-file-pdf text-red-400';
+    if (ext === 'png' || ext === 'jpg' || ext === 'jpeg') return 'pi pi-image text-emerald-400';
+    return 'pi pi-file text-surface-400';
+  }
+}
