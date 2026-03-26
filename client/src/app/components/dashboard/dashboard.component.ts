@@ -3,12 +3,17 @@ import { CommonModule } from '@angular/common';
 import { InvoiceService } from '../../services/invoice.service';
 import { Invoice, InvoiceStatus } from '../../models/invoice.model';
 
+import { TableModule } from 'primeng/table';
+import { TagModule } from 'primeng/tag';
+import { CardModule } from 'primeng/card';
+import { ButtonModule } from 'primeng/button';
+import { ProgressSpinnerModule } from 'primeng/progressspinner';
+
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, TableModule, TagModule, CardModule, ButtonModule, ProgressSpinnerModule],
   templateUrl: './dashboard.component.html',
-  styleUrls: ['./dashboard.component.css']
 })
 export class DashboardComponent implements OnInit {
   private invoiceService = inject(InvoiceService);
@@ -25,13 +30,14 @@ export class DashboardComponent implements OnInit {
     this.selectedInvoice.set(invoice);
   }
 
-  getStatusClass(status: InvoiceStatus) {
+  /** Return severity for PrimeNG p-tag based on invoice status */
+  getStatusSeverity(status: InvoiceStatus): 'success' | 'info' | 'warn' | 'danger' | 'secondary' {
     switch (status) {
-      case InvoiceStatus.PENDING: return 'badge-pending';
-      case InvoiceStatus.PROCESSING: return 'badge-processing';
-      case InvoiceStatus.COMPLETED: return 'badge-completed';
-      case InvoiceStatus.FAILED: return 'badge-failed';
-      default: return '';
+      case InvoiceStatus.PENDING: return 'secondary';
+      case InvoiceStatus.PROCESSING: return 'info';
+      case InvoiceStatus.COMPLETED: return 'success';
+      case InvoiceStatus.FAILED: return 'danger';
+      default: return 'secondary';
     }
   }
 

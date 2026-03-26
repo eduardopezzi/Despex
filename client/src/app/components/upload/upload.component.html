@@ -1,17 +1,37 @@
-<section class="upload-container">
-  <div class="upload-card">
-    <h2>Upload New Invoice</h2>
-    <p>Select a PDF or image file (JPG, PNG) to start OCR processing.</p>
-    
-    <div class="input-group">
-      <input type="file" (change)="onFileSelected($event)" accept="image/*,application/pdf" #fileInput>
-      <button (click)="onUpload()" [disabled]="!file() || uploading()" class="btn-primary">
-        {{ uploading() ? 'Uploading...' : 'Upload & Process' }}
-      </button>
+<p-card header="Upload New Invoice" styleClass="shadow-sm">
+  <ng-template pTemplate="subtitle">
+    Select a PDF or image file (JPG, PNG) to start OCR processing.
+  </ng-template>
+
+  <div class="flex flex-col gap-4 mt-2">
+    <div class="flex items-center gap-3">
+      <input 
+        type="file" 
+        (change)="onFileSelected($event)" 
+        accept="image/*,application/pdf" 
+        #fileInput
+        class="block w-full text-sm text-surface-500 dark:text-surface-400
+          file:mr-4 file:py-2 file:px-4
+          file:rounded-md file:border-0
+          file:text-sm file:font-semibold
+          file:bg-primary-50 file:text-primary-700
+          dark:file:bg-primary-900 dark:file:text-primary-200
+          hover:file:bg-primary-100 dark:hover:file:bg-primary-800
+          cursor-pointer transition-colors"
+      />
+      <p-button 
+        [label]="uploading() ? 'Uploading...' : 'Upload & Process'" 
+        icon="pi pi-cloud-upload" 
+        [loading]="uploading()"
+        [disabled]="!file()" 
+        (onClick)="onUpload()">
+      </p-button>
     </div>
 
-    <div *ngIf="message()" class="status-message">
-      {{ message() }}
-    </div>
+    <!-- Messages -->
+    <p-message *ngIf="message()" 
+      [severity]="message()?.includes('failed') ? 'error' : 'success'" 
+      [text]="message() || undefined">
+    </p-message>
   </div>
-</section>
+</p-card>

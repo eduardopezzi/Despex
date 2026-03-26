@@ -1,57 +1,98 @@
-<div class="dashboard-container">
-  <header>
-    <h1>Invoice OCR Dashboard</h1>
-    <p>Upload receipts and receipts automatically with Mistral OCR</p>
-  </header>
+<div class="flex flex-col xl:flex-row gap-8 items-start relative pb-20 w-full">
+  
+  <!-- Invoices Table Section -->
+  <p-card header="Recent Invoices" styleClass="w-full xl:w-2/3 shadow-sm border border-surface-200 dark:border-surface-800" [style]="{overflow: 'hidden'}">
+    <ng-template pTemplate="subtitle">
+      Recently uploaded and processed invoices
+    </ng-template>
 
-  <main class="dashboard-layout">
-    <!-- List Section -->
-    <section class="invoice-list">
-      <div *ngIf="loading()" class="loader">Loading...</div>
-      
-      <table *ngIf="!loading()">
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Original Name</th>
-            <th class="date-col">Date</th>
-            <th>Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let invoice of invoices()" (click)="onSelectInvoice(invoice)" [class.active]="selectedInvoice()?.id === invoice.id">
-            <td>{{ invoice.filename }}</td>
-            <td>{{ invoice.originalName }}</td>
-            <td class="date-col">{{ invoice.createdAt | date:'short' }}</td>
-            <td>
-              <span class="badge" [ngClass]="getStatusClass(invoice.status)">
-                {{ invoice.status }}
-              </span>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </section>
+    <p-table 
+      [value]="invoices()" 
+      [loading]="loading()" 
+      responsiveLayout="scroll"
+      selectionMode="single" 
+      [selection]="selectedInvoice()!" 
+      (onRowSelect)="onSelectInvoice($any($event).data)"
+      [rowHover]="true"
+      styleClass="p-datatable-sm w-full">
+      <ng-template pTemplate="header">
+        <tr>
+          <th>Name</th>
+          <th>Original File</th>
+          <th>Date</th>
+          <th class="w-32 text-center">Status</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-invoice>
+        <tr [pSelectableRow]="invoice" class="cursor-pointer">
+          <td class="font-medium text-surface-900 dark:text-surface-0 truncate max-w-[120px]" [title]="invoice.filename">{{ invoice.filename }}</td>
+          <td class="text-surface-500 truncate max-w-[120px]" [title]="invoice.originalName">{{ invoice.originalName }}</td>
+          <td class="text-surface-500 whitespace-nowrap">{{ invoice.createdAt | date:'MMM d, HH:mm' }}</td>
+          <td class="text-center">
+            <p-tag [value]="invoice.status" [severity]="getStatusSeverity(invoice.status)"></p-tag>
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="4" class="text-center p-8 text-surface-500">
+            No invoices uploaded yet.
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </p-card>
 
-    <!-- Details Section (Side Panel) -->
-    <aside class="invoice-details" *ngIf="selectedInvoice() as invoice">
-      <div class="details-card">
-        <h3>Invoice Details</h3>
-        <p><strong>Original File:</strong> {{ invoice.originalName }}</p>
-        <p><strong>Processing Status:</strong> {{ invoice.status }}</p>
+  <!-- Details Sidebar -->
+  <div class="w-full xl:w-1/3 static xl:sticky top-8">
+    <p-card *ngIf="selectedInvoice() as invoice" header="Invoice Details" styleClass="shadow-sm border border-surface-200 dark:border-surface-800">
+      <div class="flex flex-col gap-4">
         
-        <div class="ocr-section">
-          <h4>OCR Result</h4>
-          <div *ngIf="invoice.status === 'COMPLETED'; else noData" class="ocr-content">
-            <pre>{{ invoice.ocrData | json }}</pre>
+        <div class="flex justify-between border-b border-surface-200 dark:border-surface-700 pb-2 items-center">
+          <span class="text-surface-600 dark:text-surface-400 font-medium text-sm">ID</span>
+          <span class="text-sm font-semibold text-surface-900 dark:text-surface-0">#{{ invoice.id }}</span>
+        </div>
+
+        <div class="flex justify-between border-b border-surface-200 dark:border-surface-700 pb-2 items-center">
+          <span class="text-surface-600 dark:text-surface-400 font-medium text-sm">Original File</span>
+          <span class="text-sm font-semibold truncate max-w-[150px] text-surface-900 dark:text-surface-0" [title]="invoice.originalName">{{ invoice.originalName }}</span>
+        </div>
+        
+        <div class="flex justify-between border-b border-surface-200 dark:border-surface-700 pb-2 items-center">
+          <span class="text-surface-600 dark:text-surface-400 font-medium text-sm">Status</span>
+          <p-tag [value]="invoice.status" [severity]="getStatusSeverity(invoice.status)"></p-tag>
+        </div>
+
+        <div class="mt-2">
+          <span class="text-surface-600 dark:text-surface-400 font-medium text-sm mb-2 block border-b border-surface-200 dark:border-surface-700 pb-2">OCR Extracted Data</span>
+          
+          <!-- Successful JSON output -->
+          <div *ngIf="invoice.status === 'COMPLETED'; else noData" class="bg-surface-50 dark:bg-surface-800 p-4 rounded-xl border border-surface-200 dark:border-surface-700 max-h-96 overflow-y-auto mt-4 CustomScrollbar">
+            <pre class="text-xs text-secondary-600 dark:text-surface-300 font-mono whitespace-pre-wrap">{{ parseOcr(invoice.ocrData) | json }}</pre>
           </div>
+          
+          <!-- In progress / error state -->
           <ng-template #noData>
-            <p *ngIf="invoice.status === 'PROCESSING'">OCR is still processing... Please wait.</p>
-            <p *ngIf="invoice.status === 'PENDING'">Invoice in queue for processing.</p>
-            <p *ngIf="invoice.status === 'FAILED'">Failed to process this invoice.</p>
+            <div class="mt-4 bg-surface-50 dark:bg-surface-900 p-6 rounded-xl border border-surface-200 dark:border-surface-700 text-center flex flex-col items-center gap-3">
+              <i *ngIf="invoice.status === 'PROCESSING'" class="pi pi-spin pi-spinner text-primary text-3xl"></i>
+              <i *ngIf="invoice.status === 'PENDING'" class="pi pi-hourglass text-surface-400 text-3xl"></i>
+              <i *ngIf="invoice.status === 'FAILED'" class="pi pi-exclamation-triangle text-red-500 text-3xl"></i>
+              
+              <p class="text-sm text-surface-600 dark:text-surface-400 font-medium" *ngIf="invoice.status === 'PROCESSING'">OCR is processing, please wait...</p>
+              <p class="text-sm text-surface-600 dark:text-surface-400 font-medium" *ngIf="invoice.status === 'PENDING'">Invoice in queue.</p>
+              <p class="text-sm text-surface-600 dark:text-surface-400 font-medium" *ngIf="invoice.status === 'FAILED'">Processing failed.</p>
+            </div>
           </ng-template>
         </div>
       </div>
-    </aside>
-  </main>
+    </p-card>
+    
+    <!-- Empty state for details -->
+    <p-card *ngIf="!selectedInvoice()" styleClass="shadow-sm bg-surface-50 dark:bg-surface-900 text-center border border-dashed border-surface-300 dark:border-surface-700">
+      <div class="py-8 flex flex-col items-center justify-center">
+        <i class="pi pi-info-circle text-4xl mb-4 text-surface-400"></i>
+        <p class="text-surface-600 dark:text-surface-400 text-sm">Select an invoice from the table to view its details and OCR extraction results.</p>
+      </div>
+    </p-card>
+  </div>
 </div>

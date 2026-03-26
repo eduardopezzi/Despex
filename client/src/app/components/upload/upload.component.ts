@@ -2,12 +2,15 @@ import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { InvoiceService } from '../../services/invoice.service';
 
+import { CardModule } from 'primeng/card';
+import { ButtonModule } from 'primeng/button';
+import { MessageModule } from 'primeng/message';
+
 @Component({
   selector: 'app-upload',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, CardModule, ButtonModule, MessageModule],
   templateUrl: './upload.component.html',
-  styleUrls: ['./upload.component.css']
 })
 export class UploadComponent {
   private invoiceService = inject(InvoiceService);
