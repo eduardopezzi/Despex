@@ -1,23 +1,29 @@
-import {Processor, WorkerHost} from '@nestjs/bullmq';
-import {Logger} from '@nestjs/common';
-import {Job} from 'bullmq';
+import { Processor, WorkerHost } from '@nestjs/bullmq';
+import { Inject, Logger } from '@nestjs/common';
+import { Job } from 'bullmq';
 import * as fs from 'fs';
-import * as path from 'path';
 import axios from 'axios';
-import {InvoicesDao} from '@biz-modules/invoices/invoices.dao';
-import {InvoiceStatus} from '@core/types/invoice-status.enum';
-import {AppSecret} from '@core/types/app-secret.enum';
+import { extname } from 'path';
+import { InvoicesDao } from '@biz-modules/invoices/invoices.dao';
+import { InvoiceStatus } from '@core/types/invoice-status.enum';
+import { AppSecret } from '@core/types/app-secret.enum';
+import { SecretProvider } from '@core/secrets/secret-provider.interface';
+import { LocalStorageProvider } from '@core/storage/local-storage.provider';
 
 @Processor('ocr-queue')
 export class OcrProcessor extends WorkerHost {
   private readonly logger = new Logger(OcrProcessor.name);
 
-  constructor(private readonly invoicesDao: InvoicesDao) {
+  constructor(
+    private readonly invoicesDao: InvoicesDao,
+    @Inject(SecretProvider) private readonly secretProvider: SecretProvider,
+    private readonly localStorage: LocalStorageProvider,
+  ) {
     super();
   }
 
   async process(job: Job<{ invoiceId: number }>): Promise<void> {
-    const {invoiceId} = job.data;
+    const { invoiceId } = job.data;
     this.logger.log(`Processing OCR for invoice #${invoiceId}`);
 
     const invoice = await this.invoicesDao.getOneByPk(invoiceId);
@@ -29,45 +35,43 @@ export class OcrProcessor extends WorkerHost {
     try {
       await this.invoicesDao.updateStatus(invoiceId, InvoiceStatus.Processing);
 
-      const filePath = path.join('./uploads', invoice.filename);
+      const filePath = this.localStorage.getFilePath(invoice.filename);
       if (!fs.existsSync(filePath)) {
         throw new Error(`File not found on disk: ${filePath}`);
       }
 
-      const mistralApiKey = process.env[AppSecret.MistralApiKey];
-      if (!mistralApiKey) {
-        throw new Error(`Secret "${AppSecret.MistralApiKey}" is not set`);
-      }
-
+      const mistralApiKey = await this.secretProvider.getSecretOrThrow(
+        AppSecret.MistralApiKey,
+      );
       const base64Content = fs.readFileSync(filePath).toString('base64');
       const mimeType = OcrProcessor.getMimeType(
-          path.extname(invoice.filename).toLowerCase(),
+        extname(invoice.filename).toLowerCase(),
       );
 
       this.logger.log(`Calling Mistral OCR API for invoice #${invoiceId}`);
 
       const response = await axios.post(
-          'https://api.mistral.ai/v1/ocr',
-          {
-            model: 'mistral-ocr-latest',
-            document: {
-              type: 'document_content',
-              document_content: base64Content,
-              document_media_type: mimeType,
-            },
+        'https://api.mistral.ai/v1/ocr',
+        {
+          model: 'mistral-ocr-latest',
+          document: {
+            type: 'document_content',
+            document_content: base64Content,
+            document_media_type: mimeType,
           },
-          {
-            headers: {
-              Authorization: `Bearer ${mistralApiKey}`,
-              'Content-Type': 'application/json',
-            },
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${mistralApiKey}`,
+            'Content-Type': 'application/json',
           },
+        },
       );
 
       await this.invoicesDao.updateStatus(
-          invoiceId,
-          InvoiceStatus.Completed,
-          JSON.stringify(response.data),
+        invoiceId,
+        InvoiceStatus.Completed,
+        JSON.stringify(response.data),
       );
       this.logger.log(`Successfully completed OCR for invoice #${invoiceId}`);
     } catch (error) {

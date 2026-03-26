@@ -1,10 +1,13 @@
-import {DynamicModule, ForwardReference, Module, Type} from '@nestjs/common';
-import {BullModule} from '@nestjs/bullmq';
-import {ServeStaticModule} from '@nestjs/serve-static';
-import {join} from 'path';
-import {DatabaseModule} from '@core/database/database.module';
-import {InvoicesModule} from '@biz-modules/invoices/invoices.module';
-import {AppSecret} from '@core/types/app-secret.enum';
+import { DynamicModule, ForwardReference, Module, Type } from '@nestjs/common';
+import { BullModule } from '@nestjs/bullmq';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
+import { DatabaseModule } from '@core/database/database.module';
+import { SecretsModule } from '@core/secrets/secrets.module';
+import { StorageModule } from '@core/storage/storage.module';
+import { InvoicesModule } from '@biz-modules/invoices/invoices.module';
+import { SecretProvider } from '@core/secrets/secret-provider.interface';
+import { AppSecret } from '@core/types/app-secret.enum';
 
 type NestModuleImport =
   | Type
@@ -13,12 +16,21 @@ type NestModuleImport =
   | ForwardReference;
 
 const moduleImports: NestModuleImport[] = [
+  SecretsModule,
   DatabaseModule,
-  BullModule.forRoot({
-    connection: {
-      host: process.env[AppSecret.RedisHost] || 'localhost',
-      port: parseInt(process.env[AppSecret.RedisPort] || '6379'),
-    },
+  StorageModule,
+  BullModule.forRootAsync({
+    imports: [SecretsModule],
+    inject: [SecretProvider],
+    useFactory: async (secretProvider: SecretProvider) => ({
+      connection: {
+        host:
+          (await secretProvider.getSecret(AppSecret.RedisHost)) || 'localhost',
+        port: parseInt(
+          (await secretProvider.getSecret(AppSecret.RedisPort)) || '6379',
+        ),
+      },
+    }),
   }),
   InvoicesModule,
 ];
@@ -35,5 +47,4 @@ if (process.env[AppSecret.NodeEnv] === 'production') {
 @Module({
   imports: moduleImports,
 })
-export class AppModule {
-}
+export class AppModule {}

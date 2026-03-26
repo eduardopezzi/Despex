@@ -1,5 +1,5 @@
-import {Injectable} from '@nestjs/common';
-import {DataSource, EntityManager} from 'typeorm';
+import { Injectable } from '@nestjs/common';
+import { DataSource, EntityManager } from 'typeorm';
 
 /**
  * Generic database service providing transaction support.
@@ -13,8 +13,7 @@ import {DataSource, EntityManager} from 'typeorm';
  */
 @Injectable()
 export class DbService {
-  constructor(private readonly dataSource: DataSource) {
-  }
+  constructor(private readonly dataSource: DataSource) {}
 
   transaction<T>(work: (em: EntityManager) => Promise<T>): Promise<T> {
     return this.dataSource.transaction(work);

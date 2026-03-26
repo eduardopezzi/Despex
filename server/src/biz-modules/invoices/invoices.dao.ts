@@ -1,8 +1,8 @@
-import {Injectable} from '@nestjs/common';
-import {BaseDao} from '@core/database/base.dao';
-import {InvoiceEntity} from '@core/database/entities/invoice.entity';
-import {ReposService} from '@core/database/repos.service';
-import {InvoiceStatus} from '@core/types/invoice-status.enum';
+import { Injectable } from '@nestjs/common';
+import { BaseDao } from '@core/database/base.dao';
+import { InvoiceEntity } from '@core/database/entities/invoice.entity';
+import { ReposService } from '@core/database/repos.service';
+import { InvoiceStatus } from '@core/types/invoice-status.enum';
 
 @Injectable()
 export class InvoicesDao extends BaseDao<InvoiceEntity> {
@@ -11,7 +11,7 @@ export class InvoicesDao extends BaseDao<InvoiceEntity> {
   }
 
   findAllByDateDesc(): Promise<InvoiceEntity[]> {
-    return this.repo.find({order: {createdAt: 'DESC'}});
+    return this.repo.find({ order: { createdAt: 'DESC' } });
   }
 
   async createAndEnqueue(
@@ -32,7 +32,7 @@ export class InvoicesDao extends BaseDao<InvoiceEntity> {
   ): Promise<InvoiceEntity> {
     return this.updateByPk(id, {
       status,
-      ...(ocrData !== undefined && {ocrData}),
+      ...(ocrData !== undefined && { ocrData }),
     });
   }
 }

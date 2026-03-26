@@ -1,8 +1,8 @@
-import {Injectable, Logger} from '@nestjs/common';
-import {InvoicesDao} from '@biz-modules/invoices/invoices.dao';
-import {InvoiceEntity} from '@core/database/entities/invoice.entity';
-import {InjectQueue} from '@nestjs/bullmq';
-import {Queue} from 'bullmq';
+import { Injectable, Logger } from '@nestjs/common';
+import { InvoicesDao } from '@biz-modules/invoices/invoices.dao';
+import { InvoiceEntity } from '@core/database/entities/invoice.entity';
+import { InjectQueue } from '@nestjs/bullmq';
+import { Queue } from 'bullmq';
 
 @Injectable()
 export class InvoicesService {
@@ -11,8 +11,7 @@ export class InvoicesService {
   constructor(
     private readonly invoicesDao: InvoicesDao,
     @InjectQueue('ocr-queue') private readonly ocrQueue: Queue,
-  ) {
-  }
+  ) {}
 
   findAll(): Promise<InvoiceEntity[]> {
     return this.invoicesDao.findAllByDateDesc();
@@ -27,7 +26,7 @@ export class InvoicesService {
       filename,
       originalName,
     );
-    await this.ocrQueue.add('process-ocr', {invoiceId: invoice.id});
+    await this.ocrQueue.add('process-ocr', { invoiceId: invoice.id });
     this.logger.log(`Invoice #${invoice.id} queued for OCR`);
     return invoice;
   }
