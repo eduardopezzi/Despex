@@ -2,13 +2,14 @@ import { Injectable, signal, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Invoice } from '@models/invoice.model';
 import { Observable, tap } from 'rxjs';
+import { environment } from '@environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class InvoiceService {
   private http = inject(HttpClient);
-  private apiUrl = '/api/invoices';
+  private apiUrl = `${environment.apiUrl}/invoices`;
 
   // State using Signal
   invoices = signal<Invoice[]>([]);

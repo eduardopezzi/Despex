@@ -11,8 +11,10 @@ services:
       - DATABASE_PATH=/app/data/invoice.sqlite
       - MISTRAL_API_KEY=${MISTRAL_API_KEY}
     volumes:
-      - ./data:/app/data
-      - ./uploads:/app/uploads
+      # Path to store DB (for now), we might store more data in there in the future
+      - ${DATA_PATH_VOLUME:-./data}:/app/data
+      # Path to store the uploads
+      - ${UPLOADS_PATH_VOLUME:-./uploads}:/app/uploads
     depends_on:
       - redis
     restart: always
