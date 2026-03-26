@@ -11,9 +11,9 @@ import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
 import type { Request } from 'express';
 import Busboy from 'busboy';
-import { AppSecret } from '@core/types/app-secret.enum';
 import { SecretProvider } from '@core/secrets/secret-provider.interface';
 import { StorageProvider } from '@core/storage/storage-provider.interface';
+import { AppSecret } from '@core/types/app-secret.enum';
 import {
   ALLOWED_MIME_TYPES,
   DEFAULT_MAX_FILE_SIZE_BYTES,
@@ -82,6 +82,7 @@ export class InvoicesService {
         },
       });
 
+      let fileFound = false;
       let settled = false;
 
       const settle = (action: () => void) => {
@@ -93,6 +94,7 @@ export class InvoicesService {
 
       busboy.on('file', (fieldname, stream, info) => {
         const { filename, mimeType } = info;
+        fileFound = true;
 
         if (!filename) {
           stream.resume(); // drain without piping
@@ -153,13 +155,15 @@ export class InvoicesService {
       });
 
       busboy.on('finish', () => {
-        settle(() =>
-          reject(
-            new BadRequestException(
-              'No file field found in the multipart request.',
+        if (!fileFound) {
+          settle(() =>
+            reject(
+              new BadRequestException(
+                'No file field found in the multipart request.',
+              ),
             ),
-          ),
-        );
+          );
+        }
       });
 
       req.pipe(busboy);
