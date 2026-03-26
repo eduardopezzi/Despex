@@ -24,11 +24,8 @@ const moduleImports: NestModuleImport[] = [
     inject: [SecretProvider],
     useFactory: async (secretProvider: SecretProvider) => ({
       connection: {
-        host:
-          (await secretProvider.getSecret(AppSecret.RedisHost)) || 'localhost',
-        port: parseInt(
-          (await secretProvider.getSecret(AppSecret.RedisPort)) || '6379',
-        ),
+        host: await secretProvider.getSecretOrThrow(AppSecret.RedisHost),
+        port: await secretProvider.getSecretAsIntOrThrow(AppSecret.RedisPort),
       },
     }),
   }),
@@ -47,4 +44,4 @@ if (process.env[AppSecret.NodeEnv] === 'production') {
 @Module({
   imports: moduleImports,
 })
-export class AppModule {}
+export class AppModule { }

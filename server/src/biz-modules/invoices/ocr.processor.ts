@@ -9,6 +9,7 @@ import { InvoiceStatus } from '@core/types/invoice-status.enum';
 import { AppSecret } from '@core/types/app-secret.enum';
 import { SecretProvider } from '@core/secrets/secret-provider.interface';
 import { LocalStorageProvider } from '@core/storage/local-storage.provider';
+import { MimeType } from '@core/types/mime-type.enum';
 
 @Processor('ocr-queue')
 export class OcrProcessor extends WorkerHost {
@@ -40,13 +41,9 @@ export class OcrProcessor extends WorkerHost {
         throw new Error(`File not found on disk: ${filePath}`);
       }
 
-      const mistralApiKey = await this.secretProvider.getSecretOrThrow(
-        AppSecret.MistralApiKey,
-      );
+      const mistralApiKey = await this.secretProvider.getSecretOrThrow(AppSecret.MistralApiKey);
       const base64Content = fs.readFileSync(filePath).toString('base64');
-      const mimeType = OcrProcessor.getMimeType(
-        extname(invoice.filename).toLowerCase(),
-      );
+      const mimeType = OcrProcessor.getMimeType(extname(invoice.filename).toLowerCase());
 
       this.logger.log(`Calling Mistral OCR API for invoice #${invoiceId}`);
 
@@ -85,14 +82,14 @@ export class OcrProcessor extends WorkerHost {
   private static getMimeType(ext: string): string {
     switch (ext) {
       case '.pdf':
-        return 'application/pdf';
+        return MimeType.Pdf;
       case '.jpg':
       case '.jpeg':
-        return 'image/jpeg';
+        return MimeType.Jpeg;
       case '.png':
-        return 'image/png';
+        return MimeType.Png;
       default:
-        return 'application/octet-stream';
+        return MimeType.OctetStream;
     }
   }
 }

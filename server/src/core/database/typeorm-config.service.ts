@@ -6,17 +6,15 @@ import { AppSecret } from '@core/types/app-secret.enum';
 
 @Injectable()
 export class TypeOrmConfigService implements TypeOrmOptionsFactory {
-  constructor(private readonly secretProvider: SecretProvider) {}
+  constructor(private readonly secretProvider: SecretProvider) { }
 
   async createTypeOrmOptions(): Promise<TypeOrmModuleOptions> {
-    const databasePath = await this.secretProvider.getSecret(
-      AppSecret.DatabasePath,
-    );
+    const databasePath = await this.secretProvider.getSecretOrThrow(AppSecret.DatabasePath);
     const nodeEnv = await this.secretProvider.getSecret(AppSecret.NodeEnv);
 
     return {
       type: 'sqlite',
-      database: databasePath || 'data/invoice.sqlite',
+      database: databasePath,
       entities: [InvoiceEntity],
       synchronize: nodeEnv !== 'production',
       autoLoadEntities: true,
