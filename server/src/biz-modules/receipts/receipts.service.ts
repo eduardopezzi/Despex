@@ -5,8 +5,8 @@ import {
   InternalServerErrorException,
   Logger,
 } from '@nestjs/common';
-import { InvoicesDao } from '@biz-modules/invoices/invoices.dao';
-import { InvoiceEntity } from '@core/database/entities/invoice.entity';
+import { ReceiptsDao } from '@biz-modules/receipts/receipts.dao';
+import { ReceiptEntity } from '@core/database/entities/receipt.entity';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
 import type { Request } from 'express';
@@ -21,25 +21,25 @@ import {
 } from '@core/constants/media.constants';
 
 @Injectable()
-export class InvoicesService {
-  private readonly logger = new Logger(InvoicesService.name);
+export class ReceiptsService {
+  private readonly logger = new Logger(ReceiptsService.name);
 
   constructor(
-    private readonly invoicesDao: InvoicesDao,
+    private readonly receiptsDao: ReceiptsDao,
     @InjectQueue(QueueName.Ocr) private readonly ocrQueue: Queue,
     private readonly secretProvider: SecretProvider,
     @Inject(StorageProvider) private readonly storage: StorageProvider,
   ) {}
 
-  findAll(): Promise<InvoiceEntity[]> {
-    return this.invoicesDao.findAllByDateDesc();
+  findAll(): Promise<ReceiptEntity[]> {
+    return this.receiptsDao.findAllByDateDesc();
   }
 
-  findOneOrFail(id: number): Promise<InvoiceEntity> {
-    return this.invoicesDao.getOneByPkOrFail(id);
+  findOneOrFail(id: number): Promise<ReceiptEntity> {
+    return this.receiptsDao.getOneByPkOrFail(id);
   }
 
-  async upload(req: Request): Promise<InvoiceEntity> {
+  async upload(req: Request): Promise<ReceiptEntity> {
     const contentType = req.headers['content-type'];
     if (!contentType?.startsWith('multipart/form-data')) {
       throw new BadRequestException('Expected a multipart/form-data request.');
@@ -54,11 +54,11 @@ export class InvoicesService {
 
     const { key, originalName } = await this.parseAndStream(req, maxSizeBytes);
 
-    const invoice = await this.invoicesDao.createAndEnqueue(key, originalName);
-    await this.ocrQueue.add('process-ocr', { invoiceId: invoice.id });
-    this.logger.log(`Invoice #${invoice.id} queued for OCR`);
+    const receipt = await this.receiptsDao.createAndEnqueue(key, originalName);
+    await this.ocrQueue.add('process-ocr', { receiptId: receipt.id });
+    this.logger.log(`Receipt #${receipt.id} queued for OCR`);
 
-    return invoice;
+    return receipt;
   }
 
   /**

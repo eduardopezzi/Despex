@@ -1,7 +1,7 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { InvoiceService } from '@services/invoice.service';
-import { InvoiceStatus } from '@models/invoice.model';
+import { ReceiptService } from '@services/receipt.service';
+import { ReceiptStatus } from '@models/receipt.model';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { TagModule } from 'primeng/tag';
@@ -15,19 +15,19 @@ import { UploadDialogComponent } from '@components/upload-dialog/upload-dialog.c
   templateUrl: './home.page.html',
 })
 export class HomePageComponent implements OnInit {
-  invoiceService = inject(InvoiceService);
+  receiptService = inject(ReceiptService);
   showUpload = false;
 
   ngOnInit() {
-    this.invoiceService.fetchInvoices();
+    this.receiptService.fetchReceipts();
   }
 
-  get recentInvoices() {
-    return this.invoiceService.invoices().slice(0, 6);
+  get recentReceipts() {
+    return this.receiptService.receipts().slice(0, 6);
   }
 
   get stats() {
-    const all = this.invoiceService.invoices();
+    const all = this.receiptService.receipts();
     return [
       {
         label: 'Total',
@@ -38,21 +38,21 @@ export class HomePageComponent implements OnInit {
       },
       {
         label: 'Completed',
-        value: all.filter(i => i.status === InvoiceStatus.COMPLETED).length,
+        value: all.filter(i => i.status === ReceiptStatus.COMPLETED).length,
         icon: 'pi pi-check-circle',
         iconBg: 'bg-emerald-50 dark:bg-emerald-900/30',
         iconColor: 'text-emerald-500',
       },
       {
         label: 'Processing',
-        value: all.filter(i => i.status === InvoiceStatus.PROCESSING || i.status === InvoiceStatus.PENDING).length,
+        value: all.filter(i => i.status === ReceiptStatus.PROCESSING || i.status === ReceiptStatus.PENDING).length,
         icon: 'pi pi-spin pi-spinner',
         iconBg: 'bg-blue-50 dark:bg-blue-900/30',
         iconColor: 'text-blue-500',
       },
       {
         label: 'Failed',
-        value: all.filter(i => i.status === InvoiceStatus.FAILED).length,
+        value: all.filter(i => i.status === ReceiptStatus.FAILED).length,
         icon: 'pi pi-exclamation-triangle',
         iconBg: 'bg-red-50 dark:bg-red-900/30',
         iconColor: 'text-red-500',
@@ -62,24 +62,24 @@ export class HomePageComponent implements OnInit {
 
   onUploaded() {
     this.showUpload = false;
-    this.invoiceService.fetchInvoices();
+    this.receiptService.fetchReceipts();
   }
 
-  getStatusSeverity(status: InvoiceStatus): 'success' | 'info' | 'warn' | 'danger' | 'secondary' {
+  getStatusSeverity(status: ReceiptStatus): 'success' | 'info' | 'warn' | 'danger' | 'secondary' {
     switch (status) {
-      case InvoiceStatus.PENDING:    return 'secondary';
-      case InvoiceStatus.PROCESSING: return 'info';
-      case InvoiceStatus.COMPLETED:  return 'success';
-      case InvoiceStatus.FAILED:     return 'danger';
+      case ReceiptStatus.PENDING:    return 'secondary';
+      case ReceiptStatus.PROCESSING: return 'info';
+      case ReceiptStatus.COMPLETED:  return 'success';
+      case ReceiptStatus.FAILED:     return 'danger';
     }
   }
 
-  getCardBg(status: InvoiceStatus): string {
+  getCardBg(status: ReceiptStatus): string {
     switch (status) {
-      case InvoiceStatus.PENDING:    return 'bg-surface-100 dark:bg-surface-800';
-      case InvoiceStatus.PROCESSING: return 'bg-blue-50 dark:bg-blue-950/40';
-      case InvoiceStatus.COMPLETED:  return 'bg-emerald-50 dark:bg-emerald-950/40';
-      case InvoiceStatus.FAILED:     return 'bg-red-50 dark:bg-red-950/40';
+      case ReceiptStatus.PENDING:    return 'bg-surface-100 dark:bg-surface-800';
+      case ReceiptStatus.PROCESSING: return 'bg-blue-50 dark:bg-blue-950/40';
+      case ReceiptStatus.COMPLETED:  return 'bg-emerald-50 dark:bg-emerald-950/40';
+      case ReceiptStatus.FAILED:     return 'bg-red-50 dark:bg-red-950/40';
     }
   }
 

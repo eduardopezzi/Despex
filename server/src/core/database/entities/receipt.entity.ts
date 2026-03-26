@@ -1,9 +1,9 @@
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 import { WithModificationDates } from '@core/database/entities/with-modification-dates';
-import { InvoiceStatus } from '@core/types/invoice-status.enum';
+import { ReceiptStatus } from '@core/types/receipt-status.enum';
 
-@Entity('invoices')
-export class InvoiceEntity extends WithModificationDates {
+@Entity('receipts')
+export class ReceiptEntity extends WithModificationDates {
   @PrimaryGeneratedColumn()
   id!: number;
 
@@ -16,10 +16,10 @@ export class InvoiceEntity extends WithModificationDates {
   @Column({
     name: 'status',
     type: 'varchar',
-    enum: InvoiceStatus,
-    default: InvoiceStatus.Pending,
+    enum: ReceiptStatus,
+    default: ReceiptStatus.Pending,
   })
-  status!: InvoiceStatus;
+  status!: ReceiptStatus;
 
   @Column({ name: 'ocr_data', type: 'text', nullable: true })
   ocrData?: string | null;

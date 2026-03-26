@@ -1,37 +1,37 @@
 import { Injectable, signal, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Invoice } from '@models/invoice.model';
+import { Receipt } from '@models/receipt.model';
 import { Observable, tap } from 'rxjs';
 import { environment } from '@environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
-export class InvoiceService {
+export class ReceiptService {
   private http = inject(HttpClient);
-  private apiUrl = `${environment.apiUrl}/invoices`;
+  private apiUrl = `${environment.apiUrl}/receipts`;
 
   // State using Signal
-  invoices = signal<Invoice[]>([]);
+  receipts = signal<Receipt[]>([]);
   loading = signal<boolean>(false);
 
-  fetchInvoices() {
+  fetchReceipts() {
     this.loading.set(true);
-    return this.http.get<Invoice[]>(this.apiUrl).pipe(
+    return this.http.get<Receipt[]>(this.apiUrl).pipe(
       tap(data => {
-        this.invoices.set(data);
+        this.receipts.set(data);
         this.loading.set(false);
       })
     ).subscribe();
   }
 
-  uploadInvoice(file: File) {
+  uploadReceipt(file: File) {
     const formData = new FormData();
     formData.append('file', file);
     return this.http.post<{ id: number; message: string }>(`${this.apiUrl}/upload`, formData);
   }
 
-  getInvoice(id: number): Observable<Invoice> {
-    return this.http.get<Invoice>(`${this.apiUrl}/${id}`);
+  getReceipt(id: number): Observable<Receipt> {
+    return this.http.get<Receipt>(`${this.apiUrl}/${id}`);
   }
 }

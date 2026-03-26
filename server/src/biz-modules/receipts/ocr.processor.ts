@@ -4,8 +4,8 @@ import { Job } from 'bullmq';
 import * as fs from 'fs';
 import axios from 'axios';
 import { extname } from 'path';
-import { InvoicesDao } from '@biz-modules/invoices/invoices.dao';
-import { InvoiceStatus } from '@core/types/invoice-status.enum';
+import { ReceiptsDao } from '@biz-modules/receipts/receipts.dao';
+import { ReceiptStatus } from '@core/types/receipt-status.enum';
 import { AppSecret } from '@core/types/app-secret.enum';
 import { SecretProvider } from '@core/secrets/secret-provider.interface';
 import { LocalStorageProvider } from '@core/storage/local-storage.provider';
@@ -17,36 +17,40 @@ export class OcrProcessor extends WorkerHost {
   private readonly logger = new Logger(OcrProcessor.name);
 
   constructor(
-    private readonly invoicesDao: InvoicesDao,
+    private readonly receiptsDao: ReceiptsDao,
     @Inject(SecretProvider) private readonly secretProvider: SecretProvider,
     private readonly localStorage: LocalStorageProvider,
   ) {
     super();
   }
 
-  async process(job: Job<{ invoiceId: number }>): Promise<void> {
-    const { invoiceId } = job.data;
-    this.logger.log(`Processing OCR for invoice #${invoiceId}`);
+  async process(job: Job<{ receiptId: number }>): Promise<void> {
+    const { receiptId } = job.data;
+    this.logger.log(`Processing OCR for receipt #${receiptId}`);
 
-    const invoice = await this.invoicesDao.getOneByPk(invoiceId);
-    if (!invoice) {
-      this.logger.error(`Invoice #${invoiceId} not found — skipping`);
+    const receipt = await this.receiptsDao.getOneByPk(receiptId);
+    if (!receipt) {
+      this.logger.error(`Receipt #${receiptId} not found — skipping`);
       return;
     }
 
     try {
-      await this.invoicesDao.updateStatus(invoiceId, InvoiceStatus.Processing);
+      await this.receiptsDao.updateStatus(receiptId, ReceiptStatus.Processing);
 
-      const filePath = this.localStorage.getFilePath(invoice.filename);
+      const filePath = this.localStorage.getFilePath(receipt.filename);
       if (!fs.existsSync(filePath)) {
         throw new Error(`File not found on disk: ${filePath}`);
       }
 
-      const mistralApiKey = await this.secretProvider.getSecretOrThrow(AppSecret.MistralApiKey);
+      const mistralApiKey = await this.secretProvider.getSecretOrThrow(
+        AppSecret.MistralApiKey,
+      );
       const base64Content = fs.readFileSync(filePath).toString('base64');
-      const mimeType = OcrProcessor.getMimeType(extname(invoice.filename).toLowerCase());
+      const mimeType = OcrProcessor.getMimeType(
+        extname(receipt.filename).toLowerCase(),
+      );
 
-      this.logger.log(`Calling Mistral OCR API for invoice #${invoiceId}`);
+      this.logger.log(`Calling Mistral OCR API for receipt #${receiptId}`);
 
       const response = await axios.post(
         'https://api.mistral.ai/v1/ocr',
@@ -66,16 +70,16 @@ export class OcrProcessor extends WorkerHost {
         },
       );
 
-      await this.invoicesDao.updateStatus(
-        invoiceId,
-        InvoiceStatus.Completed,
+      await this.receiptsDao.updateStatus(
+        receiptId,
+        ReceiptStatus.Completed,
         JSON.stringify(response.data),
       );
-      this.logger.log(`Successfully completed OCR for invoice #${invoiceId}`);
+      this.logger.log(`Successfully completed OCR for receipt #${receiptId}`);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      this.logger.error(`OCR failed for invoice #${invoiceId}: ${message}`);
-      await this.invoicesDao.updateStatus(invoiceId, InvoiceStatus.Failed);
+      this.logger.error(`OCR failed for receipt #${receiptId}: ${message}`);
+      await this.receiptsDao.updateStatus(receiptId, ReceiptStatus.Failed);
       throw error;
     }
   }

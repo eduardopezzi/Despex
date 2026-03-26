@@ -1,15 +1,15 @@
-export enum InvoiceStatus {
+export enum ReceiptStatus {
   PENDING = 'PENDING',
   PROCESSING = 'PROCESSING',
   COMPLETED = 'COMPLETED',
   FAILED = 'FAILED',
 }
 
-export interface Invoice {
+export interface Receipt {
   id: number;
   filename: string;
   originalName: string;
-  status: InvoiceStatus;
+  status: ReceiptStatus;
   ocrData?: string;
   createdAt: Date;
   updatedAt: Date;

@@ -21,7 +21,7 @@ async function bootstrap() {
 
   const config = new DocumentBuilder()
     .setTitle('Open Receipt OCR API')
-    .setDescription('Invoice management and OCR processing API')
+    .setDescription('Receipt management and OCR processing API')
     .setVersion('1.0')
     .build();
   const document = SwaggerModule.createDocument(app, config);
@@ -35,4 +35,7 @@ async function bootstrap() {
   Logger.log(`📚 Swagger docs: http://localhost:${port}/api/docs`);
 }
 
-bootstrap();
+bootstrap().catch((err) => {
+  Logger.error('Application failed to start', err);
+  process.exit(1);
+});

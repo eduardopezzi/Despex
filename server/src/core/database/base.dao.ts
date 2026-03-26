@@ -14,9 +14,9 @@ import {
  * Extend this class in a concrete DAO and pass the TypeORM repository:
  *
  *   @Injectable()
- *   export class InvoicesDao extends BaseDao<InvoiceEntity> {
+ *   export class ReceiptsDao extends BaseDao<ReceiptEntity> {
  *     constructor(repos: ReposService) {
- *       super(repos.invoice);
+ *       super(repos.receipt);
  *     }
  *   }
  */

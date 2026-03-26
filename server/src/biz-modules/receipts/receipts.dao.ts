@@ -1,35 +1,35 @@
 import { Injectable } from '@nestjs/common';
 import { BaseDao } from '@core/database/base.dao';
-import { InvoiceEntity } from '@core/database/entities/invoice.entity';
+import { ReceiptEntity } from '@core/database/entities/receipt.entity';
 import { ReposService } from '@core/database/repos.service';
-import { InvoiceStatus } from '@core/types/invoice-status.enum';
+import { ReceiptStatus } from '@core/types/receipt-status.enum';
 
 @Injectable()
-export class InvoicesDao extends BaseDao<InvoiceEntity> {
+export class ReceiptsDao extends BaseDao<ReceiptEntity> {
   constructor(repos: ReposService) {
-    super(repos.invoice);
+    super(repos.receipt);
   }
 
-  findAllByDateDesc(): Promise<InvoiceEntity[]> {
+  findAllByDateDesc(): Promise<ReceiptEntity[]> {
     return this.repo.find({ order: { createdAt: 'DESC' } });
   }
 
   async createAndEnqueue(
     filename: string,
     originalName: string,
-  ): Promise<InvoiceEntity> {
+  ): Promise<ReceiptEntity> {
     return this.create({
       filename,
       originalName,
-      status: InvoiceStatus.Pending,
+      status: ReceiptStatus.Pending,
     });
   }
 
   updateStatus(
     id: number,
-    status: InvoiceStatus,
+    status: ReceiptStatus,
     ocrData?: string | null,
-  ): Promise<InvoiceEntity> {
+  ): Promise<ReceiptEntity> {
     return this.updateByPk(id, {
       status,
       ...(ocrData !== undefined && { ocrData }),

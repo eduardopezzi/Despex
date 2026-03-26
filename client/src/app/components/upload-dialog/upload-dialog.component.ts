@@ -1,6 +1,6 @@
 import { Component, EventEmitter, inject, Input, Output, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { InvoiceService } from '@services/invoice.service';
+import { ReceiptService } from '@services/receipt.service';
 
 import { DialogModule } from 'primeng/dialog';
 import { ButtonModule } from 'primeng/button';
@@ -14,7 +14,7 @@ import { ProgressBarModule } from 'primeng/progressbar';
   templateUrl: './upload-dialog.component.html',
 })
 export class UploadDialogComponent {
-  private invoiceService = inject(InvoiceService);
+  private receiptService = inject(ReceiptService);
 
   @Input() visible = false;
   @Output() visibleChange = new EventEmitter<boolean>();
@@ -50,7 +50,7 @@ export class UploadDialogComponent {
     this.uploading.set(true);
     this.message.set(null);
 
-    this.invoiceService.uploadInvoice(f).subscribe({
+    this.receiptService.uploadReceipt(f).subscribe({
       next: () => {
         this.uploading.set(false);
         this.message.set('Upload successful! OCR is queued.');

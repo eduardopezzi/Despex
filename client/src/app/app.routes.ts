@@ -11,8 +11,8 @@ export const routes: Routes = [
         loadComponent: () => import('@pages/home/home.page').then(m => m.HomePageComponent),
       },
       {
-        path: 'invoices',
-        loadComponent: () => import('@pages/invoices/invoices.page').then(m => m.InvoicesPageComponent),
+        path: 'receipts',
+        loadComponent: () => import('@pages/receipts/receipts.page').then(m => m.ReceiptsPageComponent),
       },
     ],
   },

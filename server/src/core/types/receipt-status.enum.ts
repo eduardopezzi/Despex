@@ -1,4 +1,4 @@
-export enum InvoiceStatus {
+export enum ReceiptStatus {
   Pending = 'PENDING',
   Processing = 'PROCESSING',
   Completed = 'COMPLETED',

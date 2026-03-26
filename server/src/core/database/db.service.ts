@@ -6,9 +6,9 @@ import { DataSource, EntityManager } from 'typeorm';
  *
  * Usage:
  *   const result = await this.db.transaction(async (em) => {
- *     const invoice = await em.findOneByOrFail(InvoiceEntity, { id });
- *     invoice.status = InvoiceStatus.Completed;
- *     return em.save(invoice);
+ *     const receipt = await em.findOneByOrFail(ReceiptEntity, { id });
+ *     receipt.status = ReceiptStatus.Completed;
+ *     return em.save(receipt);
  *   });
  */
 @Injectable()
