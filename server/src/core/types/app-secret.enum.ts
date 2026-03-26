@@ -1,6 +1,6 @@
 export enum AppSecret {
   // ─── App ────────────────────────────────────────────────────────────────────
-  Port = 'PORT',
+  ApiPort = 'API_PORT',
   NodeEnv = 'NODE_ENV',
 
   // ─── Secret provider ────────────────────────────────────────────────────────

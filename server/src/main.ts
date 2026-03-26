@@ -28,7 +28,7 @@ async function bootstrap() {
   SwaggerModule.setup('api/docs', app, document);
 
   const secretProvider = app.get(SecretProvider);
-  const port = (await secretProvider.getSecret(AppSecret.Port)) || '3000';
+  const port = (await secretProvider.getSecret(AppSecret.ApiPort)) || '3000';
   await app.listen(port);
 
   Logger.log(`🚀 Running on: http://localhost:${port}/${globalPrefix}`);
