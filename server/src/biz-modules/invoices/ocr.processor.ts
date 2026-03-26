@@ -10,8 +10,9 @@ import { AppSecret } from '@core/types/app-secret.enum';
 import { SecretProvider } from '@core/secrets/secret-provider.interface';
 import { LocalStorageProvider } from '@core/storage/local-storage.provider';
 import { MimeType } from '@core/types/mime-type.enum';
+import { QueueName } from '@core/types/queue-name.enum';
 
-@Processor('ocr-queue')
+@Processor(QueueName.Ocr)
 export class OcrProcessor extends WorkerHost {
   private readonly logger = new Logger(OcrProcessor.name);
 

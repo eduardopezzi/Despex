@@ -44,4 +44,4 @@ if (process.env[AppSecret.NodeEnv] === 'production') {
 @Module({
   imports: moduleImports,
 })
-export class AppModule { }
+export class AppModule {}

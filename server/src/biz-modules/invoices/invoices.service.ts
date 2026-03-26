@@ -14,6 +14,7 @@ import Busboy from 'busboy';
 import { SecretProvider } from '@core/secrets/secret-provider.interface';
 import { StorageProvider } from '@core/storage/storage-provider.interface';
 import { AppSecret } from '@core/types/app-secret.enum';
+import { QueueName } from '@core/types/queue-name.enum';
 import {
   ALLOWED_MIME_TYPES,
   DEFAULT_MAX_FILE_SIZE_BYTES,
@@ -25,7 +26,7 @@ export class InvoicesService {
 
   constructor(
     private readonly invoicesDao: InvoicesDao,
-    @InjectQueue('ocr-queue') private readonly ocrQueue: Queue,
+    @InjectQueue(QueueName.Ocr) private readonly ocrQueue: Queue,
     private readonly secretProvider: SecretProvider,
     @Inject(StorageProvider) private readonly storage: StorageProvider,
   ) {}
