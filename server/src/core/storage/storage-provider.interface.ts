@@ -10,10 +10,14 @@ export interface UploadResult {
   size: number;
 }
 
+/**
+ * Abstract storage provider.
+ *
+ * All uploads go through `uploadStream()` so the data is piped directly
+ * from the HTTP request to the storage destination without buffering in RAM.
+ */
 export abstract class StorageProvider {
   abstract readonly name: StorageProviderType;
-
-  abstract upload(file: Express.Multer.File): Promise<UploadResult>;
 
   abstract uploadStream(
     stream: Readable,

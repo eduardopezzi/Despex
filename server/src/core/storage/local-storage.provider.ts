@@ -1,8 +1,4 @@
-import {
-  Injectable,
-  InternalServerErrorException,
-  Logger,
-} from '@nestjs/common';
+import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
 import { createWriteStream, existsSync, mkdirSync } from 'fs';
 import { join } from 'path';
 import { Readable } from 'stream';
@@ -33,34 +29,7 @@ export class LocalStorageProvider extends StorageProvider {
     this.logger.log(`Local storage initialised at: ${this.uploadDir}`);
   }
 
-  async upload(file: Express.Multer.File): Promise<UploadResult> {
-    const key = `${randomUUID()}${extname(file.originalname)}`;
-    const filePath = join(this.uploadDir, key);
-
-    return new Promise((resolve, reject) => {
-      const writeStream = createWriteStream(filePath);
-      const readStream = Readable.from(file.buffer);
-      readStream.pipe(writeStream);
-
-      writeStream.on('finish', () => {
-        resolve({
-          url: `/api/uploads/${key}`,
-          key,
-          size: file.size,
-        });
-      });
-
-      writeStream.on('error', (err) => {
-        reject(
-          new InternalServerErrorException(
-            `Local file upload failed: ${err.message}`,
-          ),
-        );
-      });
-    });
-  }
-
-  async uploadStream(
+  uploadStream(
     stream: Readable,
     filename: string,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
