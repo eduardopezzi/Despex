@@ -48,11 +48,22 @@
           (click)="selectedReceipt = receipt; showDetail = true"
         >
           <!-- Card preview area -->
-          <div class="h-36 flex items-center justify-center"
+          <div class="h-36 flex items-center justify-center overflow-hidden relative border-b border-surface-100 dark:border-surface-800"
                [ngClass]="getCardBg(receipt.status)">
-            <i [class]="getFileIcon(receipt.originalName)"
-               class="text-5xl opacity-70 group-hover:scale-110 transition-transform duration-200">
-            </i>
+            @if (isFileImage(receipt.filename)) {
+              <img [src]="receiptService.getFileUrl(receipt.filename)" 
+                   [alt]="receipt.originalName"
+                   class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+            } @else {
+              <div class="flex flex-col items-center gap-2 opacity-60">
+                <i [class]="getFileIcon(receipt.originalName)"
+                   class="text-5xl group-hover:scale-110 transition-transform duration-200">
+                </i>
+              </div>
+            }
+            
+            <!-- Shadow overlay on hover -->
+            <div class="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors duration-200"></div>
           </div>
 
           <!-- Card body -->
@@ -94,6 +105,14 @@
   >
     @if (selectedReceipt) {
       <div class="flex flex-col gap-4">
+        <!-- Image Preview -->
+        @if (isFileImage(selectedReceipt.filename)) {
+          <div class="w-full h-56 rounded-xl overflow-hidden border border-surface-200 dark:border-surface-800 bg-surface-50 dark:bg-surface-900 flex items-center justify-center">
+            <img [src]="receiptService.getFileUrl(selectedReceipt.filename)" 
+                 class="max-w-full max-h-full object-contain shadow-sm"
+                 [alt]="selectedReceipt.originalName" />
+          </div>
+        }
         <div class="flex justify-between items-center border-b border-surface-100 dark:border-surface-800 pb-3">
           <span class="text-sm text-surface-500">{{ t('receipts.detail.status') }}</span>
           <p-tag [value]="t('receipts.status.' + selectedReceipt.status.toLowerCase())" [severity]="getStatusSeverity(selectedReceipt.status)" />

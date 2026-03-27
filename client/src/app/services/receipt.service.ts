@@ -35,4 +35,8 @@ export class ReceiptService {
   getReceipt(id: number): Observable<Receipt> {
     return this.http.get<Receipt>(`${this.apiUrl}/${id}`);
   }
+
+  getFileUrl(key: string): string {
+    return `${this.apiUrl}/uploads/${key}`;
+  }
 }

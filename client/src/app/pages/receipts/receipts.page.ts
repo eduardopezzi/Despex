@@ -151,4 +151,9 @@ export class ReceiptsPageComponent implements OnInit {
     if (ext === 'png' || ext === 'jpg' || ext === 'jpeg') return 'pi pi-image text-emerald-400';
     return 'pi pi-file text-surface-400';
   }
+
+  isFileImage(filename: string): boolean {
+    const ext = filename.split('.').pop()?.toLowerCase();
+    return ['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(ext || '');
+  }
 }
