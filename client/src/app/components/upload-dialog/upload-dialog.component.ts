@@ -13,7 +13,7 @@ import { FormsModule } from '@angular/forms';
 
 import { ConfigService } from '@services/config.service';
 
-import { TranslocoModule } from '@jsverse/transloco';
+import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 
 @Component({
   selector: 'app-upload-dialog',
@@ -24,6 +24,7 @@ import { TranslocoModule } from '@jsverse/transloco';
 export class UploadDialogComponent {
   private receiptService = inject(ReceiptService);
   private configService = inject(ConfigService);
+  private translocoService = inject(TranslocoService);
 
   @Input() set visible(val: boolean) {
     this._visible = val;
@@ -48,11 +49,13 @@ export class UploadDialogComponent {
   isDragging = signal(false);
 
   ocrProvider = signal<OcrProvider>(OcrProvider.MISTRAL);
-  ocrOptions = [
-    { label: 'Mistral OCR', value: OcrProvider.MISTRAL },
-    { label: 'Azure OCR (Coming Soon)', value: OcrProvider.AZURE, disabled: true },
-    { label: 'AWS TextExtract (Coming Soon)', value: OcrProvider.AWS, disabled: true }
-  ];
+  get ocrOptions() {
+    return [
+      { label: this.translocoService.translate('config.providers.mistral'), value: OcrProvider.MISTRAL },
+      { label: this.translocoService.translate('config.providers.azure'), value: OcrProvider.AZURE, disabled: true },
+      { label: this.translocoService.translate('config.providers.aws'), value: OcrProvider.AWS, disabled: true }
+    ];
+  }
 
   onFileSelected(event: Event) {
     const input = event.target as HTMLInputElement;

@@ -7,7 +7,7 @@ import { SelectModule } from 'primeng/select';
 import { OcrProvider } from '@models/receipt.model';
 import { ConfigService } from '@services/config.service';
 
-import { TranslocoModule } from '@jsverse/transloco';
+import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 
 @Component({
   selector: 'app-config-dialog',
@@ -17,23 +17,28 @@ import { TranslocoModule } from '@jsverse/transloco';
 })
 export class ConfigDialogComponent {
   configService: ConfigService = inject(ConfigService);
+  private translocoService = inject(TranslocoService);
 
   @Input() visible = false;
   @Output() visibleChange = new EventEmitter<boolean>();
 
-  ocrOptions = [
-    { label: 'Mistral OCR', value: OcrProvider.MISTRAL, icon: 'pi pi-sparkles' },
-    { label: 'Azure OCR', value: OcrProvider.AZURE, icon: 'pi pi-cloud', disabled: true },
-    { label: 'AWS TextExtract', value: OcrProvider.AWS, icon: 'pi pi-aws', disabled: true },
-    { label: 'Ask each time', value: 'ask', icon: 'pi pi-question-circle' }
-  ];
+  get ocrOptions() {
+    return [
+      { label: this.translocoService.translate('config.providers.mistral'), value: OcrProvider.MISTRAL, icon: 'pi pi-sparkles' },
+      { label: this.translocoService.translate('config.providers.azure'), value: OcrProvider.AZURE, icon: 'pi pi-cloud', disabled: true },
+      { label: this.translocoService.translate('config.providers.aws'), value: OcrProvider.AWS, icon: 'pi pi-aws', disabled: true },
+      { label: this.translocoService.translate('config.providers.ask'), value: 'ask', icon: 'pi pi-question-circle' }
+    ];
+  }
 
-  outputOptions = [
-    { label: 'Download Markdown', value: 'markdown', icon: 'pi pi-download' },
-    { label: 'Copy to Clipboard', value: 'clipboard', icon: 'pi pi-copy' },
-    { label: 'Send to n8n', value: 'n8n', icon: 'pi pi-send' },
-    { label: 'REST API', value: 'api', icon: 'pi pi-code', disabled: true }
-  ];
+  get outputOptions() {
+    return [
+      { label: this.translocoService.translate('config.outputs.markdown'), value: 'markdown', icon: 'pi pi-download' },
+      { label: this.translocoService.translate('config.outputs.clipboard'), value: 'clipboard', icon: 'pi pi-copy' },
+      { label: this.translocoService.translate('config.outputs.n8n'), value: 'n8n', icon: 'pi pi-send' },
+      { label: this.translocoService.translate('config.outputs.api'), value: 'api', icon: 'pi pi-code', disabled: true }
+    ];
+  }
 
   setOcrProvider(value: OcrProvider | 'ask') {
     this.configService.defaultOcrProvider.set(value);

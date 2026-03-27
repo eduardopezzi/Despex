@@ -57,7 +57,7 @@
         <ng-template pTemplate="selectedItem" let-selectedOption>
           <div class="flex items-center gap-2">
             <i class="pi pi-sparkles text-primary-500"></i>
-            <span>{{ t('config.providers.' + selectedOption.value) }}</span>
+            <span>{{ selectedOption.label }}</span>
           </div>
         </ng-template>
         <ng-template pTemplate="item" let-option>
@@ -65,7 +65,7 @@
             <div class="flex items-center gap-2">
               <i [class]="option.disabled ? 'pi pi-lock text-surface-400' : 'pi pi-sparkles text-primary-400'"></i>
               <div class="flex flex-col">
-                <span [class.text-surface-400]="option.disabled">{{ t('config.providers.' + option.value) }}</span>
+                <span [class.text-surface-400]="option.disabled">{{ option.label }}</span>
                 @if (option.disabled) { <span class="text-[10px] text-surface-400">{{ t('common.comingSoon') }}</span> }
               </div>
             </div>
