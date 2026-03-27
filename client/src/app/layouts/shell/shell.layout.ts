@@ -1,16 +1,18 @@
 import { Component, signal } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
+import { ConfigDialogComponent } from '@components/config-dialog/config-dialog.component';
 
 @Component({
   selector: 'app-shell-layout',
   standalone: true,
-  imports: [RouterModule, ButtonModule],
+  imports: [RouterModule, ButtonModule, ConfigDialogComponent],
   templateUrl: './shell.layout.html',
 })
 export class ShellLayoutComponent {
   collapsed = signal(false);
   isDark = signal(false);
+  showConfig = signal(false);
 
   toggleDark() {
     const el = document.documentElement;

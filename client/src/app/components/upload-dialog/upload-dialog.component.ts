@@ -11,6 +11,8 @@ import { OcrProvider } from '@models/receipt.model';
 import { SelectModule } from 'primeng/select';
 import { FormsModule } from '@angular/forms';
 
+import { ConfigService } from '@services/config.service';
+
 @Component({
   selector: 'app-upload-dialog',
   standalone: true,
@@ -19,8 +21,21 @@ import { FormsModule } from '@angular/forms';
 })
 export class UploadDialogComponent {
   private receiptService = inject(ReceiptService);
+  private configService = inject(ConfigService);
 
-  @Input() visible = false;
+  @Input() set visible(val: boolean) {
+    this._visible = val;
+    if (val) {
+      // When opening, reset OCR provider to default
+      const def = this.configService.defaultOcrProvider();
+      if (def !== 'ask') {
+        this.ocrProvider.set(def);
+      }
+    }
+  }
+  get visible() { return this._visible; }
+  private _visible = false;
+
   @Output() visibleChange = new EventEmitter<boolean>();
   @Output() uploaded = new EventEmitter<void>();
 

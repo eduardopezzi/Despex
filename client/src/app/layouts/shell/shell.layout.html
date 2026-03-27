@@ -79,7 +79,12 @@
     <header class="sticky top-0 z-10 h-16 bg-surface-0/80 dark:bg-surface-900/80 backdrop-blur-md
                    border-b border-surface-200 dark:border-surface-800 px-6 flex items-center justify-between shadow-sm shrink-0">
       <h2 class="text-base font-semibold text-surface-500 dark:text-surface-400">Open Receipt OCR</h2>
-      <div class="flex items-center gap-2">
+      <div class="flex items-center gap-1">
+        <button (click)="showConfig.set(true)"
+          class="w-9 h-9 rounded-xl flex items-center justify-center text-surface-500
+                 hover:bg-surface-100 dark:hover:bg-surface-800 transition-all">
+          <i class="pi pi-cog"></i>
+        </button>
         <button (click)="toggleDark()"
           class="w-9 h-9 rounded-xl flex items-center justify-center text-surface-500
                  hover:bg-surface-100 dark:hover:bg-surface-800 transition-all">
@@ -94,3 +99,8 @@
     </div>
   </main>
 </div>
+
+<app-config-dialog
+  [visible]="showConfig()"
+  (visibleChange)="showConfig.set($event)"
+/>
