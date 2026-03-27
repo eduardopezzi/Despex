@@ -9,14 +9,14 @@ import {
   inject,
   signal,
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { DialogModule } from 'primeng/dialog';
-import { ButtonModule } from 'primeng/button';
-import { SelectModule } from 'primeng/select';
-import { OcrProvider } from '@models/receipt.model';
-import { ConfigService } from '@services/config.service';
-import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
+import {CommonModule} from '@angular/common';
+import {FormsModule} from '@angular/forms';
+import {DialogModule} from 'primeng/dialog';
+import {ButtonModule} from 'primeng/button';
+import {SelectModule} from 'primeng/select';
+import {OcrProvider} from '@models/receipt.model';
+import {ConfigService} from '@services/config.service';
+import {TranslocoModule, TranslocoService} from '@jsverse/transloco';
 
 @Component({
   selector: 'app-config-dialog',
@@ -30,8 +30,14 @@ export class ConfigDialogComponent {
 
   // Expose visible as a signal so effect() can watch it
   visibleSig = signal(false);
-  @Input() set visible(v: boolean) { this.visibleSig.set(v); }
-  get visible() { return this.visibleSig(); }
+
+  @Input() set visible(v: boolean) {
+    this.visibleSig.set(v);
+  }
+
+  get visible() {
+    return this.visibleSig();
+  }
 
   @Output() visibleChange = new EventEmitter<boolean>();
 
@@ -52,24 +58,41 @@ export class ConfigDialogComponent {
 
   get ocrOptions() {
     return [
-      { label: this.translocoService.translate('config.providers.mistral'), value: OcrProvider.MISTRAL, icon: 'pi pi-sparkles' },
-      { label: this.translocoService.translate('config.providers.azure'),   value: OcrProvider.AZURE,   icon: 'pi pi-cloud',          disabled: true },
-      { label: this.translocoService.translate('config.providers.aws'),     value: OcrProvider.AWS,     icon: 'pi pi-microchip',      disabled: true },
-      { label: this.translocoService.translate('config.providers.ask'),     value: 'ask',               icon: 'pi pi-question-circle' },
+      {
+        label: this.translocoService.translate('config.providers.mistral'),
+        value: OcrProvider.MISTRAL,
+        icon: 'pi pi-sparkles'
+      },
+      {
+        label: this.translocoService.translate('config.providers.azure'),
+        value: OcrProvider.AZURE,
+        icon: 'pi pi-cloud',
+        disabled: true
+      },
+      {
+        label: this.translocoService.translate('config.providers.aws'),
+        value: OcrProvider.AWS,
+        icon: 'pi pi-microchip',
+        disabled: true
+      },
+      {label: this.translocoService.translate('config.providers.ask'), value: 'ask', icon: 'pi pi-question-circle'},
     ];
   }
 
   get outputOptions() {
     return [
-      { label: this.translocoService.translate('config.outputs.markdown'),  value: 'markdown',  icon: 'pi pi-download' },
-      { label: this.translocoService.translate('config.outputs.clipboard'), value: 'clipboard', icon: 'pi pi-copy'     },
-      { label: this.translocoService.translate('config.outputs.n8n'),       value: 'n8n',       icon: 'pi pi-send'     },
-      { label: this.translocoService.translate('config.outputs.api'),       value: 'api',       icon: 'pi pi-code',    disabled: true },
+      {label: this.translocoService.translate('config.outputs.markdown'), value: 'markdown', icon: 'pi pi-download'},
+      {label: this.translocoService.translate('config.outputs.clipboard'), value: 'clipboard', icon: 'pi pi-copy'},
+      {label: this.translocoService.translate('config.outputs.n8n'), value: 'n8n', icon: 'pi pi-send'},
+      {label: this.translocoService.translate('config.outputs.api'), value: 'api', icon: 'pi pi-code', disabled: true},
     ];
   }
 
   updateArrows() {
-    if (!this.visible) { this.arrows.set([]); return; }
+    if (!this.visible) {
+      this.arrows.set([]);
+      return;
+    }
     const container = this.containerEl?.nativeElement;
     if (!container) return;
 
@@ -83,12 +106,12 @@ export class ConfigDialogComponent {
     const selectedProviderEl = container.querySelector<HTMLElement>('[data-sel-provider]');
 
     if (inputEl && selectedProviderEl) {
-      const inRect  = inputEl.getBoundingClientRect();
+      const inRect = inputEl.getBoundingClientRect();
       const prvRect = selectedProviderEl.getBoundingClientRect();
 
-      const x1 = inRect.right  - containerRect.left + 2;
+      const x1 = inRect.right - containerRect.left + 2;
       const y1 = inRect.top + inRect.height / 2 - containerRect.top;
-      const x2 = prvRect.left  - containerRect.left - 2;
+      const x2 = prvRect.left - containerRect.left - 2;
       const y2 = prvRect.top + prvRect.height / 2 - containerRect.top;
       const cpX = x1 + (x2 - x1) * 0.45;
 
@@ -107,9 +130,9 @@ export class ConfigDialogComponent {
       const selectedOutputEls = Array.from(container.querySelectorAll<HTMLElement>('[data-sel-output]'));
       selectedOutputEls.forEach(el => {
         const outRect = el.getBoundingClientRect();
-        const endX = outRect.left  - containerRect.left - 2;
+        const endX = outRect.left - containerRect.left - 2;
         const endY = outRect.top + outRect.height / 2 - containerRect.top;
-        const cpX  = startX + (endX - startX) * 0.45;
+        const cpX = startX + (endX - startX) * 0.45;
         allArrows.push({
           d: `M ${startX} ${startY} C ${cpX} ${startY} ${cpX} ${endY} ${endX} ${endY}`,
           key: `provider-${el.getAttribute('data-output-val') ?? ''}`,
@@ -137,7 +160,12 @@ export class ConfigDialogComponent {
     return (this.configService.defaultOutputs() as string[]).includes(value);
   }
 
-  close() { this.visibleChange.emit(false); }
+  close() {
+    this.visibleChange.emit(false);
+  }
 
-  save() { this.configService.saveConfig(); this.close(); }
+  save() {
+    this.configService.saveConfig();
+    this.close();
+  }
 }
