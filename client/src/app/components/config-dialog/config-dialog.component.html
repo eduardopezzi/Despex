@@ -138,30 +138,31 @@
       }
     </div>
 
-    <!-- ── SVG overlay – dynamic arrows ────────────────────────── -->
+    <!-- ── SVG overlay – pulse flow ──────────────────────────── -->
     <svg
       class="absolute inset-0 pointer-events-none"
       style="width: 100%; height: 100%; overflow: visible;"
     >
-      <defs>
-        <marker id="cfg-ah" viewBox="0 0 10 10" refX="9" refY="5" 
-                markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-          <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--p-primary-500)" />
-        </marker>
-      </defs>
-
       @for (arrow of arrows(); track arrow.key) {
+        <!-- Background path (static) -->
+        <path
+          [attr.d]="arrow.d"
+          fill="none"
+          stroke="var(--p-primary-200)"
+          stroke-width="1.5"
+          stroke-opacity="0.3"
+          stroke-linecap="round"
+        />
+        <!-- Foreground pulse path (animated) -->
         <path
           [attr.d]="arrow.d"
           fill="none"
           stroke="var(--p-primary-500)"
           stroke-width="2"
-          stroke-opacity="0.6"
+          stroke-opacity="0.8"
           stroke-linecap="round"
-          stroke-dasharray="500"
-          stroke-dashoffset="500"
-          marker-end="url(#cfg-ah)"
-          class="cfg-arrow"
+          stroke-dasharray="8 24"
+          class="cfg-arrow-pulse"
         />
       }
     </svg>
@@ -175,11 +176,12 @@
 </p-dialog>
 
 <style>
-  @keyframes drawLine {
-    to { stroke-dashoffset: 0; stroke-opacity: 0.75; }
+  @keyframes pulseFlow {
+    from { stroke-dashoffset: 32; }
+    to { stroke-dashoffset: 0; }
   }
 
-  .cfg-arrow {
-    animation: drawLine 0.35s ease-out forwards;
+  .cfg-arrow-pulse {
+    animation: pulseFlow 1.5s linear infinite;
   }
 </style>

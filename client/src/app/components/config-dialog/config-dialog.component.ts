@@ -86,11 +86,11 @@ export class ConfigDialogComponent {
       const inRect  = inputEl.getBoundingClientRect();
       const prvRect = selectedProviderEl.getBoundingClientRect();
 
-      const x1 = inRect.right  - containerRect.left;
+      const x1 = inRect.right  - containerRect.left + 2;
       const y1 = inRect.top + inRect.height / 2 - containerRect.top;
-      const x2 = prvRect.left  - containerRect.left;
+      const x2 = prvRect.left  - containerRect.left - 2;
       const y2 = prvRect.top + prvRect.height / 2 - containerRect.top;
-      const cpX = x1 + (x2 - x1) * 0.55;
+      const cpX = x1 + (x2 - x1) * 0.45;
 
       allArrows.push({
         d: `M ${x1} ${y1} C ${cpX} ${y1} ${cpX} ${y2} ${x2} ${y2}`,
@@ -101,15 +101,15 @@ export class ConfigDialogComponent {
     // ── Arrows: selected OCR Provider → each selected Output ────
     if (selectedProviderEl) {
       const provRect = selectedProviderEl.getBoundingClientRect();
-      const startX = provRect.right - containerRect.left;
+      const startX = provRect.right - containerRect.left + 2;
       const startY = provRect.top + provRect.height / 2 - containerRect.top;
 
       const selectedOutputEls = Array.from(container.querySelectorAll<HTMLElement>('[data-sel-output]'));
       selectedOutputEls.forEach(el => {
         const outRect = el.getBoundingClientRect();
-        const endX = outRect.left  - containerRect.left;
+        const endX = outRect.left  - containerRect.left - 2;
         const endY = outRect.top + outRect.height / 2 - containerRect.top;
-        const cpX  = startX + (endX - startX) * 0.55;
+        const cpX  = startX + (endX - startX) * 0.45;
         allArrows.push({
           d: `M ${startX} ${startY} C ${cpX} ${startY} ${cpX} ${endY} ${endX} ${endY}`,
           key: `provider-${el.getAttribute('data-output-val') ?? ''}`,
