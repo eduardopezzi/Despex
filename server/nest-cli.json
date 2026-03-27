@@ -6,5 +6,8 @@
     "deleteOutDir": true,
     "webpack": true,
     "tsConfigPath": "tsconfig.build.json"
+  },
+  "watchOptions": {
+    "exclude": ["uploads/**/*", "data/**/*", "*.sqlite*", "dist/**/*", "node_modules/**"]
   }
 }
