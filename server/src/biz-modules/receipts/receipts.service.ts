@@ -5,22 +5,22 @@ import {
   InternalServerErrorException,
   Logger,
 } from '@nestjs/common';
-import {ReceiptsDao} from '@biz-modules/receipts/receipts.dao';
-import {ReceiptEntity} from '@core/database/entities/receipt.entity';
-import {InjectQueue} from '@nestjs/bullmq';
-import {Queue} from 'bullmq';
-import type {Request} from 'express';
+import { ReceiptsDao } from '@biz-modules/receipts/receipts.dao';
+import { ReceiptEntity } from '@core/database/entities/receipt.entity';
+import { InjectQueue } from '@nestjs/bullmq';
+import { Queue } from 'bullmq';
+import type { Request } from 'express';
 import Busboy from 'busboy';
-import {SecretProvider} from '@core/secrets/secret-provider.interface';
-import {StorageProvider} from '@core/storage/storage-provider.interface';
-import {AppSecret} from '@core/types/app-secret.enum';
-import {QueueName} from '@core/types/queue-name.enum';
+import { SecretProvider } from '@core/secrets/secret-provider.interface';
+import { StorageProvider } from '@core/storage/storage-provider.interface';
+import { AppSecret } from '@core/types/app-secret.enum';
+import { QueueName } from '@core/types/queue-name.enum';
 import {
   ALLOWED_MIME_TYPES,
   DEFAULT_MAX_FILE_SIZE_BYTES,
 } from '@core/constants/media.constants';
 
-import {OcrProvider} from '@core/types/ocr-provider.enum';
+import { OcrProvider } from '@core/types/ocr-provider.enum';
 
 @Injectable()
 export class ReceiptsService {
@@ -31,8 +31,7 @@ export class ReceiptsService {
     @InjectQueue(QueueName.Ocr) private readonly ocrQueue: Queue,
     private readonly secretProvider: SecretProvider,
     @Inject(StorageProvider) private readonly storage: StorageProvider,
-  ) {
-  }
+  ) {}
 
   findAll(): Promise<ReceiptEntity[]> {
     return this.receiptsDao.findAllByDateDesc();
@@ -55,17 +54,17 @@ export class ReceiptsService {
       ? parseInt(maxSizeStr, 10)
       : DEFAULT_MAX_FILE_SIZE_BYTES;
 
-    const {key, originalName, ocrProvider} = await this.parseAndStream(
+    const { key, originalName, ocrProvider } = await this.parseAndStream(
       req,
       maxSizeBytes,
     );
 
-    const receipt = await this.receiptsDao.createAndEnqueue(
-      key,
-      originalName,
+    const receipt = await this.receiptsDao.create({
+      filename: key,
+      originalName: originalName,
       ocrProvider,
-    );
-    await this.ocrQueue.add('process-ocr', {receiptId: receipt.id});
+    });
+    await this.ocrQueue.add('process-ocr', { receiptId: receipt.id });
     this.logger.log(`Receipt #${receipt.id} queued for OCR`);
 
     return receipt;
@@ -113,7 +112,7 @@ export class ReceiptsService {
       });
 
       busboy.on('file', (fieldname, stream, info) => {
-        const {filename, mimeType} = info;
+        const { filename, mimeType } = info;
         fileFound = true;
 
         if (!filename) {

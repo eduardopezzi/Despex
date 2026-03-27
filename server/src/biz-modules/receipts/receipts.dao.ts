@@ -15,19 +15,6 @@ export class ReceiptsDao extends BaseDao<ReceiptEntity> {
     return this.repo.find({ order: { createdAt: 'DESC' } });
   }
 
-  async createAndEnqueue(
-    filename: string,
-    originalName: string,
-    ocrProvider: OcrProvider = OcrProvider.Mistral,
-  ): Promise<ReceiptEntity> {
-    return this.create({
-      filename,
-      originalName,
-      status: ReceiptStatus.Pending,
-      ocrProvider,
-    });
-  }
-
   updateStatus(
     id: number,
     status: ReceiptStatus,
