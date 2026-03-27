@@ -1,5 +1,5 @@
 {
-  "name": "server",
+  "name": "@open-receipt-ocr/server",
   "version": "0.0.1",
   "description": "",
   "author": "",
@@ -10,6 +10,7 @@
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start -e \"node -r dotenv/config\"",
     "start:dev": "nest start --watch -e \"node -r dotenv/config\"",
+    "dev": "nest start --watch -e \"node -r dotenv/config\"",
     "start:debug": "nest start --debug --watch -e \"node -r dotenv/config\"",
     "start:worker": "nest start --entryFile worker -e \"node -r dotenv/config\"",
     "start:dev:worker": "nest start --entryFile worker --watch -e \"node -r dotenv/config\"",
