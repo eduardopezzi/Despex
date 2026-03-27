@@ -12,6 +12,7 @@ import { LocalStorageProvider } from '@core/storage/local-storage.provider';
 import { MimeType } from '@core/types/mime-type.enum';
 import { QueueName } from '@core/types/queue-name.enum';
 import { OcrProvider } from '@core/types/ocr-provider.enum';
+import { ReceiptEntity } from '@core/database/entities/receipt.entity';
 
 @Processor(QueueName.Ocr)
 export class OcrProcessor extends WorkerHost {
@@ -73,7 +74,7 @@ export class OcrProcessor extends WorkerHost {
   }
 
   private async processMistral(
-    receipt: any,
+    receipt: ReceiptEntity,
     filePath: string,
   ): Promise<string> {
     const mistralApiKey = await this.secretProvider.getSecretOrThrow(
