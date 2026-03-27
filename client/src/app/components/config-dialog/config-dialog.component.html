@@ -1,13 +1,14 @@
 <p-dialog *transloco="let t" [visible]="visible" (visibleChange)="visibleChange.emit($event)" [modal]="true"
-  [closable]="true" [dismissableMask]="true" [header]="t('config.title')" [style]="{ width: '850px' }"
-  [contentStyle]="{ padding: '0', overflow: 'visible' }">
+  [closable]="true" [dismissableMask]="true" [header]="t('config.title')" [style]="{ width: '90vw', 'max-width': '850px' }"
+  [contentStyle]="{ padding: '0', overflowX: 'hidden' }">
 
-  <!-- Pipeline container – position:relative so SVG overlay works -->
-  <div #arrowContainer class="relative flex flex-row items-start gap-20 px-10 py-8
+  <!-- Pipeline container -->
+  <div #arrowContainer class="relative flex flex-col lg:flex-row items-center lg:items-start gap-8 lg:gap-20 px-6 lg:px-10 py-6 lg:py-8
            bg-surface-0 dark:bg-surface-900" style="min-height: 320px;">
 
     <!-- ── Column 1: Input / Receipt ───────────────────────────── -->
-    <div class="flex flex-col items-center self-center w-14 shrink-0 gap-1.5">
+    <div class="flex flex-col items-center lg:self-center w-14 shrink-0 gap-1.5 mb-2 lg:mb-0">
+
       <div data-input-node class="w-12 h-12 rounded-2xl bg-primary-50 dark:bg-primary-900/20
                   border-2 border-primary-200 dark:border-primary-700
                   flex items-center justify-center shadow-sm">
@@ -19,7 +20,8 @@
     </div>
 
     <!-- ── Column 2: OCR Providers ─────────────────────────────── -->
-    <div class="flex-1 flex flex-col gap-3 min-w-0">
+    <div class="w-full lg:flex-1 flex flex-col gap-3 min-w-0">
+
       <div class="flex items-center justify-between mb-0.5">
         <span class="text-[10px] font-extrabold text-surface-500 uppercase tracking-wider">
           {{ t('config.ocrProvider') }}
@@ -70,7 +72,8 @@
     </div>
 
     <!-- ── Column 3: Output Targets ────────────────────────────── -->
-    <div class="flex-1 flex flex-col gap-3 min-w-0">
+    <div class="w-full lg:flex-1 flex flex-col gap-3 min-w-0">
+
 
       <div class="flex items-center justify-between mb-0.5">
         <span class="text-[10px] font-extrabold text-surface-500 uppercase tracking-wider">
@@ -124,7 +127,8 @@
     </div>
 
     <!-- ── SVG overlay – pulse flow ──────────────────────────── -->
-    <svg class="absolute inset-0 pointer-events-none" style="width: 100%; height: 100%; overflow: visible;">
+    <svg class="absolute inset-0 pointer-events-none hidden lg:block" style="width: 100%; height: 100%; overflow: visible;">
+
       @for (arrow of arrows(); track arrow.key) {
       <!-- Background path (static) -->
       <path [attr.d]="arrow.d" fill="none" stroke="var(--p-primary-200)" stroke-width="1.5" stroke-opacity="0.3"
