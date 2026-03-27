@@ -13,10 +13,12 @@ import { FormsModule } from '@angular/forms';
 
 import { ConfigService } from '@services/config.service';
 
+import { TranslocoModule } from '@jsverse/transloco';
+
 @Component({
   selector: 'app-upload-dialog',
   standalone: true,
-  imports: [CommonModule, DialogModule, ButtonModule, MessageModule, ProgressBarModule, SelectModule, FormsModule],
+  imports: [CommonModule, DialogModule, ButtonModule, MessageModule, ProgressBarModule, SelectModule, FormsModule, TranslocoModule],
   templateUrl: './upload-dialog.component.html',
 })
 export class UploadDialogComponent {
@@ -79,14 +81,14 @@ export class UploadDialogComponent {
     this.receiptService.uploadReceipt(f, this.ocrProvider()).subscribe({
       next: () => {
         this.uploading.set(false);
-        this.message.set('Upload successful! OCR is queued.');
+        this.message.set('upload.uploadSuccess');
         this.isError.set(false);
         this.file.set(null);
         this.uploaded.emit();
       },
       error: () => {
         this.uploading.set(false);
-        this.message.set('Upload failed. Please try again.');
+        this.message.set('upload.uploadFailed');
         this.isError.set(true);
       },
     });

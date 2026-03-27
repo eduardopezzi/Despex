@@ -1,4 +1,4 @@
-<div class="flex h-screen bg-surface-50 dark:bg-surface-950 font-sans overflow-hidden">
+<div *transloco="let t" class="flex h-screen bg-surface-50 dark:bg-surface-950 font-sans overflow-hidden">
   <!-- ── Sidebar ──────────────────────────────────────────────────── -->
   <aside
     class="border-r border-surface-200 dark:border-surface-800 bg-surface-0 dark:bg-surface-900
@@ -13,19 +13,19 @@
           <i class="pi pi-receipt text-white text-lg"></i>
         </div>
         <span class="text-lg font-extrabold text-surface-900 dark:text-white tracking-tight whitespace-nowrap">
-          ReceiptOCR<span class="text-primary-500">.</span>
+          {{ t('layout.appTitle') }}<span class="text-primary-500">.</span>
         </span>
         <button type="button"
           class="ml-auto flex items-center justify-center w-8 h-8 rounded-lg text-surface-400
                  hover:bg-surface-100 dark:hover:bg-surface-800 hover:text-surface-600 transition-all shrink-0"
-          (click)="collapsed.set(true)" title="Collapse">
+          (click)="collapsed.set(true)" [title]="t('layout.collapse')">
           <i class="pi pi-chevron-left text-sm"></i>
         </button>
       } @else {
         <button type="button"
           class="mx-auto flex items-center justify-center w-9 h-9 rounded-lg text-surface-400
                  hover:bg-surface-100 dark:hover:bg-surface-800 hover:text-surface-600 transition-all"
-          (click)="collapsed.set(false)" title="Expand">
+          (click)="collapsed.set(false)" [title]="t('layout.expand')">
           <i class="pi pi-chevron-right text-sm"></i>
         </button>
       }
@@ -34,7 +34,7 @@
     <!-- Nav -->
     <nav class="flex-1 px-2 py-6 space-y-0.5 overflow-y-auto overflow-x-hidden">
       @if (!collapsed()) {
-        <div class="text-xs font-bold text-surface-400 uppercase tracking-widest mb-3 px-3">Menu</div>
+        <div class="text-xs font-bold text-surface-400 uppercase tracking-widest mb-3 px-3">{{ t('layout.menu') }}</div>
       }
 
       <a routerLink="/"
@@ -43,9 +43,9 @@
          class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-surface-600 dark:text-surface-300
                 hover:bg-surface-100 dark:hover:bg-surface-800 transition-all group"
          [class.justify-center]="collapsed()"
-         title="Dashboard">
+         [title]="t('layout.dashboard')">
         <i class="pi pi-th-large text-lg group-hover:text-primary-500 transition-colors shrink-0"></i>
-        @if (!collapsed()) { <span class="text-sm whitespace-nowrap">Dashboard</span> }
+        @if (!collapsed()) { <span class="text-sm whitespace-nowrap">{{ t('layout.dashboard') }}</span> }
       </a>
 
       <a routerLink="/receipts"
@@ -53,9 +53,9 @@
          class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-surface-600 dark:text-surface-300
                 hover:bg-surface-100 dark:hover:bg-surface-800 transition-all group"
          [class.justify-center]="collapsed()"
-         title="Receipts">
+         [title]="t('layout.receipts')">
         <i class="pi pi-file-pdf text-lg group-hover:text-primary-500 transition-colors shrink-0"></i>
-        @if (!collapsed()) { <span class="text-sm whitespace-nowrap">Receipts</span> }
+        @if (!collapsed()) { <span class="text-sm whitespace-nowrap">{{ t('layout.receipts') }}</span> }
       </a>
     </nav>
 
@@ -65,8 +65,8 @@
         <div class="flex items-center gap-3 px-2 py-2">
           <div class="w-8 h-8 rounded-full bg-primary-500 flex items-center justify-center text-white text-sm font-bold shrink-0">A</div>
           <div class="flex-1 min-w-0">
-            <p class="text-sm font-semibold text-surface-800 dark:text-surface-100 truncate">Admin</p>
-            <p class="text-xs text-surface-400 truncate">Self-hosted</p>
+            <p class="text-sm font-semibold text-surface-800 dark:text-surface-100 truncate">{{ t('layout.admin') }}</p>
+            <p class="text-xs text-surface-400 truncate">{{ t('layout.selfHosted') }}</p>
           </div>
         </div>
       </div>
@@ -78,7 +78,7 @@
     <!-- Top bar -->
     <header class="sticky top-0 z-10 h-16 bg-surface-0/80 dark:bg-surface-900/80 backdrop-blur-md
                    border-b border-surface-200 dark:border-surface-800 px-6 flex items-center justify-between shadow-sm shrink-0">
-      <h2 class="text-base font-semibold text-surface-500 dark:text-surface-400">Open Receipt OCR</h2>
+      <h2 class="text-base font-semibold text-surface-500 dark:text-surface-400">{{ t('layout.appSubtitle') }}</h2>
       <div class="flex items-center gap-1">
         <button (click)="showConfig.set(true)"
           class="w-9 h-9 rounded-xl flex items-center justify-center text-surface-500

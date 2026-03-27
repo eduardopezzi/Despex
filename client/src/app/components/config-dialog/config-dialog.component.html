@@ -1,5 +1,5 @@
-<p-dialog [visible]="visible" (visibleChange)="visibleChange.emit($event)" [modal]="true" [closable]="true"
-  [dismissableMask]="true" header="Default OCR and Output Settings" [style]="{ width: '450px' }"
+<p-dialog *transloco="let t" [visible]="visible" (visibleChange)="visibleChange.emit($event)" [modal]="true" [closable]="true"
+  [dismissableMask]="true" [header]="t('config.title')" [style]="{ width: '450px' }"
   [contentStyle]="{ 'overflow-y': 'auto', 'max-height': '85vh' }">
   <div class="flex flex-col items-center py-4 bg-surface-0 dark:bg-surface-900">
 
@@ -9,7 +9,7 @@
         class="w-16 h-16 rounded-2xl bg-primary-50 dark:bg-primary-900/20 border-2 border-primary-200 dark:border-primary-800 flex items-center justify-center shadow-sm">
         <i class="pi pi-receipt text-2xl text-primary-500"></i>
       </div>
-      <span class="text-[10px] font-bold text-surface-400 uppercase tracking-widest">Input</span>
+      <span class="text-[10px] font-bold text-surface-400 uppercase tracking-widest">{{ t('config.input') }}</span>
     </div>
 
     <!-- Connector 1 -->
@@ -21,8 +21,8 @@
     <!-- Stage 2: OCR Provider (Single Select) -->
     <div class="w-full px-6 py-4 flex flex-col gap-3">
       <div class="flex items-center justify-between mb-1">
-        <span class="text-xs font-extrabold text-surface-500 uppercase tracking-wider">OCR Provider</span>
-        <span class="text-[10px] text-surface-400 italic">Single Selection</span>
+        <span class="text-xs font-extrabold text-surface-500 uppercase tracking-wider">{{ t('config.ocrProvider') }}</span>
+        <span class="text-[10px] text-surface-400 italic">{{ t('config.singleSelection') }}</span>
       </div>
 
       <div class="flex flex-col gap-2">
@@ -44,8 +44,8 @@
                 class="text-xs"></i>
             </div>
             <div class="flex flex-col">
-              <span class="text-xs font-semibold text-surface-800 dark:text-surface-100">{{ opt.label }}</span>
-              @if (opt.disabled) { <span class="text-[9px] text-surface-400">Coming Soon</span> }
+              <span class="text-xs font-semibold text-surface-800 dark:text-surface-100">{{ t('config.providers.' + opt.value) }}</span>
+              @if (opt.disabled) { <span class="text-[9px] text-surface-400">{{ t('common.comingSoon') }}</span> }
             </div>
           </div>
           @if (configService.defaultOcrProvider() === opt.value) {
@@ -65,8 +65,8 @@
     <!-- Stage 3: Output Targets (Multi Select) -->
     <div class="w-full px-6 py-4 flex flex-col gap-3">
       <div class="flex items-center justify-between mb-1">
-        <span class="text-xs font-extrabold text-surface-500 uppercase tracking-wider">Output Targets</span>
-        <span class="text-[10px] text-surface-400 italic">Multi Selection</span>
+        <span class="text-xs font-extrabold text-surface-500 uppercase tracking-wider">{{ t('config.outputTargets') }}</span>
+        <span class="text-[10px] text-surface-400 italic">{{ t('config.multiSelection') }}</span>
       </div>
 
       <div class="flex flex-col gap-2">
@@ -85,8 +85,8 @@
               <i [class]="opt.icon" [class.text-primary-500]="isOutputSelected(opt.value)" class="text-xs"></i>
             </div>
             <div class="flex flex-col">
-              <span class="text-xs font-semibold text-surface-800 dark:text-surface-100">{{ opt.label }}</span>
-              @if (opt.disabled) { <span class="text-[9px] text-surface-400">Coming Soon</span> }
+              <span class="text-xs font-semibold text-surface-800 dark:text-surface-100">{{ t('config.outputs.' + opt.value) }}</span>
+              @if (opt.disabled) { <span class="text-[9px] text-surface-400">{{ t('common.comingSoon') }}</span> }
             </div>
           </div>
           <div class="w-5 h-5 rounded-md border flex items-center justify-center transition-all"
@@ -106,8 +106,8 @@
   </div>
 
   <ng-template pTemplate="footer">
-    <p-button label="Cancel" severity="secondary" [text]="true" (onClick)="close()" />
-    <p-button label="Save Preferences" icon="pi pi-save" severity="primary" size="small" (onClick)="save()" />
+    <p-button [label]="t('common.cancel')" severity="secondary" [text]="true" (onClick)="close()" />
+    <p-button [label]="t('config.savePreferences')" icon="pi pi-save" severity="primary" size="small" (onClick)="save()" />
   </ng-template>
 </p-dialog>
 

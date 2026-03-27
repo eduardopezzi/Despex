@@ -1,0 +1,111 @@
+{
+  "common": {
+    "cancel": "Cancel",
+    "save": "Save",
+    "close": "Close",
+    "upload": "Upload",
+    "download": "Download",
+    "copy": "Copy",
+    "delete": "Delete",
+    "loading": "Loading...",
+    "comingSoon": "Coming Soon"
+  },
+  "layout": {
+    "appTitle": "ReceiptOCR",
+    "appSubtitle": "Open Receipt OCR",
+    "menu": "Menu",
+    "dashboard": "Dashboard",
+    "receipts": "Receipts",
+    "admin": "Admin",
+    "selfHosted": "Self-hosted",
+    "collapse": "Collapse",
+    "expand": "Expand"
+  },
+  "upload": {
+    "title": "Upload Receipt",
+    "dropZone": "Drop your file here",
+    "dropZoneHint": "PDF, JPG, PNG · max 20 MB",
+    "ocrProvider": "OCR Provider",
+    "selectProvider": "Select Provider",
+    "uploadAndProcess": "Upload & Process",
+    "uploadSuccess": "Upload successful! OCR is queued.",
+    "uploadFailed": "Upload failed. Please try again.",
+    "singleSelection": "Single Selection"
+  },
+  "receipts": {
+    "title": "Receipts",
+    "pageTitle": "Receipts",
+    "uploadNew": "Upload Receipt",
+    "noReceipts": "No receipts yet",
+    "noReceiptsHint": "Upload your first receipt to get started.",
+    "uploadFirst": "Upload your first receipt",
+    "status": {
+      "total": "Total",
+      "pending": "Pending",
+      "processing": "Processing",
+      "completed": "Completed",
+      "failed": "Failed"
+    },
+    "home": {
+      "welcome": "Welcome back 👋",
+      "overview": "Here's a quick overview of your receipt OCR pipeline.",
+      "recentReceipts": "Recent Receipts",
+      "noReceipts": "No receipts yet. Upload your first one!"
+    },
+    "detail": {
+      "title": "Receipt Details",
+      "fileName": "File Name",
+      "status": "Status",
+      "ocrProvider": "OCR Provider",
+      "uploaded": "Uploaded",
+      "fileKey": "File Key",
+      "extractedData": "OCR Extracted Data",
+      "exportContent": "Export Content",
+      "exportTitleNative": "Native",
+      "exportTitleExternal": "External Integrations",
+      "copyToClipboard": "Copy to Clipboard",
+      "downloadMarkdown": "Download as Markdown",
+      "sendToN8n": "Send to n8n",
+      "sendToGoogleDrive": "Google Drive",
+      "copied": "Copied",
+      "copySuccess": "OCR data copied to clipboard",
+      "downloaded": "Downloaded",
+      "downloadSuccess": "Markdown file saved",
+      "n8nComingSoon": "n8n integration coming soon",
+      "googleDriveComingSoon": "Google Drive integration coming soon",
+      "copyFailed": "Copy failed",
+      "noContent": "No OCR content available yet.",
+      "processingMsg": "OCR is processing, please wait...",
+      "pendingMsg": "Receipt is queued for processing.",
+      "failedMsg": "OCR processing failed."
+    }
+  },
+  "config": {
+    "title": "Default OCR and Output Settings",
+    "ocrProvider": "OCR Provider",
+    "outputTargets": "Output Targets",
+    "singleSelection": "Single Selection",
+    "multiSelection": "Multi Selection",
+    "input": "Input",
+    "savePreferences": "Save Preferences",
+    "providers": {
+      "mistral": "Mistral OCR",
+      "azure": "Azure OCR",
+      "aws": "AWS TextExtract",
+      "ask": "Ask each time"
+    },
+    "outputs": {
+      "markdown": "Download Markdown",
+      "clipboard": "Copy to Clipboard",
+      "n8n": "Send to n8n",
+      "api": "REST API"
+    }
+  },
+  "ocr": {
+    "providers": {
+      "mistral": "Mistral OCR",
+      "azure": "Azure OCR",
+      "aws": "AWS TextExtract"
+    }
+  }
+}

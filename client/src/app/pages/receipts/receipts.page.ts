@@ -11,8 +11,8 @@ import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { DialogModule } from 'primeng/dialog';
 import { MenuModule } from 'primeng/menu';
 import { ToastModule } from 'primeng/toast';
-import { MessageService } from 'primeng/api';
-import { MenuItem } from 'primeng/api';
+import { MenuItem, MessageService } from 'primeng/api';
+import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 
 @Component({
   selector: 'app-receipts-page',
@@ -26,7 +26,8 @@ import { MenuItem } from 'primeng/api';
     DialogModule,
     UploadDialogComponent,
     MenuModule,
-    ToastModule
+    ToastModule,
+    TranslocoModule
   ],
   providers: [MessageService],
   templateUrl: './receipts.page.html',
@@ -34,27 +35,46 @@ import { MenuItem } from 'primeng/api';
 export class ReceiptsPageComponent implements OnInit {
   receiptService = inject(ReceiptService);
   private messageService = inject(MessageService);
+  private translocoService = inject(TranslocoService);
   
   showUploadDialog = false;
   showDetail = false;
   selectedReceipt: Receipt | null = null;
 
-  exportItems: MenuItem[] = [
-    {
-      label: 'Native',
-      items: [
-        { label: 'Copy to Clipboard', icon: 'pi pi-copy', command: () => this.copyToClipboard() },
-        { label: 'Download Markdown', icon: 'pi pi-file-export', command: () => this.downloadMarkdown() }
-      ]
-    },
-    {
-      label: 'External Integrations',
-      items: [
-        { label: 'Send to n8n', icon: 'pi pi-bolt', command: () => this.sendToN8N() },
-        { label: 'Google Drive', icon: 'pi pi-google', command: () => this.sendToGoogleDrive() }
-      ]
-    }
-  ];
+  get exportItems(): MenuItem[] {
+    return [
+      {
+        label: this.translocoService.translate('receipts.detail.exportTitleNative'),
+        items: [
+          { 
+            label: this.translocoService.translate('receipts.detail.copyToClipboard'), 
+            icon: 'pi pi-copy', 
+            command: () => this.copyToClipboard() 
+          },
+          { 
+            label: this.translocoService.translate('receipts.detail.downloadMarkdown'), 
+            icon: 'pi pi-file-export', 
+            command: () => this.downloadMarkdown() 
+          }
+        ]
+      },
+      {
+        label: this.translocoService.translate('receipts.detail.exportTitleExternal'),
+        items: [
+          { 
+            label: this.translocoService.translate('receipts.detail.sendToN8n'), 
+            icon: 'pi pi-bolt', 
+            command: () => this.sendToN8N() 
+          },
+          { 
+            label: this.translocoService.translate('receipts.detail.sendToGoogleDrive'), 
+            icon: 'pi pi-google', 
+            command: () => this.sendToGoogleDrive() 
+          }
+        ]
+      }
+    ];
+  }
 
   ngOnInit() {
     this.receiptService.fetchReceipts();
@@ -63,7 +83,11 @@ export class ReceiptsPageComponent implements OnInit {
   copyToClipboard() {
     if (!this.selectedReceipt?.ocrData) return;
     navigator.clipboard.writeText(this.selectedReceipt.ocrData);
-    this.messageService.add({ severity: 'success', summary: 'Copied', detail: 'OCR data copied to clipboard' });
+    this.messageService.add({ 
+      severity: 'success', 
+      summary: this.translocoService.translate('receipts.detail.copied'), 
+      detail: this.translocoService.translate('receipts.detail.copySuccess') 
+    });
   }
 
   downloadMarkdown() {
@@ -75,15 +99,27 @@ export class ReceiptsPageComponent implements OnInit {
     a.download = `${this.selectedReceipt.originalName}.md`;
     a.click();
     window.URL.revokeObjectURL(url);
-    this.messageService.add({ severity: 'success', summary: 'Downloaded', detail: 'Markdown file saved' });
+    this.messageService.add({ 
+      severity: 'success', 
+      summary: this.translocoService.translate('receipts.detail.downloaded'), 
+      detail: this.translocoService.translate('receipts.detail.downloadSuccess') 
+    });
   }
 
   sendToN8N() {
-    this.messageService.add({ severity: 'info', summary: 'n8n', detail: 'n8n integration coming soon' });
+    this.messageService.add({ 
+      severity: 'info', 
+      summary: 'n8n', 
+      detail: this.translocoService.translate('receipts.detail.n8nComingSoon') 
+    });
   }
 
   sendToGoogleDrive() {
-    this.messageService.add({ severity: 'info', summary: 'Google Drive', detail: 'Google Drive integration coming soon' });
+    this.messageService.add({ 
+      severity: 'info', 
+      summary: 'Google Drive', 
+      detail: this.translocoService.translate('receipts.detail.googleDriveComingSoon') 
+    });
   }
 
   onUploaded() {

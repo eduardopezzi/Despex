@@ -7,10 +7,12 @@ import { SelectModule } from 'primeng/select';
 import { OcrProvider } from '@models/receipt.model';
 import { ConfigService } from '@services/config.service';
 
+import { TranslocoModule } from '@jsverse/transloco';
+
 @Component({
   selector: 'app-config-dialog',
   standalone: true,
-  imports: [CommonModule, DialogModule, ButtonModule, SelectModule, FormsModule],
+  imports: [CommonModule, DialogModule, ButtonModule, SelectModule, FormsModule, TranslocoModule],
   templateUrl: './config-dialog.component.html',
 })
 export class ConfigDialogComponent {

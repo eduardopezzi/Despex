@@ -2,11 +2,12 @@ import { Component, signal } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { ConfigDialogComponent } from '@components/config-dialog/config-dialog.component';
+import { TranslocoModule } from '@jsverse/transloco';
 
 @Component({
   selector: 'app-shell-layout',
   standalone: true,
-  imports: [RouterModule, ButtonModule, ConfigDialogComponent],
+  imports: [RouterModule, ButtonModule, ConfigDialogComponent, TranslocoModule],
   templateUrl: './shell.layout.html',
 })
 export class ShellLayoutComponent {

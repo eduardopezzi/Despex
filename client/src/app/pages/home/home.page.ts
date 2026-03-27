@@ -8,10 +8,12 @@ import { TagModule } from 'primeng/tag';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { UploadDialogComponent } from '@components/upload-dialog/upload-dialog.component';
 
+import { TranslocoModule } from '@jsverse/transloco';
+
 @Component({
   selector: 'app-home-page',
   standalone: true,
-  imports: [CommonModule, CardModule, ButtonModule, TagModule, ProgressSpinnerModule, UploadDialogComponent],
+  imports: [CommonModule, CardModule, ButtonModule, TagModule, ProgressSpinnerModule, UploadDialogComponent, TranslocoModule],
   templateUrl: './home.page.html',
 })
 export class HomePageComponent implements OnInit {
@@ -30,28 +32,28 @@ export class HomePageComponent implements OnInit {
     const all = this.receiptService.receipts();
     return [
       {
-        label: 'Total',
+        label: 'receipts.status.total',
         value: all.length,
         icon: 'pi pi-receipt',
         iconBg: 'bg-primary-50 dark:bg-primary-900/30',
         iconColor: 'text-primary-500',
       },
       {
-        label: 'Completed',
+        label: 'receipts.status.completed',
         value: all.filter(i => i.status === ReceiptStatus.COMPLETED).length,
         icon: 'pi pi-check-circle',
         iconBg: 'bg-emerald-50 dark:bg-emerald-900/30',
         iconColor: 'text-emerald-500',
       },
       {
-        label: 'Processing',
+        label: 'receipts.status.processing',
         value: all.filter(i => i.status === ReceiptStatus.PROCESSING || i.status === ReceiptStatus.PENDING).length,
         icon: 'pi pi-spin pi-spinner',
         iconBg: 'bg-blue-50 dark:bg-blue-900/30',
         iconColor: 'text-blue-500',
       },
       {
-        label: 'Failed',
+        label: 'receipts.status.failed',
         value: all.filter(i => i.status === ReceiptStatus.FAILED).length,
         icon: 'pi pi-exclamation-triangle',
         iconBg: 'bg-red-50 dark:bg-red-900/30',
