@@ -1,6 +1,7 @@
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 import { WithModificationDates } from '@core/database/entities/with-modification-dates';
 import { ReceiptStatus } from '@core/types/receipt-status.enum';
+import { OcrProvider } from '@core/types/ocr-provider.enum';
 
 @Entity('receipts')
 export class ReceiptEntity extends WithModificationDates {
@@ -20,6 +21,14 @@ export class ReceiptEntity extends WithModificationDates {
     default: ReceiptStatus.Pending,
   })
   status!: ReceiptStatus;
+
+  @Column({
+    name: 'ocr_provider',
+    type: 'varchar',
+    enum: OcrProvider,
+    default: OcrProvider.Mistral,
+  })
+  ocrProvider!: OcrProvider;
 
   @Column({ name: 'ocr_data', type: 'text', nullable: true })
   ocrData?: string | null;

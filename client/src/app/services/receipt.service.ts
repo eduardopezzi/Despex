@@ -1,6 +1,6 @@
 import { Injectable, signal, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Receipt } from '@models/receipt.model';
+import { OcrProvider, Receipt } from '@models/receipt.model';
 import { Observable, tap } from 'rxjs';
 import { environment } from '@environments/environment';
 
@@ -25,9 +25,10 @@ export class ReceiptService {
     ).subscribe();
   }
 
-  uploadReceipt(file: File) {
+  uploadReceipt(file: File, ocrProvider: OcrProvider = OcrProvider.MISTRAL) {
     const formData = new FormData();
     formData.append('file', file);
+    formData.append('ocrProvider', ocrProvider);
     return this.http.post<{ id: number; message: string }>(`${this.apiUrl}/upload`, formData);
   }
 

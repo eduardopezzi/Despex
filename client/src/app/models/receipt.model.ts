@@ -5,12 +5,19 @@ export enum ReceiptStatus {
   FAILED = 'FAILED',
 }
 
+export enum OcrProvider {
+  MISTRAL = 'mistral',
+  AZURE = 'azure',
+  AWS = 'aws',
+}
+
 export interface Receipt {
   id: number;
   filename: string;
   originalName: string;
   status: ReceiptStatus;
+  ocrProvider: OcrProvider;
   ocrData?: string;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: string;
+  updatedAt: string;
 }

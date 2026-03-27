@@ -1,10 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { OcrProvider } from '@core/types/ocr-provider.enum';
 
 /**
  * Documents the multipart/form-data shape for the receipt upload endpoint.
- *
- * Note: class-validator cannot run against streaming multipart bodies —
- * file size is enforced by Busboy limits and mimetype by the controller.
  */
 export class UploadReceiptDto {
   @ApiProperty({
@@ -13,4 +11,11 @@ export class UploadReceiptDto {
     description: 'Receipt file — accepted formats: PDF, JPEG, PNG (max 20 MB)',
   })
   file!: Express.Multer.File;
+
+  @ApiProperty({
+    enum: OcrProvider,
+    default: OcrProvider.Mistral,
+    description: 'The OCR provider to use for processing',
+  })
+  ocrProvider?: OcrProvider;
 }

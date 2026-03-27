@@ -11,6 +11,7 @@ import { SecretProvider } from '@core/secrets/secret-provider.interface';
 import { LocalStorageProvider } from '@core/storage/local-storage.provider';
 import { MimeType } from '@core/types/mime-type.enum';
 import { QueueName } from '@core/types/queue-name.enum';
+import { OcrProvider } from '@core/types/ocr-provider.enum';
 
 @Processor(QueueName.Ocr)
 export class OcrProcessor extends WorkerHost {
@@ -42,38 +43,25 @@ export class OcrProcessor extends WorkerHost {
         throw new Error(`File not found on disk: ${filePath}`);
       }
 
-      const mistralApiKey = await this.secretProvider.getSecretOrThrow(
-        AppSecret.MistralApiKey,
-      );
-      const base64Content = fs.readFileSync(filePath).toString('base64');
-      const mimeType = OcrProcessor.getMimeType(
-        extname(receipt.filename).toLowerCase(),
-      );
+      let ocrData: string;
 
-      this.logger.log(`Calling Mistral OCR API for receipt #${receiptId}`);
-
-      const response = await axios.post(
-        'https://api.mistral.ai/v1/ocr',
-        {
-          model: 'mistral-ocr-latest',
-          document: {
-            type: 'document_content',
-            document_content: base64Content,
-            document_media_type: mimeType,
-          },
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${mistralApiKey}`,
-            'Content-Type': 'application/json',
-          },
-        },
-      );
+      switch (receipt.ocrProvider) {
+        case OcrProvider.Mistral:
+          ocrData = await this.processMistral(receipt, filePath);
+          break;
+        case OcrProvider.Azure:
+        case OcrProvider.Aws:
+          throw new Error(
+            `OCR Provider "${receipt.ocrProvider}" is not yet implemented.`,
+          );
+        default:
+          throw new Error(`Unknown OCR Provider: ${receipt.ocrProvider}`);
+      }
 
       await this.receiptsDao.updateStatus(
         receiptId,
         ReceiptStatus.Completed,
-        JSON.stringify(response.data),
+        ocrData,
       );
       this.logger.log(`Successfully completed OCR for receipt #${receiptId}`);
     } catch (error) {
@@ -82,6 +70,41 @@ export class OcrProcessor extends WorkerHost {
       await this.receiptsDao.updateStatus(receiptId, ReceiptStatus.Failed);
       throw error;
     }
+  }
+
+  private async processMistral(
+    receipt: any,
+    filePath: string,
+  ): Promise<string> {
+    const mistralApiKey = await this.secretProvider.getSecretOrThrow(
+      AppSecret.MistralApiKey,
+    );
+    const base64Content = fs.readFileSync(filePath).toString('base64');
+    const mimeType = OcrProcessor.getMimeType(
+      extname(receipt.filename).toLowerCase(),
+    );
+
+    this.logger.log(`Calling Mistral OCR API for receipt #${receipt.id}`);
+
+    const response = await axios.post(
+      'https://api.mistral.ai/v1/ocr',
+      {
+        model: 'mistral-ocr-latest',
+        document: {
+          type: 'document_content',
+          document_content: base64Content,
+          document_media_type: mimeType,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${mistralApiKey}`,
+          'Content-Type': 'application/json',
+        },
+      },
+    );
+
+    return JSON.stringify(response.data);
   }
 
   private static getMimeType(ext: string): string {

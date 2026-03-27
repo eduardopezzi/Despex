@@ -7,10 +7,14 @@ import { ButtonModule } from 'primeng/button';
 import { MessageModule } from 'primeng/message';
 import { ProgressBarModule } from 'primeng/progressbar';
 
+import { OcrProvider } from '@models/receipt.model';
+import { SelectModule } from 'primeng/select';
+import { FormsModule } from '@angular/forms';
+
 @Component({
   selector: 'app-upload-dialog',
   standalone: true,
-  imports: [CommonModule, DialogModule, ButtonModule, MessageModule, ProgressBarModule],
+  imports: [CommonModule, DialogModule, ButtonModule, MessageModule, ProgressBarModule, SelectModule, FormsModule],
   templateUrl: './upload-dialog.component.html',
 })
 export class UploadDialogComponent {
@@ -25,6 +29,13 @@ export class UploadDialogComponent {
   message = signal<string | null>(null);
   isError = signal(false);
   isDragging = signal(false);
+
+  ocrProvider = signal<OcrProvider>(OcrProvider.MISTRAL);
+  ocrOptions = [
+    { label: 'Mistral OCR', value: OcrProvider.MISTRAL },
+    { label: 'Azure OCR (Coming Soon)', value: OcrProvider.AZURE, disabled: true },
+    { label: 'AWS TextExtract (Coming Soon)', value: OcrProvider.AWS, disabled: true }
+  ];
 
   onFileSelected(event: Event) {
     const input = event.target as HTMLInputElement;
@@ -50,7 +61,7 @@ export class UploadDialogComponent {
     this.uploading.set(true);
     this.message.set(null);
 
-    this.receiptService.uploadReceipt(f).subscribe({
+    this.receiptService.uploadReceipt(f, this.ocrProvider()).subscribe({
       next: () => {
         this.uploading.set(false);
         this.message.set('Upload successful! OCR is queued.');

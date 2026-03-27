@@ -16,6 +16,15 @@ export enum AppSecret {
   // ─── Mistral OCR ─────────────────────────────────────────────────────────────
   MistralApiKey = 'MISTRAL_API_KEY',
 
+  // ─── Azure OCR ──────────────────────────────────────────────────────────────
+  AzureOcrApiKey = 'AZURE_OCR_API_KEY',
+  AzureOcrEndpoint = 'AZURE_OCR_ENDPOINT',
+
+  // ─── AWS TextExtract ───────────────────────────────────────────────────────
+  AwsAccessKeyId = 'AWS_ACCESS_KEY_ID',
+  AwsSecretAccessKey = 'AWS_SECRET_ACCESS_KEY',
+  AwsRegion = 'AWS_REGION',
+
   // ─── Storage ─────────────────────────────────────────────────────────────────
   StorageProvider = 'STORAGE_PROVIDER',
   UploadsDir = 'UPLOADS_DIR',
