@@ -147,6 +147,15 @@ export class ReceiptsService {
           );
         });
 
+        stream.on('error', (err: unknown) => {
+          const message = err instanceof Error ? err.message : String(err);
+          settle(() =>
+            reject(
+              new InternalServerErrorException(`File stream error: ${message}`),
+            ),
+          );
+        });
+
         this.storage
           .uploadStream(stream, filename, mimeType)
           .then((result) =>
@@ -189,6 +198,15 @@ export class ReceiptsService {
             ),
           );
         }
+      });
+
+      req.on('error', (err: unknown) => {
+        const message = err instanceof Error ? err.message : String(err);
+        settle(() =>
+          reject(
+            new InternalServerErrorException(`Request stream error: ${message}`),
+          ),
+        );
       });
 
       req.pipe(busboy);
