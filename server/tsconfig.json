@@ -30,6 +30,9 @@
       ],
       "@tests/*": [
         "tests/*"
+      ],
+      "@open-receipt-ocr/types": [
+        "../packages/types/src/index.ts"
       ]
     }
   }

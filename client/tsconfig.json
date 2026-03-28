@@ -22,7 +22,8 @@
       "@models/*": ["src/app/models/*"],
       "@layouts/*": ["src/app/layouts/*"],
       "@pages/*": ["src/app/pages/*"],
-      "@environments/*": ["src/environments/*"]
+      "@environments/*": ["src/environments/*"],
+      "@open-receipt-ocr/types": ["../packages/types/src/index.ts"]
     }
   },
   "angularCompilerOptions": {
