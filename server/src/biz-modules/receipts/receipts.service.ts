@@ -1,15 +1,15 @@
-import { BadRequestException, Inject, Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, Logger } from '@nestjs/common';
 import { ReceiptsDao } from '@core/database/daos/receipts.dao';
 import { ReceiptEntity } from '@core/database/entities/receipt.entity';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
 import type { Request } from 'express';
-import Busboy from 'busboy';
 import { SecretProvider } from '@core/secrets/secret-provider.interface';
 import { StorageProvider } from '@core/storage/storage-provider.interface';
 import { AppSecret } from '@core/types/app-secret.enum';
 import { QueueName } from '@core/types/queue-name.enum';
 import { ALLOWED_MIME_TYPES, DEFAULT_MAX_FILE_SIZE_BYTES } from '@core/constants/media.constants';
+import { parseMultipartStream } from '@core/utils/multipart.util';
 
 import { OcrProvider } from '@core/types/ocr-provider.enum';
 
@@ -41,118 +41,24 @@ export class ReceiptsService {
     const maxSizeStr = await this.secretProvider.getSecret(AppSecret.MaxFileSizeBytes);
     const maxSizeBytes = maxSizeStr ? parseInt(maxSizeStr, 10) : DEFAULT_MAX_FILE_SIZE_BYTES;
 
-    const { key, originalName, ocrProvider } = await this.parseAndStream(req, maxSizeBytes);
+    const parseResult = await parseMultipartStream(req, this.storage, {
+      maxSizeBytes,
+      allowedMimeTypes: ALLOWED_MIME_TYPES,
+    });
+
+    let ocrProvider: OcrProvider = OcrProvider.Mistral;
+    if (parseResult.fields['ocrProvider'] && Object.values(OcrProvider).includes(parseResult.fields['ocrProvider'] as OcrProvider)) {
+      ocrProvider = parseResult.fields['ocrProvider'] as OcrProvider;
+    }
 
     const receipt = await this.receiptsDao.create({
-      filename: key,
-      originalName: originalName,
+      filename: parseResult.file.key,
+      originalName: parseResult.file.originalName,
       ocrProvider,
     });
     await this.ocrQueue.add('process-ocr', { receiptId: receipt.id });
     this.logger.log(`Receipt #${receipt.id} queued for OCR`);
 
     return receipt;
-  }
-
-  /**
-   * Parses the multipart body with Busboy and pipes the first file stream
-   * directly into the StorageProvider without any RAM buffering.
-   *
-   * Validation — all checked before or during streaming:
-   *   - Filename must be present (Busboy `info`)
-   *   - MIME type must be in ALLOWED_MIME_TYPES (Busboy `info`)
-   *   - File size must not exceed MAX_FILE_SIZE_BYTES (Busboy `limits.fileSize`)
-   */
-  private parseAndStream(req: Request, maxSizeBytes: number): Promise<{ key: string; originalName: string; ocrProvider: OcrProvider }> {
-    return new Promise((resolve, reject) => {
-      const busboy = Busboy({
-        headers: req.headers,
-        limits: {
-          files: 1,
-          fileSize: maxSizeBytes,
-        },
-      });
-
-      let fileFound = false;
-      let settled = false;
-      let ocrProvider: OcrProvider = OcrProvider.Mistral;
-
-      const settle = (action: () => void) => {
-        if (!settled) {
-          settled = true;
-          action();
-        }
-      };
-
-      busboy.on('field', (name, val) => {
-        if (name === 'ocrProvider' && val) {
-          if (Object.values(OcrProvider).includes(val as OcrProvider)) {
-            ocrProvider = val as OcrProvider;
-          }
-        }
-      });
-
-      busboy.on('file', (fieldname, stream, info) => {
-        const { filename, mimeType } = info;
-        fileFound = true;
-
-        if (!filename) {
-          stream.resume();
-          return settle(() => reject(new BadRequestException('Upload must include a filename.')));
-        }
-
-        if (!ALLOWED_MIME_TYPES.has(mimeType)) {
-          stream.resume();
-          return settle(() =>
-            reject(new BadRequestException(`Unsupported file type "${mimeType}". Allowed: ${[...ALLOWED_MIME_TYPES].join(', ')}.`)),
-          );
-        }
-
-        this.logger.log(`Streaming upload: ${filename} (${mimeType})`);
-
-        stream.on('limit', () => {
-          settle(() => reject(new BadRequestException(`File exceeds the maximum allowed size of ${maxSizeBytes / 1024 / 1024} MB.`)));
-        });
-
-        stream.on('error', (err: unknown) => {
-          const message = err instanceof Error ? err.message : String(err);
-          settle(() => reject(new InternalServerErrorException(`File stream error: ${message}`)));
-        });
-
-        this.storage
-          .uploadStream(stream, filename, mimeType)
-          .then((result) =>
-            settle(() =>
-              resolve({
-                key: result.key,
-                originalName: filename,
-                ocrProvider,
-              }),
-            ),
-          )
-          .catch((err: unknown) => {
-            const message = err instanceof Error ? err.message : String(err);
-            settle(() => reject(new InternalServerErrorException(`Storage error: ${message}`)));
-          });
-      });
-
-      busboy.on('error', (err: unknown) => {
-        const message = err instanceof Error ? err.message : String(err);
-        settle(() => reject(new InternalServerErrorException(`Multipart parse error: ${message}`)));
-      });
-
-      busboy.on('finish', () => {
-        if (!fileFound) {
-          settle(() => reject(new BadRequestException('No file field found in the multipart request.')));
-        }
-      });
-
-      req.on('error', (err: unknown) => {
-        const message = err instanceof Error ? err.message : String(err);
-        settle(() => reject(new InternalServerErrorException(`Request stream error: ${message}`)));
-      });
-
-      req.pipe(busboy);
-    });
   }
 }
