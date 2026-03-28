@@ -27,6 +27,9 @@
       ],
       "@biz-modules/*": [
         "src/biz-modules/*"
+      ],
+      "@tests/*": [
+        "tests/*"
       ]
     }
   }

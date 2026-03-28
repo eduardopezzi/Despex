@@ -1,56 +1,27 @@
-import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import { DatabaseModule } from '@core/database/database.module';
 import { ReceiptsModule } from '@biz-modules/receipts/receipts.module';
 import { StorageModule } from '@core/storage/storage.module';
-import { SecretProvider } from '@core/secrets/secret-provider.interface';
-import { AppSecret } from '@core/types/app-secret.enum';
-import { QueueService } from '@core/queue/queue.service';
-import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { TestHelpers } from '../../test-helpers';
 import { ReceiptEntity } from '@core/database/entities/receipt.entity';
 import { MimeType } from '@core/types/mime-type.enum';
 import { OcrProvider } from '@open-receipt-ocr/types';
+import { TestContextHelpers } from '@tests/test-context.helpers';
+import { QueueService } from '@core/queue/queue.service';
 
 describe('Receipts Controller (e2e) with unique Schema', () => {
   let app: INestApplication;
-  const mockQueueService = {
-    addToOcrQueue: vi.fn(),
-  };
+  let queueServiceMock: QueueService;
 
-  const fileData =
-    '------WebKitFormBoundary7MA4YWxkTrZu0gW\r\nContent-Disposition: form-data; name="ocrProvider"\r\n\r\nmistral\r\n------WebKitFormBoundary7MA4YWxkTrZu0gW\r\nContent-Disposition: form-data; name="file"; filename="test.jpg"\r\nContent-Type: image/jpeg\r\n\r\n<data>\r\n------WebKitFormBoundary7MA4YWxkTrZu0gW--\r\n';
-
-  const dbPath = ':memory:';
-
-  const mockSecretProvider = {
-    getSecret: vi.fn().mockImplementation((key) => {
-      if (key === AppSecret.NodeEnv) return 'test';
-      if (key === AppSecret.DatabasePath) return dbPath;
-      if (key === AppSecret.RedisHost) return 'localhost';
-      if (key === AppSecret.RedisPort) return '6379';
-      return null;
-    }),
-    getSecretOrThrow: vi.fn().mockImplementation((key) => {
-      if (key === AppSecret.DatabasePath) return dbPath;
-      if (key === AppSecret.RedisHost) return 'localhost';
-      return 'mocked';
-    }),
-    getSecretAsIntOrThrow: vi.fn().mockReturnValue(6379),
-  };
+  const fileData = 'test content';
 
   beforeAll(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
+    const context = await TestContextHelpers.createTestContext({
       imports: [DatabaseModule, StorageModule, ReceiptsModule],
-    })
-      .overrideProvider(SecretProvider)
-      .useValue(mockSecretProvider)
-      .overrideProvider(QueueService)
-      .useValue(mockQueueService)
-      .compile();
-
-    app = moduleFixture.createNestApplication();
-    await app.init();
+    });
+    app = context.app;
+    queueServiceMock = context.mocks.queueService;
   });
 
   afterAll(async () => {
@@ -73,7 +44,7 @@ describe('Receipts Controller (e2e) with unique Schema', () => {
     );
 
     expect(body).toHaveProperty('id');
-    expect(mockQueueService.addToOcrQueue).toHaveBeenCalled();
+    expect(queueServiceMock.addToOcrQueue).toHaveBeenCalled();
   });
 
   it('/receipts/:id (GET)', async () => {
