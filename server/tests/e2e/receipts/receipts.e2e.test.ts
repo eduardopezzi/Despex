@@ -7,12 +7,11 @@ import { TestHelpers } from '../../test-helpers';
 import { ReceiptEntity } from '@core/database/entities/receipt.entity';
 import { MimeType } from '@core/types/mime-type.enum';
 import { OcrProvider } from '@open-receipt-ocr/types';
-import { TestContextHelpers } from '@tests/test-context.helpers';
-import { QueueService } from '@core/queue/queue.service';
+import { MockQueueService, TestContextHelpers } from '@tests/test-context.helpers';
 
 describe('Receipts Controller (e2e) with unique Schema', () => {
   let app: INestApplication;
-  let queueServiceMock: QueueService;
+  let queueServiceMock: MockQueueService;
 
   const fileData = 'test content';
 
