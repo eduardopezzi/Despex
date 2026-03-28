@@ -4,7 +4,7 @@ import { Job } from 'bullmq';
 import * as fs from 'fs';
 import axios from 'axios';
 import { extname } from 'path';
-import { ReceiptsDao } from '@biz-modules/receipts/receipts.dao';
+import { ReceiptsDao } from '@core/database/daos/receipts.dao';
 import { ReceiptStatus } from '@core/types/receipt-status.enum';
 import { AppSecret } from '@core/types/app-secret.enum';
 import { SecretProvider } from '@core/secrets/secret-provider.interface';

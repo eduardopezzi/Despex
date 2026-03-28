@@ -5,7 +5,7 @@ import {
   InternalServerErrorException,
   Logger,
 } from '@nestjs/common';
-import { ReceiptsDao } from '@biz-modules/receipts/receipts.dao';
+import { ReceiptsDao } from '@core/database/daos/receipts.dao';
 import { ReceiptEntity } from '@core/database/entities/receipt.entity';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
