@@ -1,12 +1,5 @@
 import { NotFoundException } from '@nestjs/common';
-import {
-  DeepPartial,
-  FindManyOptions,
-  FindOneOptions,
-  FindOptionsWhere,
-  ObjectLiteral,
-  Repository,
-} from 'typeorm';
+import { DeepPartial, FindManyOptions, FindOneOptions, FindOptionsWhere, ObjectLiteral, Repository } from 'typeorm';
 
 /**
  * Generic DAO (Data Access Object) base class.
@@ -38,25 +31,17 @@ export class BaseDao<T extends ObjectLiteral> {
     return this.repo.findOne(options);
   }
 
-  getOneByPk(
-    id: string | number,
-    options?: Omit<FindOneOptions<T>, 'where'>,
-  ): Promise<T | null> {
+  getOneByPk(id: string | number, options?: Omit<FindOneOptions<T>, 'where'>): Promise<T | null> {
     return this.repo.findOne({
       ...options,
       where: { [this.pkName]: id } as FindOptionsWhere<T>,
     });
   }
 
-  async getOneByPkOrFail(
-    id: string | number,
-    options?: Omit<FindOneOptions<T>, 'where'>,
-  ): Promise<T> {
+  async getOneByPkOrFail(id: string | number, options?: Omit<FindOneOptions<T>, 'where'>): Promise<T> {
     const entity = await this.getOneByPk(id, options);
     if (!entity) {
-      throw new NotFoundException(
-        `${this.repo.metadata.name} with id "${id}" not found`,
-      );
+      throw new NotFoundException(`${this.repo.metadata.name} with id "${id}" not found`);
     }
     return entity;
   }

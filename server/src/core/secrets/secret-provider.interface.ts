@@ -34,9 +34,7 @@ export abstract class SecretProvider {
   async getSecretOrThrow(name: AppSecret): Promise<string> {
     const value = await this.getSecret(name);
     if (value === undefined || value === null || value === '') {
-      throw new Error(
-        `Secret "${name}" is missing or empty. This secret is required for the application to function properly.`,
-      );
+      throw new Error(`Secret "${name}" is missing or empty. This secret is required for the application to function properly.`);
     }
     return value;
   }

@@ -1,5 +1,1 @@
-export enum OcrProvider {
-  Mistral = 'mistral',
-  Azure = 'azure',
-  Aws = 'aws',
-}
+export { OcrProvider } from '@open-receipt-ocr/types';

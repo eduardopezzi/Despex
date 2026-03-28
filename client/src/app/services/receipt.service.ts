@@ -5,7 +5,7 @@ import { Observable, tap } from 'rxjs';
 import { environment } from '@environments/environment';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class ReceiptService {
   private http = inject(HttpClient);
@@ -17,15 +17,18 @@ export class ReceiptService {
 
   fetchReceipts() {
     this.loading.set(true);
-    return this.http.get<Receipt[]>(this.apiUrl).pipe(
-      tap(data => {
-        this.receipts.set(data);
-        this.loading.set(false);
-      })
-    ).subscribe();
+    return this.http
+      .get<Receipt[]>(this.apiUrl)
+      .pipe(
+        tap((data) => {
+          this.receipts.set(data);
+          this.loading.set(false);
+        }),
+      )
+      .subscribe();
   }
 
-  uploadReceipt(file: File, ocrProvider: OcrProvider = OcrProvider.MISTRAL) {
+  uploadReceipt(file: File, ocrProvider: OcrProvider = OcrProvider.Mistral) {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('ocrProvider', ocrProvider);

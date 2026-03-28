@@ -19,12 +19,6 @@ const entitiesModule = TypeOrmModule.forFeature([ReceiptEntity]);
     entitiesModule,
   ],
   providers: [TypeOrmConfigService, ReposService, DbService],
-  exports: [
-    TypeOrmConfigService,
-    entitiesModule,
-    ReposService,
-    DbService,
-    SecretsModule,
-  ],
+  exports: [TypeOrmConfigService, entitiesModule, ReposService, DbService, SecretsModule],
 })
 export class DatabaseModule {}

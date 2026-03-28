@@ -7,10 +7,9 @@
   [dismissableMask]="true"
   [header]="t('upload.title')"
   [style]="{ width: '640px' }"
-  [contentStyle]="{ 'overflow': 'visible' }"
+  [contentStyle]="{ overflow: 'visible' }"
 >
   <div class="flex flex-col gap-8">
-
     <!-- Drop zone -->
     <div
       class="border-2 border-dashed rounded-2xl p-12 min-h-[180px] flex flex-col items-center justify-center text-center transition-all cursor-pointer overflow-hidden"
@@ -23,11 +22,10 @@
       (dragleave)="isDragging.set(false)"
       (drop)="onDrop($event)"
       (click)="fileInput.click()"
+      (keydown.enter)="fileInput.click()"
+      tabindex="0"
     >
-      <i class="pi pi-cloud-upload text-4xl mb-3 block"
-         [class.text-primary-500]="isDragging()"
-         [class.text-surface-400]="!isDragging()">
-      </i>
+      <i class="pi pi-cloud-upload text-4xl mb-3 block" [class.text-primary-500]="isDragging()" [class.text-surface-400]="!isDragging()"> </i>
       @if (file()) {
         <p class="text-sm font-semibold text-surface-800 dark:text-surface-100">{{ file()!.name }}</p>
         <p class="text-xs text-surface-400 mt-1">{{ (file()!.size / 1024 / 1024).toFixed(2) }} MB</p>
@@ -35,15 +33,14 @@
         <p class="text-sm font-semibold text-surface-700 dark:text-surface-200">{{ t('upload.dropZone') }}</p>
         <p class="text-xs text-surface-400 mt-1">{{ t('upload.dropZoneHint') }}</p>
       }
-      <input #fileInput type="file" class="hidden"
-             accept="image/*,application/pdf"
-             (change)="onFileSelected($event)" />
+      <input #fileInput type="file" class="hidden" accept="image/*,application/pdf" (change)="onFileSelected($event)" />
     </div>
 
     <!-- OCR Provider -->
     <div class="flex flex-col gap-2">
-      <label class="text-xs font-semibold text-surface-500 uppercase tracking-wider">{{ t('upload.ocrProvider') }}</label>
+      <label for="ocr-provider" class="text-xs font-semibold text-surface-500 uppercase tracking-wider">{{ t('upload.ocrProvider') }}</label>
       <p-select
+        id="ocr-provider"
         [options]="ocrOptions"
         [ngModel]="ocrProvider()"
         (ngModelChange)="ocrProvider.set($event)"
@@ -66,7 +63,9 @@
               <i [class]="option.disabled ? 'pi pi-lock text-surface-400' : 'pi pi-sparkles text-primary-400'"></i>
               <div class="flex flex-col">
                 <span [class.text-surface-400]="option.disabled">{{ option.label }}</span>
-                @if (option.disabled) { <span class="text-[10px] text-surface-400">{{ t('common.comingSoon') }}</span> }
+                @if (option.disabled) {
+                  <span class="text-[10px] text-surface-400">{{ t('common.comingSoon') }}</span>
+                }
               </div>
             </div>
           </div>
@@ -81,18 +80,12 @@
 
     <!-- Message -->
     @if (message()) {
-      <p-message
-        [severity]="isError() ? 'error' : 'success'"
-        [text]="t(message() || '')"
-      />
+      <p-message [severity]="isError() ? 'error' : 'success'" [text]="t(message() || '')" />
     }
   </div>
 
   <ng-template pTemplate="footer">
-    <p-button [label]="t('common.cancel')" severity="secondary" [text]="true"
-              (onClick)="close()" [disabled]="uploading()" />
-    <p-button [label]="t('upload.uploadAndProcess')" icon="pi pi-cloud-upload"
-              [loading]="uploading()" [disabled]="!file()"
-              (onClick)="doUpload()" />
+    <p-button [label]="t('common.cancel')" severity="secondary" [text]="true" (onClick)="close()" [disabled]="uploading()" />
+    <p-button [label]="t('upload.uploadAndProcess')" icon="pi pi-cloud-upload" [loading]="uploading()" [disabled]="!file()" (onClick)="doUpload()" />
   </ng-template>
 </p-dialog>

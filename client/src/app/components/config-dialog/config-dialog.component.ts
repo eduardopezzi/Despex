@@ -1,22 +1,12 @@
-import {
-  Component,
-  ElementRef,
-  EventEmitter,
-  Input,
-  Output,
-  ViewChild,
-  effect,
-  inject,
-  signal,
-} from '@angular/core';
-import {CommonModule} from '@angular/common';
-import {FormsModule} from '@angular/forms';
-import {DialogModule} from 'primeng/dialog';
-import {ButtonModule} from 'primeng/button';
-import {SelectModule} from 'primeng/select';
-import {OcrProvider} from '@models/receipt.model';
-import {ConfigService} from '@services/config.service';
-import {TranslocoModule, TranslocoService} from '@jsverse/transloco';
+import { Component, ElementRef, EventEmitter, Input, Output, ViewChild, effect, inject, signal } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { DialogModule } from 'primeng/dialog';
+import { ButtonModule } from 'primeng/button';
+import { SelectModule } from 'primeng/select';
+import { OcrProvider } from '@models/receipt.model';
+import { ConfigService } from '@services/config.service';
+import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 
 @Component({
   selector: 'app-config-dialog',
@@ -43,7 +33,7 @@ export class ConfigDialogComponent {
 
   @ViewChild('arrowContainer') containerEl!: ElementRef<HTMLElement>;
 
-  arrows = signal<Array<{ d: string; key: string }>>([]);
+  arrows = signal<{ d: string; key: string }[]>([]);
 
   constructor() {
     effect(() => {
@@ -60,31 +50,31 @@ export class ConfigDialogComponent {
     return [
       {
         label: this.translocoService.translate('config.providers.mistral'),
-        value: OcrProvider.MISTRAL,
-        icon: 'pi pi-sparkles'
+        value: OcrProvider.Mistral,
+        icon: 'pi pi-sparkles',
       },
       {
         label: this.translocoService.translate('config.providers.azure'),
-        value: OcrProvider.AZURE,
+        value: OcrProvider.Azure,
         icon: 'pi pi-cloud',
-        disabled: true
+        disabled: true,
       },
       {
         label: this.translocoService.translate('config.providers.aws'),
-        value: OcrProvider.AWS,
+        value: OcrProvider.Aws,
         icon: 'pi pi-microchip',
-        disabled: true
+        disabled: true,
       },
-      {label: this.translocoService.translate('config.providers.ask'), value: 'ask', icon: 'pi pi-question-circle'},
+      { label: this.translocoService.translate('config.providers.ask'), value: 'ask', icon: 'pi pi-question-circle' },
     ];
   }
 
   get outputOptions() {
     return [
-      {label: this.translocoService.translate('config.outputs.markdown'), value: 'markdown', icon: 'pi pi-download'},
-      {label: this.translocoService.translate('config.outputs.clipboard'), value: 'clipboard', icon: 'pi pi-copy'},
-      {label: this.translocoService.translate('config.outputs.n8n'), value: 'n8n', icon: 'pi pi-send'},
-      {label: this.translocoService.translate('config.outputs.api'), value: 'api', icon: 'pi pi-code', disabled: true},
+      { label: this.translocoService.translate('config.outputs.markdown'), value: 'markdown', icon: 'pi pi-download' },
+      { label: this.translocoService.translate('config.outputs.clipboard'), value: 'clipboard', icon: 'pi pi-copy' },
+      { label: this.translocoService.translate('config.outputs.n8n'), value: 'n8n', icon: 'pi pi-send' },
+      { label: this.translocoService.translate('config.outputs.api'), value: 'api', icon: 'pi pi-code', disabled: true },
     ];
   }
 
@@ -99,7 +89,7 @@ export class ConfigDialogComponent {
     const containerRect = container.getBoundingClientRect();
     if (!containerRect.width) return;
 
-    const allArrows: Array<{ d: string; key: string }> = [];
+    const allArrows: { d: string; key: string }[] = [];
 
     // ── Arrow 1: Input → selected OCR Provider ──────────────────
     const inputEl = container.querySelector<HTMLElement>('[data-input-node]');
@@ -128,7 +118,7 @@ export class ConfigDialogComponent {
       const startY = provRect.top + provRect.height / 2 - containerRect.top;
 
       const selectedOutputEls = Array.from(container.querySelectorAll<HTMLElement>('[data-sel-output]'));
-      selectedOutputEls.forEach(el => {
+      selectedOutputEls.forEach((el) => {
         const outRect = el.getBoundingClientRect();
         const endX = outRect.left - containerRect.left - 2;
         const endY = outRect.top + outRect.height / 2 - containerRect.top;
@@ -150,7 +140,7 @@ export class ConfigDialogComponent {
   toggleOutput(value: string) {
     const current = this.configService.defaultOutputs() as string[];
     if (current.includes(value)) {
-      this.configService.defaultOutputs.set(current.filter(v => v !== value));
+      this.configService.defaultOutputs.set(current.filter((v) => v !== value));
     } else {
       this.configService.defaultOutputs.set([...current, value]);
     }

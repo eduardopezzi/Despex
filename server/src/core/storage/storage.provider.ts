@@ -7,13 +7,8 @@ import { AppSecret } from '@core/types/app-secret.enum';
 
 export const StorageProviderDefinition: Provider = {
   provide: StorageProvider,
-  useFactory: async (
-    secretProvider: SecretProvider,
-    local: LocalStorageProvider,
-  ) => {
-    const providerName = await secretProvider.getSecret(
-      AppSecret.StorageProvider,
-    );
+  useFactory: async (secretProvider: SecretProvider, local: LocalStorageProvider) => {
+    const providerName = await secretProvider.getSecret(AppSecret.StorageProvider);
 
     switch (providerName) {
       case StorageProviderType.Local:
