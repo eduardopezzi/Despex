@@ -45,6 +45,8 @@
         <div
           class="group bg-surface-0 dark:bg-surface-900 rounded-2xl border border-surface-200 dark:border-surface-800 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 overflow-hidden cursor-pointer"
           (click)="selectedReceipt = receipt; showDetail = true"
+          (keydown.enter)="selectedReceipt = receipt; showDetail = true"
+          tabindex="0"
         >
           <!-- Card preview area -->
           <div
@@ -143,7 +145,7 @@
           <div class="flex items-center justify-between mb-3">
             <p class="text-sm font-semibold text-surface-700 dark:text-surface-200">{{ t('receipts.detail.extractedData') }}</p>
 
-            @if (selectedReceipt.status === 'COMPLETED' && selectedReceipt.ocrData) {
+            @if (selectedReceipt.status === ReceiptStatus.Completed && selectedReceipt.ocrData) {
               <div>
                 <p-button
                   [label]="t('receipts.detail.exportContent')"
@@ -159,22 +161,22 @@
             }
           </div>
 
-          @if (selectedReceipt.status === 'COMPLETED' && selectedReceipt.ocrData) {
+          @if (selectedReceipt.status === ReceiptStatus.Completed && selectedReceipt.ocrData) {
             <pre
               class="bg-surface-50 dark:bg-surface-800 border border-surface-200 dark:border-surface-700 rounded-xl p-4 text-xs font-mono text-surface-700 dark:text-surface-300 overflow-auto max-h-72 whitespace-pre-wrap"
               >{{ selectedReceipt.ocrData }}</pre
             >
-          } @else if (selectedReceipt.status === 'PROCESSING') {
+          } @else if (selectedReceipt.status === ReceiptStatus.Processing) {
             <div class="flex items-center gap-3 py-4 text-surface-500">
               <i class="pi pi-spin pi-spinner text-primary-500 text-xl"></i>
               <span class="text-sm">{{ t('receipts.detail.processingMsg') }}</span>
             </div>
-          } @else if (selectedReceipt.status === 'PENDING') {
+          } @else if (selectedReceipt.status === ReceiptStatus.Pending) {
             <div class="flex items-center gap-3 py-4 text-surface-500">
               <i class="pi pi-hourglass text-xl"></i>
               <span class="text-sm">{{ t('receipts.detail.pendingMsg') }}</span>
             </div>
-          } @else if (selectedReceipt.status === 'FAILED') {
+          } @else if (selectedReceipt.status === ReceiptStatus.Failed) {
             <div class="flex items-center gap-3 py-4 text-red-500">
               <i class="pi pi-exclamation-triangle text-xl"></i>
               <span class="text-sm">{{ t('receipts.detail.failedMsg') }}</span>

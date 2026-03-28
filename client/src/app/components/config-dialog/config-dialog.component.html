@@ -41,6 +41,8 @@
         <div
           [attr.data-sel-provider]="configService.defaultOcrProvider() === opt.value ? '' : null"
           (click)="!opt.disabled && setOcrProvider($any(opt.value))"
+          (keydown.enter)="!opt.disabled && setOcrProvider($any(opt.value))"
+          tabindex="0"
           [class.border-primary-500]="configService.defaultOcrProvider() === opt.value"
           [class.bg-primary-50]="configService.defaultOcrProvider() === opt.value"
           [class.dark:bg-primary-900/30]="configService.defaultOcrProvider() === opt.value"
@@ -95,6 +97,8 @@
           [attr.data-sel-output]="isOutputSelected(opt.value) ? '' : null"
           [attr.data-output-val]="opt.value"
           (click)="!opt.disabled && toggleOutput(opt.value)"
+          (keydown.enter)="!opt.disabled && toggleOutput(opt.value)"
+          tabindex="0"
           [class.border-primary-500]="isOutputSelected(opt.value)"
           [class.bg-primary-50]="isOutputSelected(opt.value)"
           [class.dark:bg-primary-900/30]="isOutputSelected(opt.value)"

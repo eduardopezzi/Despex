@@ -33,7 +33,7 @@ export class ConfigDialogComponent {
 
   @ViewChild('arrowContainer') containerEl!: ElementRef<HTMLElement>;
 
-  arrows = signal<Array<{ d: string; key: string }>>([]);
+  arrows = signal<{ d: string; key: string }[]>([]);
 
   constructor() {
     effect(() => {
@@ -89,7 +89,7 @@ export class ConfigDialogComponent {
     const containerRect = container.getBoundingClientRect();
     if (!containerRect.width) return;
 
-    const allArrows: Array<{ d: string; key: string }> = [];
+    const allArrows: { d: string; key: string }[] = [];
 
     // ── Arrow 1: Input → selected OCR Provider ──────────────────
     const inputEl = container.querySelector<HTMLElement>('[data-input-node]');

@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReceiptService } from '@services/receipt.service';
 import { Receipt, ReceiptStatus } from '@models/receipt.model';
@@ -36,6 +36,8 @@ export class ReceiptsPageComponent implements OnInit {
   receiptService = inject(ReceiptService);
   private messageService = inject(MessageService);
   private translocoService = inject(TranslocoService);
+
+  ReceiptStatus: typeof ReceiptStatus = ReceiptStatus;
 
   showUploadDialog = false;
   showDetail = false;
