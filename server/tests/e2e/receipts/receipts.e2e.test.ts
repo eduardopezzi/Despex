@@ -43,7 +43,8 @@ describe('Receipts Controller (e2e) with unique Schema', () => {
     );
 
     expect(body).toHaveProperty('id');
-    expect(queueServiceMock.addToOcrQueue).toHaveBeenCalled();
+    expect(queueServiceMock.addToOcrQueue).toHaveBeenCalledOnce();
+    expect(queueServiceMock.addToOcrQueue).toHaveBeenCalledWith({ receiptId: body.id });
   });
 
   it('/receipts/:id (GET)', async () => {
