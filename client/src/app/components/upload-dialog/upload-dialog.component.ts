@@ -48,12 +48,12 @@ export class UploadDialogComponent {
   isError = signal(false);
   isDragging = signal(false);
 
-  ocrProvider = signal<OcrProvider>(OcrProvider.MISTRAL);
+  ocrProvider = signal<OcrProvider>(OcrProvider.Mistral);
   get ocrOptions() {
     return [
-      { label: this.translocoService.translate('config.providers.mistral'), value: OcrProvider.MISTRAL },
-      { label: this.translocoService.translate('config.providers.azure'), value: OcrProvider.AZURE, disabled: true },
-      { label: this.translocoService.translate('config.providers.aws'), value: OcrProvider.AWS, disabled: true }
+      { label: this.translocoService.translate('config.providers.mistral'), value: OcrProvider.Mistral },
+      { label: this.translocoService.translate('config.providers.azure'), value: OcrProvider.Azure, disabled: true },
+      { label: this.translocoService.translate('config.providers.aws'), value: OcrProvider.Aws, disabled: true }
     ];
   }
 

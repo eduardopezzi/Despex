@@ -1,47 +1,46 @@
-# ── Stage 1: Build frontend ──────────────────────────────────────────────────
+# ── Stage 1: Build Shared Types ──────────────────────────────────────────────
+FROM node:24-alpine AS types-builder
+WORKDIR /app
+COPY package*.json ./
+COPY packages/types/package*.json ./packages/types/
+RUN npm install
+COPY packages/types/ ./packages/types/
+RUN npm run build --workspace=@open-receipt-ocr/types
+
+# ── Stage 2: Build frontend ──────────────────────────────────────────────────
 FROM node:24-alpine AS client-builder
 WORKDIR /app
-
-# Copy monorepo root manifests first for layer caching
 COPY package*.json ./
+COPY packages/types/package*.json ./packages/types/
 COPY client/package*.json ./client/
-COPY server/package*.json ./server/
-
-# Install all workspace deps (needed for turbo, etc.)
 RUN npm install
-
-# Copy source and build the client
+COPY packages/types/ ./packages/types/
 COPY client/ ./client/
-RUN npm run build --workspace=client
+COPY --from=types-builder /app/packages/types/dist ./packages/types/dist
+RUN npm run build --workspace=@open-receipt-ocr/client
 
-# ── Stage 2: Build backend ────────────────────────────────────────────────────
+# ── Stage 4: Build backend ────────────────────────────────────────────────────
 FROM node:24-alpine AS server-builder
 WORKDIR /app
-
 COPY package*.json ./
+COPY packages/types/package*.json ./packages/types/
 COPY server/package*.json ./server/
-COPY client/package*.json ./client/
 RUN npm install
-
+COPY packages/types/ ./packages/types/
 COPY server/ ./server/
-RUN npm run build --workspace=server
+COPY --from=types-builder /app/packages/types/dist ./packages/types/dist
+RUN npm run build --workspace=@open-receipt-ocr/server
 
-# ── Stage 3: Production image ─────────────────────────────────────────────────
+# ── Stage 5: Production image ─────────────────────────────────────────────────
 FROM node:24-alpine
 WORKDIR /app
-
-# Only install production deps for the server
 COPY package*.json ./
+COPY packages/types/package*.json ./packages/types/
 COPY server/package*.json ./server/
-COPY client/package*.json ./client/
-RUN npm install --omit=dev --workspace=server
-
-# Copy build artifacts
+RUN npm install --omit=dev --workspace=@open-receipt-ocr/server
+COPY --from=types-builder /app/packages/types/dist ./packages/types/dist
 COPY --from=server-builder /app/server/dist ./server/dist
 COPY --from=client-builder /app/client/dist/client/browser ./public
-
-# Ensure persistence directories exist
 RUN mkdir -p /app/data /app/uploads
-
 EXPOSE 3000
 CMD ["node", "server/dist/main"]

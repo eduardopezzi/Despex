@@ -5,7 +5,7 @@ import { OcrProvider } from '@models/receipt.model';
   providedIn: 'root'
 })
 export class ConfigService {
-  defaultOcrProvider = signal<OcrProvider | 'ask'>(OcrProvider.MISTRAL);
+  defaultOcrProvider = signal<OcrProvider | 'ask'>(OcrProvider.Mistral);
   defaultOutputs = signal<string[]>(['markdown']);
 
   private storageKey = 'open-receipt-ocr-config';

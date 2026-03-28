@@ -25,7 +25,7 @@ export class ReceiptService {
     ).subscribe();
   }
 
-  uploadReceipt(file: File, ocrProvider: OcrProvider = OcrProvider.MISTRAL) {
+  uploadReceipt(file: File, ocrProvider: OcrProvider = OcrProvider.Mistral) {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('ocrProvider', ocrProvider);

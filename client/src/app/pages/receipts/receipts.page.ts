@@ -129,19 +129,19 @@ export class ReceiptsPageComponent implements OnInit {
 
   getStatusSeverity(status: ReceiptStatus): 'success' | 'info' | 'warn' | 'danger' | 'secondary' {
     switch (status) {
-      case ReceiptStatus.PENDING:    return 'secondary';
-      case ReceiptStatus.PROCESSING: return 'info';
-      case ReceiptStatus.COMPLETED:  return 'success';
-      case ReceiptStatus.FAILED:     return 'danger';
+      case ReceiptStatus.Pending:    return 'secondary';
+      case ReceiptStatus.Processing: return 'info';
+      case ReceiptStatus.Completed:  return 'success';
+      case ReceiptStatus.Failed:     return 'danger';
     }
   }
 
   getCardBg(status: ReceiptStatus): string {
     switch (status) {
-      case ReceiptStatus.PENDING:    return 'bg-surface-100 dark:bg-surface-800';
-      case ReceiptStatus.PROCESSING: return 'bg-blue-50 dark:bg-blue-950/40';
-      case ReceiptStatus.COMPLETED:  return 'bg-emerald-50 dark:bg-emerald-950/40';
-      case ReceiptStatus.FAILED:     return 'bg-red-50 dark:bg-red-950/40';
+      case ReceiptStatus.Pending:    return 'bg-surface-100 dark:bg-surface-800';
+      case ReceiptStatus.Processing: return 'bg-blue-50 dark:bg-blue-950/40';
+      case ReceiptStatus.Completed:  return 'bg-emerald-50 dark:bg-emerald-950/40';
+      case ReceiptStatus.Failed:     return 'bg-red-50 dark:bg-red-950/40';
     }
   }
 
