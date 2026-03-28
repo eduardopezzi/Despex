@@ -1,4 +1,4 @@
 export const environment = {
   production: false,
-  apiUrl: 'http://localhost:9999/api', // Default dev backend
+  apiUrl: `http://${typeof window !== 'undefined' ? window.location.hostname : 'localhost'}:9999/api`,
 };
