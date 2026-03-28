@@ -33,9 +33,7 @@ export class InfisicalSecretProvider extends SecretProvider {
       });
       return secret.secretValue;
     } catch {
-      this.logger.warn(
-        `Secret "${name}" not found in Infisical. Falling back to process.env.`,
-      );
+      this.logger.warn(`Secret "${name}" not found in Infisical. Falling back to process.env.`);
       return process.env[name];
     }
   }
@@ -54,9 +52,7 @@ export class InfisicalSecretProvider extends SecretProvider {
     const projectId = process.env[AppSecret.InfisicalProjectId];
 
     if (!clientId || !clientSecret || !projectId) {
-      this.logger.warn(
-        'Infisical configuration missing — falling back to process.env.',
-      );
+      this.logger.warn('Infisical configuration missing — falling back to process.env.');
       this.isInitialized = true;
       return;
     }
@@ -69,10 +65,7 @@ export class InfisicalSecretProvider extends SecretProvider {
       this.client = sdk;
       this.logger.log('Successfully authenticated with Infisical.');
     } catch (error) {
-      this.logger.error(
-        'Failed to authenticate with Infisical — falling back to process.env.',
-        error,
-      );
+      this.logger.error('Failed to authenticate with Infisical — falling back to process.env.', error);
       this.client = null;
     }
 

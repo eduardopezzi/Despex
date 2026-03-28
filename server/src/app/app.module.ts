@@ -9,11 +9,7 @@ import { ReceiptsModule } from '@biz-modules/receipts/receipts.module';
 import { SecretProvider } from '@core/secrets/secret-provider.interface';
 import { AppSecret } from '@core/types/app-secret.enum';
 
-type NestModuleImport =
-  | Type
-  | DynamicModule
-  | Promise<DynamicModule>
-  | ForwardReference;
+type NestModuleImport = Type | DynamicModule | Promise<DynamicModule> | ForwardReference;
 
 const moduleImports: NestModuleImport[] = [
   SecretsModule,

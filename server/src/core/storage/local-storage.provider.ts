@@ -1,17 +1,10 @@
-import {
-  Injectable,
-  InternalServerErrorException,
-  Logger,
-} from '@nestjs/common';
+import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
 import { createWriteStream, existsSync, mkdirSync } from 'fs';
 import { join } from 'path';
 import { Readable } from 'stream';
 import { randomUUID } from 'node:crypto';
 import { extname } from 'node:path';
-import {
-  StorageProvider,
-  UploadResult,
-} from '@core/storage/storage-provider.interface';
+import { StorageProvider, UploadResult } from '@core/storage/storage-provider.interface';
 import { StorageProviderType } from '@core/storage/storage-provider-type.enum';
 import { AppSecret } from '@core/types/app-secret.enum';
 
@@ -23,10 +16,7 @@ export class LocalStorageProvider extends StorageProvider {
 
   constructor() {
     super();
-    this.uploadDir = join(
-      process.cwd(),
-      process.env[AppSecret.UploadsDir] || 'uploads',
-    );
+    this.uploadDir = join(process.cwd(), process.env[AppSecret.UploadsDir] || 'uploads');
     if (!existsSync(this.uploadDir)) {
       mkdirSync(this.uploadDir, { recursive: true });
     }
@@ -61,11 +51,7 @@ export class LocalStorageProvider extends StorageProvider {
       });
 
       writeStream.on('error', (err) => {
-        reject(
-          new InternalServerErrorException(
-            `Local stream upload failed: ${err.message}`,
-          ),
-        );
+        reject(new InternalServerErrorException(`Local stream upload failed: ${err.message}`));
       });
     });
   }

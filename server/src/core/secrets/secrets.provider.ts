@@ -7,10 +7,7 @@ import { InfisicalSecretProvider } from '@core/secrets/providers/infisical-secre
 
 export const SecretProviderDefinition: Provider = {
   provide: SecretProvider,
-  useFactory: (
-    envProvider: EnvSecretProvider,
-    infisicalProvider: InfisicalSecretProvider,
-  ) => {
+  useFactory: (envProvider: EnvSecretProvider, infisicalProvider: InfisicalSecretProvider) => {
     // We use process.env directly here (bootstrap-only) to pick the provider implementation
     const providerName = process.env[AppSecret.SecretProvider];
 

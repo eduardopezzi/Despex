@@ -1,33 +1,46 @@
-# Build Frontend
+# ── Stage 1: Build Shared Types ──────────────────────────────────────────────
+FROM node:24-alpine AS types-builder
+WORKDIR /app
+COPY package*.json ./
+COPY packages/types/package*.json ./packages/types/
+RUN npm install
+COPY packages/types/ ./packages/types/
+RUN npm run build --workspace=@open-receipt-ocr/types
+
+# ── Stage 2: Build frontend ──────────────────────────────────────────────────
 FROM node:24-alpine AS client-builder
-WORKDIR /app/client
-COPY client/package*.json ./
+WORKDIR /app
+COPY package*.json ./
+COPY packages/types/package*.json ./packages/types/
+COPY client/package*.json ./client/
 RUN npm install
-COPY client/ .
-RUN npx ng build --configuration production
+COPY packages/types/ ./packages/types/
+COPY client/ ./client/
+COPY --from=types-builder /app/packages/types/dist ./packages/types/dist
+RUN npm run build --workspace=@open-receipt-ocr/client
 
-# Build Backend
+# ── Stage 4: Build backend ────────────────────────────────────────────────────
 FROM node:24-alpine AS server-builder
-WORKDIR /app/server
-COPY server/package*.json ./
+WORKDIR /app
+COPY package*.json ./
+COPY packages/types/package*.json ./packages/types/
+COPY server/package*.json ./server/
 RUN npm install
-COPY server/ .
-RUN npm run build
+COPY packages/types/ ./packages/types/
+COPY server/ ./server/
+COPY --from=types-builder /app/packages/types/dist ./packages/types/dist
+RUN npm run build --workspace=@open-receipt-ocr/server
 
-# Final Stage
+# ── Stage 5: Production image ─────────────────────────────────────────────────
 FROM node:24-alpine
 WORKDIR /app
-
-# Production Dependencies
-COPY server/package*.json ./
-RUN npm install --omit=dev
-
-# Copy Assets
-COPY --from=server-builder /app/server/dist ./dist
+COPY package*.json ./
+COPY packages/types/package*.json ./packages/types/
+COPY server/package*.json ./server/
+RUN npm install --omit=dev --workspace=@open-receipt-ocr/server
+COPY --from=types-builder /app/packages/types/dist ./packages/types/dist
+COPY --from=server-builder /app/server/dist ./server/dist
 COPY --from=client-builder /app/client/dist/client/browser ./public
-
-# Ensure directories for persistence
 RUN mkdir -p /app/data /app/uploads
-
 EXPOSE 3000
-CMD ["node", "dist/main"]
+CMD ["node", "server/dist/main"]

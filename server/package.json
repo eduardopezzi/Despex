@@ -1,5 +1,5 @@
 {
-  "name": "server",
+  "name": "@open-receipt-ocr/server",
   "version": "0.0.1",
   "description": "",
   "author": "",
@@ -10,17 +10,17 @@
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start -e \"node -r dotenv/config\"",
     "start:dev": "nest start --watch -e \"node -r dotenv/config\"",
+    "dev": "nest start --watch -e \"node -r dotenv/config\"",
     "start:debug": "nest start --debug --watch -e \"node -r dotenv/config\"",
     "start:worker": "nest start --entryFile worker -e \"node -r dotenv/config\"",
     "start:dev:worker": "nest start --entryFile worker --watch -e \"node -r dotenv/config\"",
     "start:prod": "node -r dotenv/config dist/main",
     "start:prod:worker": "node -r dotenv/config dist/worker",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "test:cov": "jest --coverage",
-    "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:cov": "vitest run --coverage",
+    "test:e2e": "vitest run --testPathPattern=e2e"
   },
   "dependencies": {
     "@infisical/sdk": "^5.0.0",
@@ -32,6 +32,7 @@
     "@nestjs/serve-static": "^5.0.4",
     "@nestjs/swagger": "^11.2.6",
     "@nestjs/typeorm": "^11.0.0",
+    "@open-receipt-ocr/types": "*",
     "@types/multer": "^2.1.0",
     "axios": "^1.13.6",
     "bullmq": "^5.71.1",
@@ -52,6 +53,7 @@
     "@nestjs/cli": "^11.0.0",
     "@nestjs/schematics": "^11.0.0",
     "@nestjs/testing": "^11.0.1",
+    "@swc/core": "^1.15.21",
     "@types/busboy": "^1.5.4",
     "@types/express": "^5.0.0",
     "@types/jest": "^30.0.0",
@@ -70,7 +72,10 @@
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.7.3",
-    "typescript-eslint": "^8.20.0"
+    "typescript-eslint": "^8.20.0",
+    "unplugin-swc": "^1.5.9",
+    "vite-tsconfig-paths": "^6.1.1",
+    "vitest": "^4.1.2"
   },
   "jest": {
     "moduleFileExtensions": [

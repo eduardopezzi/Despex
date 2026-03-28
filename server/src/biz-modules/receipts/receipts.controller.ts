@@ -1,13 +1,4 @@
-import {
-  Controller,
-  Get,
-  Logger,
-  Param,
-  ParseIntPipe,
-  Post,
-  Req,
-  Res,
-} from '@nestjs/common';
+import { Controller, Get, Logger, Param, ParseIntPipe, Post, Req, Res } from '@nestjs/common';
 import { ApiBody, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { existsSync } from 'fs';
 import type { Request, Response } from 'express';
@@ -35,26 +26,22 @@ export class ReceiptsController {
 
   @Get(`:${RouteParam.Id}`)
   @ApiOperation({ summary: 'Get a single receipt by ID' })
-  findOne(
-    @Param(RouteParam.Id, ParseIntPipe) id: number,
-  ): Promise<ReceiptEntity> {
+  findOne(@Param(RouteParam.Id, ParseIntPipe) id: number): Promise<ReceiptEntity> {
     return this.receiptsService.findOneOrFail(id);
   }
 
   @Post('upload')
-  @ApiOperation({
-    summary: 'Upload a receipt image/PDF and trigger OCR processing',
-  })
+  @ApiOperation({ summary: 'Upload a receipt image/PDF and trigger OCR processing' })
   @ApiConsumes('multipart/form-data')
   @ApiBody({ type: UploadReceiptDto })
-  async upload(@Req() req: Request): Promise<{ id: number; message: string }> {
+  async upload(@Req() req: Request): Promise<Pick<ReceiptEntity, 'id'>> {
     this.logger.log('Received HTTP request to upload receipt');
     const receipt = await this.receiptsService.upload(req);
-    return { id: receipt.id, message: 'Upload successful — OCR queued.' };
+    return { id: receipt.id };
   }
 
   @Get('uploads/:key')
-  @ApiOperation({ summary: 'Serve a locally-stored receipt file by key' })
+  @ApiOperation({ summary: 'Serve a a file by key' })
   serveFile(@Param('key') key: string, @Res() res: Response): void {
     const filePath = this.localStorage.getFilePath(key);
     if (!existsSync(filePath)) {

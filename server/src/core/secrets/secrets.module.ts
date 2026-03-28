@@ -6,11 +6,7 @@ import { SecretProvider } from '@core/secrets/secret-provider.interface';
 
 @Global()
 @Module({
-  providers: [
-    SecretProviderDefinition,
-    EnvSecretProvider,
-    InfisicalSecretProvider,
-  ],
+  providers: [SecretProviderDefinition, EnvSecretProvider, InfisicalSecretProvider],
   exports: [SecretProvider],
 })
 export class SecretsModule {}
