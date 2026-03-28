@@ -1,0 +1,111 @@
+{
+  "common": {
+    "cancel": "Cancelar",
+    "save": "Guardar",
+    "close": "Fechar",
+    "upload": "Carregar",
+    "download": "Descarregar",
+    "copy": "Copiar",
+    "delete": "Eliminar",
+    "loading": "A carregar...",
+    "comingSoon": "Em Breve"
+  },
+  "layout": {
+    "appTitle": "ReceiptOCR",
+    "appSubtitle": "Open Receipt OCR",
+    "menu": "Menu",
+    "dashboard": "Painel",
+    "receipts": "Recibos",
+    "admin": "Admin",
+    "selfHosted": "Auto-hospedado",
+    "collapse": "Recolher",
+    "expand": "Expandir"
+  },
+  "upload": {
+    "title": "Carregar Recibo",
+    "dropZone": "Largue o ficheiro aqui",
+    "dropZoneHint": "PDF, JPG, PNG · máx 20 MB",
+    "ocrProvider": "Fornecedor OCR",
+    "selectProvider": "Selecionar Fornecedor",
+    "uploadAndProcess": "Carregar e Processar",
+    "uploadSuccess": "Carregamento concluído! OCR em fila.",
+    "uploadFailed": "Falha no carregamento. Tente novamente.",
+    "singleSelection": "Seleção Única"
+  },
+  "receipts": {
+    "title": "Recibos",
+    "pageTitle": "Recibos",
+    "uploadNew": "Carregar Recibo",
+    "noReceipts": "Ainda sem recibos",
+    "noReceiptsHint": "Carregue o seu primeiro recibo para começar.",
+    "uploadFirst": "Carregar o primeiro recibo",
+    "status": {
+      "total": "Total",
+      "pending": "Pendente",
+      "processing": "Em Processamento",
+      "completed": "Concluído",
+      "failed": "Falhado"
+    },
+    "home": {
+      "welcome": "Bem-vindo de volta 👋",
+      "overview": "Aqui está uma visão geral do seu pipeline de OCR.",
+      "recentReceipts": "Recibos Recentes",
+      "noReceipts": "Ainda sem recibos. Carregue o primeiro!"
+    },
+    "detail": {
+      "title": "Detalhes do Recibo",
+      "fileName": "Nome do Ficheiro",
+      "status": "Estado",
+      "ocrProvider": "Fornecedor OCR",
+      "uploaded": "Carregado",
+      "fileKey": "Chave do Ficheiro",
+      "extractedData": "Dados Extraídos por OCR",
+      "exportContent": "Exportar Conteúdo",
+      "exportTitleNative": "Nativo",
+      "exportTitleExternal": "Integrações Externas",
+      "copyToClipboard": "Copiar para Área de Transferência",
+      "downloadMarkdown": "Descarregar como Markdown",
+      "sendToN8n": "Enviar para n8n",
+      "sendToGoogleDrive": "Google Drive",
+      "copied": "Copiado",
+      "copySuccess": "Dados OCR copiados para a área de transferência",
+      "downloaded": "Descarregado",
+      "downloadSuccess": "Ficheiro Markdown guardado",
+      "n8nComingSoon": "Integração n8n em breve",
+      "googleDriveComingSoon": "Integração Google Drive em breve",
+      "copyFailed": "Falha ao copiar",
+      "noContent": "Ainda não há conteúdo OCR disponível.",
+      "processingMsg": "OCR em processamento, aguarde...",
+      "pendingMsg": "Recibo em fila de processamento.",
+      "failedMsg": "Falha no processamento OCR."
+    }
+  },
+  "config": {
+    "title": "Definições Padrão de OCR e Saída",
+    "ocrProvider": "Fornecedor OCR",
+    "outputTargets": "Destinos de Saída",
+    "singleSelection": "Seleção Única",
+    "multiSelection": "Seleção Múltipla",
+    "input": "Entrada",
+    "savePreferences": "Guardar Preferências",
+    "providers": {
+      "mistral": "Mistral OCR",
+      "azure": "Azure OCR",
+      "aws": "AWS TextExtract",
+      "ask": "Perguntar sempre"
+    },
+    "outputs": {
+      "markdown": "Descarregar Markdown",
+      "clipboard": "Copiar para Área de Transferência",
+      "n8n": "Enviar para n8n",
+      "api": "REST API"
+    }
+  },
+  "ocr": {
+    "providers": {
+      "mistral": "Mistral OCR",
+      "azure": "Azure OCR",
+      "aws": "AWS TextExtract"
+    }
+  }
+}

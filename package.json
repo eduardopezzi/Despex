@@ -1,0 +1,22 @@
+{
+  "name": "open-receipt-ocr",
+  "version": "0.0.0",
+  "private": true,
+  "packageManager": "npm@10.9.3",
+  "workspaces": [
+    "client",
+    "server",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "format": "turbo run format",
+    "test": "turbo run test",
+    "start": "turbo run start"
+  },
+  "devDependencies": {
+    "turbo": "^2.8.20"
+  }
+}

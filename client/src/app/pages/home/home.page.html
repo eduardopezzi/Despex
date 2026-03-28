@@ -1,0 +1,59 @@
+<!-- Welcome -->
+<div *transloco="let t" class="flex flex-col gap-8">
+  <div class="mb-2">
+    <h1 class="text-2xl font-bold text-surface-900 dark:text-surface-0 mb-1">{{ t('receipts.home.welcome') }}</h1>
+    <p class="text-sm text-surface-500 dark:text-surface-400">{{ t('receipts.home.overview') }}</p>
+  </div>
+
+  <!-- Stats row -->
+  <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-2">
+    @for (stat of stats; track stat.label) {
+      <div class="bg-surface-0 dark:bg-surface-900 border border-surface-200 dark:border-surface-800 rounded-2xl p-5 shadow-sm">
+        <div class="flex items-center gap-3 mb-2">
+          <div class="w-9 h-9 rounded-xl flex items-center justify-center" [ngClass]="stat.iconBg">
+            <i [class]="stat.icon + ' ' + stat.iconColor + ' text-lg'"></i>
+          </div>
+          <span class="text-xs font-semibold text-surface-500 uppercase tracking-wide">{{ t(stat.label) }}</span>
+        </div>
+        <p class="text-3xl font-bold text-surface-900 dark:text-surface-0">{{ stat.value }}</p>
+      </div>
+    }
+  </div>
+
+  <!-- Recent receipts -->
+  <div class="flex items-center justify-between">
+    <h2 class="text-base font-semibold text-surface-800 dark:text-surface-100">{{ t('receipts.home.recentReceipts') }}</h2>
+    <p-button [label]="t('receipts.uploadNew')" icon="pi pi-cloud-upload" size="small" (onClick)="showUpload = true" />
+  </div>
+
+  @if (receiptService.loading()) {
+    <div class="flex justify-center py-16"><p-progressSpinner styleClass="w-10 h-10" /></div>
+  }
+  @if (!receiptService.loading() && receiptService.receipts().length === 0) {
+    <div class="bg-surface-0 dark:bg-surface-900 border border-dashed border-surface-300 dark:border-surface-700 rounded-2xl p-12 text-center">
+      <i class="pi pi-receipt text-4xl text-surface-300 dark:text-surface-600 mb-4 block"></i>
+      <p class="text-surface-500 text-sm">{{ t('receipts.home.noReceipts') }}</p>
+    </div>
+  }
+
+  @if (!receiptService.loading() && receiptService.receipts().length > 0) {
+    <div class="bg-surface-0 dark:bg-surface-900 border border-surface-200 dark:border-surface-800 rounded-2xl shadow-sm overflow-hidden">
+      @for (receipt of recentReceipts; track receipt.id) {
+        <div
+          class="flex items-center gap-4 px-5 py-4 border-b border-surface-100 dark:border-surface-800 last:border-0 hover:bg-surface-50 dark:hover:bg-surface-800/50 transition-colors cursor-pointer"
+        >
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center" [ngClass]="getCardBg(receipt.status)">
+            <i [class]="getFileIcon(receipt.originalName)"></i>
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="text-sm font-medium text-surface-800 dark:text-surface-100 truncate">{{ receipt.originalName }}</p>
+            <p class="text-xs text-surface-400">{{ receipt.createdAt | date: 'MMM d · HH:mm' }}</p>
+          </div>
+          <p-tag [value]="t('receipts.status.' + receipt.status.toLowerCase())" [severity]="getStatusSeverity(receipt.status)" styleClass="text-xs" />
+        </div>
+      }
+    </div>
+  }
+
+  <app-upload-dialog [(visible)]="showUpload" (uploaded)="onUploaded()" />
+</div>
