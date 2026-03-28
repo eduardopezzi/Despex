@@ -7,8 +7,10 @@ import { SecretProvider } from '@core/secrets/secret-provider.interface';
 import { AppSecret } from '@core/types/app-secret.enum';
 import { QueueService } from '@core/queue/queue.service';
 import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
-import { TestHelpers } from '../test-helpers';
+import { TestHelpers } from '../../test-helpers';
 import { ReceiptEntity } from '@core/database/entities/receipt.entity';
+import { MimeType } from '@core/types/mime-type.enum';
+import { OcrProvider } from '@open-receipt-ocr/types';
 
 describe('Receipts Controller (e2e) with unique Schema', () => {
   let app: INestApplication;
@@ -66,8 +68,8 @@ describe('Receipts Controller (e2e) with unique Schema', () => {
     const body = await TestHelpers.expectUpload<{ id: number; message: string }>(
       app,
       '/receipts/upload',
-      { ocrProvider: 'mistral' },
-      { name: 'file', filename: 'test.jpg', content: fileData, contentType: 'image/jpeg' },
+      { ocrProvider: OcrProvider.Mistral },
+      { name: 'file', filename: 'test.jpg', content: fileData, contentType: MimeType.Jpeg },
     );
 
     expect(body).toHaveProperty('id');
@@ -75,18 +77,21 @@ describe('Receipts Controller (e2e) with unique Schema', () => {
   });
 
   it('/receipts/:id (GET)', async () => {
-    const uploadRes = await TestHelpers.expectUpload<{ id: string }>(
+    const uploadRes = await TestHelpers.expectUpload<Pick<ReceiptEntity, 'id'>>(
       app,
       '/receipts/upload',
-      { ocrProvider: 'mistral' },
-      { name: 'file', filename: 'test.jpg', content: fileData, contentType: 'image/jpeg' },
+      { ocrProvider: OcrProvider.Mistral },
+      { name: 'file', filename: 'test.jpg', content: fileData, contentType: MimeType.Jpeg },
     );
 
     const id = uploadRes.id;
 
     const receipt = await TestHelpers.expectOk<ReceiptEntity>(app, `/receipts/${id}`);
-    expect(receipt.id).toHaveProperty('id', id);
-    expect(receipt.originalName).toBe('test.jpg');
-    expect(receipt.ocrProvider).toBe('mistral');
+
+    expect(receipt).toMatchObject<Partial<ReceiptEntity>>({
+      id: id,
+      originalName: 'test.jpg',
+      ocrProvider: OcrProvider.Mistral,
+    });
   });
 });
