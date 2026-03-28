@@ -1,13 +1,11 @@
 import { BadRequestException, Inject, Injectable, Logger } from '@nestjs/common';
 import { ReceiptsDao } from '@core/database/daos/receipts.dao';
 import { ReceiptEntity } from '@core/database/entities/receipt.entity';
-import { InjectQueue } from '@nestjs/bullmq';
-import { Queue } from 'bullmq';
 import type { Request } from 'express';
+import { QueueService } from '@core/queue/queue.service';
 import { SecretProvider } from '@core/secrets/secret-provider.interface';
 import { StorageProvider } from '@core/storage/storage-provider.interface';
 import { AppSecret } from '@core/types/app-secret.enum';
-import { QueueName } from '@core/types/queue-name.enum';
 import { ALLOWED_MIME_TYPES, DEFAULT_MAX_FILE_SIZE_BYTES } from '@core/constants/media.constants';
 import { parseMultipartStream } from '@core/utils/multipart.util';
 
@@ -19,7 +17,7 @@ export class ReceiptsService {
 
   constructor(
     private readonly receiptsDao: ReceiptsDao,
-    @InjectQueue(QueueName.Ocr) private readonly ocrQueue: Queue,
+    private readonly queueService: QueueService,
     private readonly secretProvider: SecretProvider,
     @Inject(StorageProvider) private readonly storage: StorageProvider,
   ) {}
@@ -56,7 +54,7 @@ export class ReceiptsService {
       originalName: parseResult.file.originalName,
       ocrProvider,
     });
-    await this.ocrQueue.add('process-ocr', { receiptId: receipt.id });
+    await this.queueService.addToOcrQueue({ receiptId: receipt.id });
     this.logger.log(`Receipt #${receipt.id} queued for OCR`);
 
     return receipt;
