@@ -52,18 +52,12 @@ export class OcrProcessor extends WorkerHost {
           break;
         case OcrProvider.Azure:
         case OcrProvider.Aws:
-          throw new Error(
-            `OCR Provider "${receipt.ocrProvider}" is not yet implemented.`,
-          );
+          throw new Error(`OCR Provider "${receipt.ocrProvider}" is not yet implemented.`);
         default:
           throw new Error(`Unknown OCR Provider: ${receipt.ocrProvider}`);
       }
 
-      await this.receiptsDao.updateStatus(
-        receiptId,
-        ReceiptStatus.Completed,
-        ocrData,
-      );
+      await this.receiptsDao.updateStatus(receiptId, ReceiptStatus.Completed, ocrData);
       this.logger.log(`Successfully completed OCR for receipt #${receiptId}`);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
@@ -73,17 +67,10 @@ export class OcrProcessor extends WorkerHost {
     }
   }
 
-  private async processMistral(
-    receipt: ReceiptEntity,
-    filePath: string,
-  ): Promise<string> {
-    const mistralApiKey = await this.secretProvider.getSecretOrThrow(
-      AppSecret.MistralApiKey,
-    );
+  private async processMistral(receipt: ReceiptEntity, filePath: string): Promise<string> {
+    const mistralApiKey = await this.secretProvider.getSecretOrThrow(AppSecret.MistralApiKey);
     const base64Content = fs.readFileSync(filePath).toString('base64');
-    const mimeType = OcrProcessor.getMimeType(
-      extname(receipt.filename).toLowerCase(),
-    );
+    const mimeType = OcrProcessor.getMimeType(extname(receipt.filename).toLowerCase());
 
     this.logger.log(`Calling Mistral OCR API for receipt #${receipt.id}`);
 

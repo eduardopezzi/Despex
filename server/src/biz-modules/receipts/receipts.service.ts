@@ -1,10 +1,4 @@
-import {
-  BadRequestException,
-  Inject,
-  Injectable,
-  InternalServerErrorException,
-  Logger,
-} from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
 import { ReceiptsDao } from '@core/database/daos/receipts.dao';
 import { ReceiptEntity } from '@core/database/entities/receipt.entity';
 import { InjectQueue } from '@nestjs/bullmq';
@@ -15,10 +9,7 @@ import { SecretProvider } from '@core/secrets/secret-provider.interface';
 import { StorageProvider } from '@core/storage/storage-provider.interface';
 import { AppSecret } from '@core/types/app-secret.enum';
 import { QueueName } from '@core/types/queue-name.enum';
-import {
-  ALLOWED_MIME_TYPES,
-  DEFAULT_MAX_FILE_SIZE_BYTES,
-} from '@core/constants/media.constants';
+import { ALLOWED_MIME_TYPES, DEFAULT_MAX_FILE_SIZE_BYTES } from '@core/constants/media.constants';
 
 import { OcrProvider } from '@core/types/ocr-provider.enum';
 
@@ -47,17 +38,10 @@ export class ReceiptsService {
       throw new BadRequestException('Expected a multipart/form-data request.');
     }
 
-    const maxSizeStr = await this.secretProvider.getSecret(
-      AppSecret.MaxFileSizeBytes,
-    );
-    const maxSizeBytes = maxSizeStr
-      ? parseInt(maxSizeStr, 10)
-      : DEFAULT_MAX_FILE_SIZE_BYTES;
+    const maxSizeStr = await this.secretProvider.getSecret(AppSecret.MaxFileSizeBytes);
+    const maxSizeBytes = maxSizeStr ? parseInt(maxSizeStr, 10) : DEFAULT_MAX_FILE_SIZE_BYTES;
 
-    const { key, originalName, ocrProvider } = await this.parseAndStream(
-      req,
-      maxSizeBytes,
-    );
+    const { key, originalName, ocrProvider } = await this.parseAndStream(req, maxSizeBytes);
 
     const receipt = await this.receiptsDao.create({
       filename: key,
@@ -79,10 +63,7 @@ export class ReceiptsService {
    *   - MIME type must be in ALLOWED_MIME_TYPES (Busboy `info`)
    *   - File size must not exceed MAX_FILE_SIZE_BYTES (Busboy `limits.fileSize`)
    */
-  private parseAndStream(
-    req: Request,
-    maxSizeBytes: number,
-  ): Promise<{ key: string; originalName: string; ocrProvider: OcrProvider }> {
+  private parseAndStream(req: Request, maxSizeBytes: number): Promise<{ key: string; originalName: string; ocrProvider: OcrProvider }> {
     return new Promise((resolve, reject) => {
       const busboy = Busboy({
         headers: req.headers,
@@ -117,43 +98,25 @@ export class ReceiptsService {
 
         if (!filename) {
           stream.resume();
-          return settle(() =>
-            reject(new BadRequestException('Upload must include a filename.')),
-          );
+          return settle(() => reject(new BadRequestException('Upload must include a filename.')));
         }
 
         if (!ALLOWED_MIME_TYPES.has(mimeType)) {
           stream.resume();
           return settle(() =>
-            reject(
-              new BadRequestException(
-                `Unsupported file type "${mimeType}". Allowed: ${[
-                  ...ALLOWED_MIME_TYPES,
-                ].join(', ')}.`,
-              ),
-            ),
+            reject(new BadRequestException(`Unsupported file type "${mimeType}". Allowed: ${[...ALLOWED_MIME_TYPES].join(', ')}.`)),
           );
         }
 
         this.logger.log(`Streaming upload: ${filename} (${mimeType})`);
 
         stream.on('limit', () => {
-          settle(() =>
-            reject(
-              new BadRequestException(
-                `File exceeds the maximum allowed size of ${maxSizeBytes / 1024 / 1024} MB.`,
-              ),
-            ),
-          );
+          settle(() => reject(new BadRequestException(`File exceeds the maximum allowed size of ${maxSizeBytes / 1024 / 1024} MB.`)));
         });
 
         stream.on('error', (err: unknown) => {
           const message = err instanceof Error ? err.message : String(err);
-          settle(() =>
-            reject(
-              new InternalServerErrorException(`File stream error: ${message}`),
-            ),
-          );
+          settle(() => reject(new InternalServerErrorException(`File stream error: ${message}`)));
         });
 
         this.storage
@@ -169,44 +132,24 @@ export class ReceiptsService {
           )
           .catch((err: unknown) => {
             const message = err instanceof Error ? err.message : String(err);
-            settle(() =>
-              reject(
-                new InternalServerErrorException(`Storage error: ${message}`),
-              ),
-            );
+            settle(() => reject(new InternalServerErrorException(`Storage error: ${message}`)));
           });
       });
 
       busboy.on('error', (err: unknown) => {
         const message = err instanceof Error ? err.message : String(err);
-        settle(() =>
-          reject(
-            new InternalServerErrorException(
-              `Multipart parse error: ${message}`,
-            ),
-          ),
-        );
+        settle(() => reject(new InternalServerErrorException(`Multipart parse error: ${message}`)));
       });
 
       busboy.on('finish', () => {
         if (!fileFound) {
-          settle(() =>
-            reject(
-              new BadRequestException(
-                'No file field found in the multipart request.',
-              ),
-            ),
-          );
+          settle(() => reject(new BadRequestException('No file field found in the multipart request.')));
         }
       });
 
       req.on('error', (err: unknown) => {
         const message = err instanceof Error ? err.message : String(err);
-        settle(() =>
-          reject(
-            new InternalServerErrorException(`Request stream error: ${message}`),
-          ),
-        );
+        settle(() => reject(new InternalServerErrorException(`Request stream error: ${message}`)));
       });
 
       req.pipe(busboy);

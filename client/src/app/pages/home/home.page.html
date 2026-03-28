@@ -30,8 +30,7 @@
     <div class="flex justify-center py-16"><p-progressSpinner styleClass="w-10 h-10" /></div>
   }
   @if (!receiptService.loading() && receiptService.receipts().length === 0) {
-    <div class="bg-surface-0 dark:bg-surface-900 border border-dashed border-surface-300 dark:border-surface-700
-                rounded-2xl p-12 text-center">
+    <div class="bg-surface-0 dark:bg-surface-900 border border-dashed border-surface-300 dark:border-surface-700 rounded-2xl p-12 text-center">
       <i class="pi pi-receipt text-4xl text-surface-300 dark:text-surface-600 mb-4 block"></i>
       <p class="text-surface-500 text-sm">{{ t('receipts.home.noReceipts') }}</p>
     </div>
@@ -40,15 +39,15 @@
   @if (!receiptService.loading() && receiptService.receipts().length > 0) {
     <div class="bg-surface-0 dark:bg-surface-900 border border-surface-200 dark:border-surface-800 rounded-2xl shadow-sm overflow-hidden">
       @for (receipt of recentReceipts; track receipt.id) {
-        <div class="flex items-center gap-4 px-5 py-4 border-b border-surface-100 dark:border-surface-800 last:border-0
-                    hover:bg-surface-50 dark:hover:bg-surface-800/50 transition-colors cursor-pointer">
-          <div class="w-10 h-10 rounded-xl flex items-center justify-center"
-               [ngClass]="getCardBg(receipt.status)">
+        <div
+          class="flex items-center gap-4 px-5 py-4 border-b border-surface-100 dark:border-surface-800 last:border-0 hover:bg-surface-50 dark:hover:bg-surface-800/50 transition-colors cursor-pointer"
+        >
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center" [ngClass]="getCardBg(receipt.status)">
             <i [class]="getFileIcon(receipt.originalName)"></i>
           </div>
           <div class="flex-1 min-w-0">
             <p class="text-sm font-medium text-surface-800 dark:text-surface-100 truncate">{{ receipt.originalName }}</p>
-            <p class="text-xs text-surface-400">{{ receipt.createdAt | date:'MMM d · HH:mm' }}</p>
+            <p class="text-xs text-surface-400">{{ receipt.createdAt | date: 'MMM d · HH:mm' }}</p>
           </div>
           <p-tag [value]="t('receipts.status.' + receipt.status.toLowerCase())" [severity]="getStatusSeverity(receipt.status)" styleClass="text-xs" />
         </div>

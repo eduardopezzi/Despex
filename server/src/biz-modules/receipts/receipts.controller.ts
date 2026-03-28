@@ -1,13 +1,4 @@
-import {
-  Controller,
-  Get,
-  Logger,
-  Param,
-  ParseIntPipe,
-  Post,
-  Req,
-  Res,
-} from '@nestjs/common';
+import { Controller, Get, Logger, Param, ParseIntPipe, Post, Req, Res } from '@nestjs/common';
 import { ApiBody, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { existsSync } from 'fs';
 import type { Request, Response } from 'express';
@@ -35,9 +26,7 @@ export class ReceiptsController {
 
   @Get(`:${RouteParam.Id}`)
   @ApiOperation({ summary: 'Get a single receipt by ID' })
-  findOne(
-    @Param(RouteParam.Id, ParseIntPipe) id: number,
-  ): Promise<ReceiptEntity> {
+  findOne(@Param(RouteParam.Id, ParseIntPipe) id: number): Promise<ReceiptEntity> {
     return this.receiptsService.findOneOrFail(id);
   }
 

@@ -2,7 +2,7 @@ import { Injectable, signal } from '@angular/core';
 import { OcrProvider } from '@models/receipt.model';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class ConfigService {
   defaultOcrProvider = signal<OcrProvider | 'ask'>(OcrProvider.Mistral);
@@ -28,9 +28,12 @@ export class ConfigService {
   }
 
   saveConfig() {
-    localStorage.setItem(this.storageKey, JSON.stringify({
-      defaultOcrProvider: this.defaultOcrProvider(),
-      defaultOutputs: this.defaultOutputs(),
-    }));
+    localStorage.setItem(
+      this.storageKey,
+      JSON.stringify({
+        defaultOcrProvider: this.defaultOcrProvider(),
+        defaultOutputs: this.defaultOutputs(),
+      }),
+    );
   }
 }

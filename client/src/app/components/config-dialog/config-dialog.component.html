@@ -1,17 +1,26 @@
-<p-dialog *transloco="let t" [visible]="visible" (visibleChange)="visibleChange.emit($event)" [modal]="true"
-  [closable]="true" [dismissableMask]="true" [header]="t('config.title')" [style]="{ width: '90vw', 'max-width': '850px' }"
-  [contentStyle]="{ padding: '0', overflowX: 'hidden' }">
-
+<p-dialog
+  *transloco="let t"
+  [visible]="visible"
+  (visibleChange)="visibleChange.emit($event)"
+  [modal]="true"
+  [closable]="true"
+  [dismissableMask]="true"
+  [header]="t('config.title')"
+  [style]="{ width: '90vw', 'max-width': '850px' }"
+  [contentStyle]="{ padding: '0', overflowX: 'hidden' }"
+>
   <!-- Pipeline container -->
-  <div #arrowContainer class="relative flex flex-col lg:flex-row items-center lg:items-start gap-8 lg:gap-20 px-6 lg:px-10 py-6 lg:py-8
-           bg-surface-0 dark:bg-surface-900" style="min-height: 320px;">
-
+  <div
+    #arrowContainer
+    class="relative flex flex-col lg:flex-row items-center lg:items-start gap-8 lg:gap-20 px-6 lg:px-10 py-6 lg:py-8 bg-surface-0 dark:bg-surface-900"
+    style="min-height: 320px"
+  >
     <!-- ── Column 1: Input / Receipt ───────────────────────────── -->
     <div class="flex flex-col items-center lg:self-center w-14 shrink-0 gap-1.5 mb-2 lg:mb-0">
-
-      <div data-input-node class="w-12 h-12 rounded-2xl bg-primary-50 dark:bg-primary-900/20
-                  border-2 border-primary-200 dark:border-primary-700
-                  flex items-center justify-center shadow-sm">
+      <div
+        data-input-node
+        class="w-12 h-12 rounded-2xl bg-primary-50 dark:bg-primary-900/20 border-2 border-primary-200 dark:border-primary-700 flex items-center justify-center shadow-sm"
+      >
         <i class="pi pi-receipt text-xl text-primary-500"></i>
       </div>
       <span class="text-[9px] font-bold text-surface-400 uppercase tracking-widest text-center leading-tight">
@@ -21,7 +30,6 @@
 
     <!-- ── Column 2: OCR Providers ─────────────────────────────── -->
     <div class="w-full lg:flex-1 flex flex-col gap-3 min-w-0">
-
       <div class="flex items-center justify-between mb-0.5">
         <span class="text-[10px] font-extrabold text-surface-500 uppercase tracking-wider">
           {{ t('config.ocrProvider') }}
@@ -30,51 +38,51 @@
       </div>
 
       @for (opt of ocrOptions; track opt.value) {
-
-      <div [attr.data-sel-provider]="configService.defaultOcrProvider() === opt.value ? '' : null"
-        (click)="!opt.disabled && setOcrProvider($any(opt.value))"
-        [class.border-primary-500]="configService.defaultOcrProvider() === opt.value"
-        [class.bg-primary-50]="configService.defaultOcrProvider() === opt.value"
-        [class.dark:bg-primary-900/30]="configService.defaultOcrProvider() === opt.value"
-        [class.opacity-40]="opt.disabled" [class.cursor-not-allowed]="opt.disabled"
-        [class.cursor-pointer]="!opt.disabled" class="flex items-center justify-between px-3 py-2.5 rounded-xl
-                 border border-surface-200 dark:border-surface-800
-                 hover:border-primary-400 transition-all duration-200 select-none">
-        <div class="flex items-center gap-2 min-w-0">
-          <div class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-colors"
-            [class.bg-primary-100]="configService.defaultOcrProvider() === opt.value"
-            [class.dark:bg-primary-900/40]="configService.defaultOcrProvider() === opt.value"
-            [class.bg-surface-100]="configService.defaultOcrProvider() !== opt.value"
-            [class.dark:bg-surface-800]="configService.defaultOcrProvider() !== opt.value">
-
-            <i [class]="opt.icon" [class.text-primary-500]="configService.defaultOcrProvider() === opt.value"
-              class="text-[11px]"></i>
+        <div
+          [attr.data-sel-provider]="configService.defaultOcrProvider() === opt.value ? '' : null"
+          (click)="!opt.disabled && setOcrProvider($any(opt.value))"
+          [class.border-primary-500]="configService.defaultOcrProvider() === opt.value"
+          [class.bg-primary-50]="configService.defaultOcrProvider() === opt.value"
+          [class.dark:bg-primary-900/30]="configService.defaultOcrProvider() === opt.value"
+          [class.opacity-40]="opt.disabled"
+          [class.cursor-not-allowed]="opt.disabled"
+          [class.cursor-pointer]="!opt.disabled"
+          class="flex items-center justify-between px-3 py-2.5 rounded-xl border border-surface-200 dark:border-surface-800 hover:border-primary-400 transition-all duration-200 select-none"
+        >
+          <div class="flex items-center gap-2 min-w-0">
+            <div
+              class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-colors"
+              [class.bg-primary-100]="configService.defaultOcrProvider() === opt.value"
+              [class.dark:bg-primary-900/40]="configService.defaultOcrProvider() === opt.value"
+              [class.bg-surface-100]="configService.defaultOcrProvider() !== opt.value"
+              [class.dark:bg-surface-800]="configService.defaultOcrProvider() !== opt.value"
+            >
+              <i [class]="opt.icon" [class.text-primary-500]="configService.defaultOcrProvider() === opt.value" class="text-[11px]"></i>
+            </div>
+            <div class="flex flex-col min-w-0">
+              <span
+                class="text-xs font-semibold truncate transition-colors"
+                [class.text-primary-900]="configService.defaultOcrProvider() === opt.value"
+                [class.dark:text-primary-200]="configService.defaultOcrProvider() === opt.value"
+                [class.text-surface-800]="configService.defaultOcrProvider() !== opt.value"
+                [class.dark:text-surface-100]="configService.defaultOcrProvider() !== opt.value"
+              >
+                {{ opt.label }}
+              </span>
+              @if (opt.disabled) {
+                <span class="text-[9px] text-surface-400">{{ t('common.comingSoon') }}</span>
+              }
+            </div>
           </div>
-          <div class="flex flex-col min-w-0">
-            <span class="text-xs font-semibold truncate transition-colors"
-              [class.text-primary-900]="configService.defaultOcrProvider() === opt.value"
-              [class.dark:text-primary-200]="configService.defaultOcrProvider() === opt.value"
-              [class.text-surface-800]="configService.defaultOcrProvider() !== opt.value"
-              [class.dark:text-surface-100]="configService.defaultOcrProvider() !== opt.value">
-              {{ opt.label }}
-            </span>
-            @if (opt.disabled) {
-            <span class="text-[9px] text-surface-400">{{ t('common.comingSoon') }}</span>
-            }
-          </div>
-
+          @if (configService.defaultOcrProvider() === opt.value) {
+            <i class="pi pi-check-circle text-primary-500 text-xs shrink-0 ml-1"></i>
+          }
         </div>
-        @if (configService.defaultOcrProvider() === opt.value) {
-        <i class="pi pi-check-circle text-primary-500 text-xs shrink-0 ml-1"></i>
-        }
-      </div>
       }
     </div>
 
     <!-- ── Column 3: Output Targets ────────────────────────────── -->
     <div class="w-full lg:flex-1 flex flex-col gap-3 min-w-0">
-
-
       <div class="flex items-center justify-between mb-0.5">
         <span class="text-[10px] font-extrabold text-surface-500 uppercase tracking-wider">
           {{ t('config.outputTargets') }}
@@ -83,68 +91,83 @@
       </div>
 
       @for (opt of outputOptions; track opt.value) {
-      <div [attr.data-sel-output]="isOutputSelected(opt.value) ? '' : null" [attr.data-output-val]="opt.value"
-        (click)="!opt.disabled && toggleOutput(opt.value)" [class.border-primary-500]="isOutputSelected(opt.value)"
-        [class.bg-primary-50]="isOutputSelected(opt.value)" [class.dark:bg-primary-900/30]="isOutputSelected(opt.value)"
-        [class.opacity-40]="opt.disabled" [class.cursor-not-allowed]="opt.disabled"
-        [class.cursor-pointer]="!opt.disabled" class="flex items-center justify-between px-3 py-2.5 rounded-xl
-                 border border-surface-200 dark:border-surface-800
-                 hover:border-primary-400 transition-all duration-200 select-none">
-        <div class="flex items-center gap-2 min-w-0">
-          <div class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-colors"
-            [class.bg-primary-100]="isOutputSelected(opt.value)"
-            [class.dark:bg-primary-900/40]="isOutputSelected(opt.value)"
-            [class.bg-surface-100]="!isOutputSelected(opt.value)"
-            [class.dark:bg-surface-800]="!isOutputSelected(opt.value)">
-
-            <i [class]="opt.icon" [class.text-primary-500]="isOutputSelected(opt.value)" class="text-[11px]"></i>
+        <div
+          [attr.data-sel-output]="isOutputSelected(opt.value) ? '' : null"
+          [attr.data-output-val]="opt.value"
+          (click)="!opt.disabled && toggleOutput(opt.value)"
+          [class.border-primary-500]="isOutputSelected(opt.value)"
+          [class.bg-primary-50]="isOutputSelected(opt.value)"
+          [class.dark:bg-primary-900/30]="isOutputSelected(opt.value)"
+          [class.opacity-40]="opt.disabled"
+          [class.cursor-not-allowed]="opt.disabled"
+          [class.cursor-pointer]="!opt.disabled"
+          class="flex items-center justify-between px-3 py-2.5 rounded-xl border border-surface-200 dark:border-surface-800 hover:border-primary-400 transition-all duration-200 select-none"
+        >
+          <div class="flex items-center gap-2 min-w-0">
+            <div
+              class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-colors"
+              [class.bg-primary-100]="isOutputSelected(opt.value)"
+              [class.dark:bg-primary-900/40]="isOutputSelected(opt.value)"
+              [class.bg-surface-100]="!isOutputSelected(opt.value)"
+              [class.dark:bg-surface-800]="!isOutputSelected(opt.value)"
+            >
+              <i [class]="opt.icon" [class.text-primary-500]="isOutputSelected(opt.value)" class="text-[11px]"></i>
+            </div>
+            <div class="flex flex-col min-w-0">
+              <span
+                class="text-xs font-semibold truncate transition-colors"
+                [class.text-primary-900]="isOutputSelected(opt.value)"
+                [class.dark:text-primary-200]="isOutputSelected(opt.value)"
+                [class.text-surface-800]="!isOutputSelected(opt.value)"
+                [class.dark:text-surface-100]="!isOutputSelected(opt.value)"
+              >
+                {{ opt.label }}
+              </span>
+              @if (opt.disabled) {
+                <span class="text-[9px] text-surface-400">{{ t('common.comingSoon') }}</span>
+              }
+            </div>
           </div>
-          <div class="flex flex-col min-w-0">
-            <span class="text-xs font-semibold truncate transition-colors"
-              [class.text-primary-900]="isOutputSelected(opt.value)"
-              [class.dark:text-primary-200]="isOutputSelected(opt.value)"
-              [class.text-surface-800]="!isOutputSelected(opt.value)"
-              [class.dark:text-surface-100]="!isOutputSelected(opt.value)">
-              {{ opt.label }}
-            </span>
-            @if (opt.disabled) {
-            <span class="text-[9px] text-surface-400">{{ t('common.comingSoon') }}</span>
+          <!-- Checkbox -->
+          <div
+            class="w-4 h-4 rounded border flex items-center justify-center shrink-0 transition-all ml-1"
+            [class.bg-primary-500]="isOutputSelected(opt.value)"
+            [class.border-primary-500]="isOutputSelected(opt.value)"
+            [class.border-surface-300]="!isOutputSelected(opt.value)"
+            [class.dark:border-surface-600]="!isOutputSelected(opt.value)"
+          >
+            @if (isOutputSelected(opt.value)) {
+              <i class="pi pi-check text-[8px] text-white"></i>
             }
           </div>
-
         </div>
-        <!-- Checkbox -->
-        <div class="w-4 h-4 rounded border flex items-center justify-center shrink-0 transition-all ml-1"
-          [class.bg-primary-500]="isOutputSelected(opt.value)" [class.border-primary-500]="isOutputSelected(opt.value)"
-          [class.border-surface-300]="!isOutputSelected(opt.value)"
-          [class.dark:border-surface-600]="!isOutputSelected(opt.value)">
-          @if (isOutputSelected(opt.value)) {
-          <i class="pi pi-check text-[8px] text-white"></i>
-          }
-        </div>
-      </div>
       }
     </div>
 
     <!-- ── SVG overlay – pulse flow ──────────────────────────── -->
-    <svg class="absolute inset-0 pointer-events-none hidden lg:block" style="width: 100%; height: 100%; overflow: visible;">
-
+    <svg class="absolute inset-0 pointer-events-none hidden lg:block" style="width: 100%; height: 100%; overflow: visible">
       @for (arrow of arrows(); track arrow.key) {
-      <!-- Background path (static) -->
-      <path [attr.d]="arrow.d" fill="none" stroke="var(--p-primary-200)" stroke-width="1.5" stroke-opacity="0.3"
-        stroke-linecap="round" />
-      <!-- Foreground pulse path (animated) -->
-      <path [attr.d]="arrow.d" fill="none" stroke="var(--p-primary-500)" stroke-width="2" stroke-opacity="0.8"
-        stroke-linecap="round" stroke-dasharray="8 24" class="cfg-arrow-pulse" />
+        <!-- Background path (static) -->
+        <path [attr.d]="arrow.d" fill="none" stroke="var(--p-primary-200)" stroke-width="1.5" stroke-opacity="0.3" stroke-linecap="round" />
+        <!-- Foreground pulse path (animated) -->
+        <path
+          [attr.d]="arrow.d"
+          fill="none"
+          stroke="var(--p-primary-500)"
+          stroke-width="2"
+          stroke-opacity="0.8"
+          stroke-linecap="round"
+          stroke-dasharray="8 24"
+          class="cfg-arrow-pulse"
+        />
       }
     </svg>
-
-  </div><!-- /pipeline -->
+  </div>
+  <!-- /pipeline -->
 
   <ng-template pTemplate="footer">
     <p-button [label]="t('common.cancel')" severity="secondary" [text]="true" (onClick)="close()" />
-    <p-button [label]="t('config.savePreferences')" icon="pi pi-save" severity="primary" size="small"
-      (onClick)="save()" />
+    <p-button [label]="t('config.savePreferences')" icon="pi pi-save" severity="primary" size="small" (onClick)="save()" />
   </ng-template>
 </p-dialog>
 

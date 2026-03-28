@@ -40,21 +40,21 @@ export class HomePageComponent implements OnInit {
       },
       {
         label: 'receipts.status.completed',
-        value: all.filter(i => i.status === ReceiptStatus.Completed).length,
+        value: all.filter((i) => i.status === ReceiptStatus.Completed).length,
         icon: 'pi pi-check-circle',
         iconBg: 'bg-emerald-50 dark:bg-emerald-900/30',
         iconColor: 'text-emerald-500',
       },
       {
         label: 'receipts.status.processing',
-        value: all.filter(i => i.status === ReceiptStatus.Processing || i.status === ReceiptStatus.Pending).length,
+        value: all.filter((i) => i.status === ReceiptStatus.Processing || i.status === ReceiptStatus.Pending).length,
         icon: 'pi pi-spin pi-spinner',
         iconBg: 'bg-blue-50 dark:bg-blue-900/30',
         iconColor: 'text-blue-500',
       },
       {
         label: 'receipts.status.failed',
-        value: all.filter(i => i.status === ReceiptStatus.Failed).length,
+        value: all.filter((i) => i.status === ReceiptStatus.Failed).length,
         icon: 'pi pi-exclamation-triangle',
         iconBg: 'bg-red-50 dark:bg-red-900/30',
         iconColor: 'text-red-500',
@@ -69,19 +69,27 @@ export class HomePageComponent implements OnInit {
 
   getStatusSeverity(status: ReceiptStatus): 'success' | 'info' | 'warn' | 'danger' | 'secondary' {
     switch (status) {
-      case ReceiptStatus.Pending:    return 'secondary';
-      case ReceiptStatus.Processing: return 'info';
-      case ReceiptStatus.Completed:  return 'success';
-      case ReceiptStatus.Failed:     return 'danger';
+      case ReceiptStatus.Pending:
+        return 'secondary';
+      case ReceiptStatus.Processing:
+        return 'info';
+      case ReceiptStatus.Completed:
+        return 'success';
+      case ReceiptStatus.Failed:
+        return 'danger';
     }
   }
 
   getCardBg(status: ReceiptStatus): string {
     switch (status) {
-      case ReceiptStatus.Pending:    return 'bg-surface-100 dark:bg-surface-800';
-      case ReceiptStatus.Processing: return 'bg-blue-50 dark:bg-blue-950/40';
-      case ReceiptStatus.Completed:  return 'bg-emerald-50 dark:bg-emerald-950/40';
-      case ReceiptStatus.Failed:     return 'bg-red-50 dark:bg-red-950/40';
+      case ReceiptStatus.Pending:
+        return 'bg-surface-100 dark:bg-surface-800';
+      case ReceiptStatus.Processing:
+        return 'bg-blue-50 dark:bg-blue-950/40';
+      case ReceiptStatus.Completed:
+        return 'bg-emerald-50 dark:bg-emerald-950/40';
+      case ReceiptStatus.Failed:
+        return 'bg-red-50 dark:bg-red-950/40';
     }
   }
 

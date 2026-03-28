@@ -36,7 +36,9 @@ export class UploadDialogComponent {
       }
     }
   }
-  get visible() { return this._visible; }
+  get visible() {
+    return this._visible;
+  }
   private _visible = false;
 
   @Output() visibleChange = new EventEmitter<boolean>();
@@ -53,7 +55,7 @@ export class UploadDialogComponent {
     return [
       { label: this.translocoService.translate('config.providers.mistral'), value: OcrProvider.Mistral },
       { label: this.translocoService.translate('config.providers.azure'), value: OcrProvider.Azure, disabled: true },
-      { label: this.translocoService.translate('config.providers.aws'), value: OcrProvider.Aws, disabled: true }
+      { label: this.translocoService.translate('config.providers.aws'), value: OcrProvider.Aws, disabled: true },
     ];
   }
 

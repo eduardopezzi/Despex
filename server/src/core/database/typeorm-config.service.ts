@@ -9,9 +9,7 @@ export class TypeOrmConfigService implements TypeOrmOptionsFactory {
   constructor(private readonly secretProvider: SecretProvider) {}
 
   async createTypeOrmOptions(): Promise<TypeOrmModuleOptions> {
-    const databasePath = await this.secretProvider.getSecretOrThrow(
-      AppSecret.DatabasePath,
-    );
+    const databasePath = await this.secretProvider.getSecretOrThrow(AppSecret.DatabasePath);
     const nodeEnv = await this.secretProvider.getSecret(AppSecret.NodeEnv);
 
     return {
