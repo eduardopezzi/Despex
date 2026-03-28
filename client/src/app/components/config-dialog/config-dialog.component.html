@@ -45,7 +45,7 @@
           tabindex="0"
           [class.border-primary-500]="configService.defaultOcrProvider() === opt.value"
           [class.bg-primary-50]="configService.defaultOcrProvider() === opt.value"
-          [class.dark:bg-primary-900/30]="configService.defaultOcrProvider() === opt.value"
+          [class.dark:bg-primary-900\/30]="configService.defaultOcrProvider() === opt.value"
           [class.opacity-40]="opt.disabled"
           [class.cursor-not-allowed]="opt.disabled"
           [class.cursor-pointer]="!opt.disabled"
@@ -55,7 +55,7 @@
             <div
               class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-colors"
               [class.bg-primary-100]="configService.defaultOcrProvider() === opt.value"
-              [class.dark:bg-primary-900/40]="configService.defaultOcrProvider() === opt.value"
+              [class.dark:bg-primary-900\/40]="configService.defaultOcrProvider() === opt.value"
               [class.bg-surface-100]="configService.defaultOcrProvider() !== opt.value"
               [class.dark:bg-surface-800]="configService.defaultOcrProvider() !== opt.value"
             >
@@ -101,7 +101,7 @@
           tabindex="0"
           [class.border-primary-500]="isOutputSelected(opt.value)"
           [class.bg-primary-50]="isOutputSelected(opt.value)"
-          [class.dark:bg-primary-900/30]="isOutputSelected(opt.value)"
+          [class.dark:bg-primary-900\/30]="isOutputSelected(opt.value)"
           [class.opacity-40]="opt.disabled"
           [class.cursor-not-allowed]="opt.disabled"
           [class.cursor-pointer]="!opt.disabled"
@@ -111,7 +111,7 @@
             <div
               class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-colors"
               [class.bg-primary-100]="isOutputSelected(opt.value)"
-              [class.dark:bg-primary-900/40]="isOutputSelected(opt.value)"
+              [class.dark:bg-primary-900\/40]="isOutputSelected(opt.value)"
               [class.bg-surface-100]="!isOutputSelected(opt.value)"
               [class.dark:bg-surface-800]="!isOutputSelected(opt.value)"
             >
