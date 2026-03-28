@@ -1,4 +1,5 @@
 <p-toast />
+<p-confirmDialog />
 <!-- Page header -->
 <div *transloco="let t" class="flex flex-col gap-8">
   <div class="flex items-center justify-between">
@@ -90,6 +91,14 @@
                   [value]="t('receipts.status.' + receipt.status.toLowerCase())"
                   [severity]="getStatusSeverity(receipt.status)"
                   styleClass="text-xs"
+                />
+                <p-button
+                  icon="pi pi-trash"
+                  [title]="t('receipts.card.delete')"
+                  size="small"
+                  [text]="true"
+                  severity="secondary"
+                  (onClick)="deleteReceipt($event, receipt)"
                 />
               </div>
             </div>
@@ -206,6 +215,18 @@
           }
         </div>
       </div>
+      <ng-template pTemplate="footer">
+        <div class="flex justify-start">
+          <p-button
+            [label]="t('common.delete')"
+            icon="pi pi-trash"
+            severity="danger"
+            [text]="true"
+            size="small"
+            (onClick)="deleteReceipt($event, selectedReceipt)"
+          />
+        </div>
+      </ng-template>
     }
   </p-dialog>
 </div>

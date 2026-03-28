@@ -1,4 +1,4 @@
-import { Controller, Get, Logger, Param, ParseIntPipe, Post, Req, Res } from '@nestjs/common';
+import { Controller, Delete, Get, Logger, Param, ParseIntPipe, Post, Req, Res } from '@nestjs/common';
 import { ApiBody, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { existsSync } from 'fs';
 import type { Request, Response } from 'express';
@@ -56,5 +56,11 @@ export class ReceiptsController {
   async retry(@Param(RouteParam.Id, ParseIntPipe) id: number): Promise<Pick<ReceiptEntity, 'id' | 'status'>> {
     const receipt = await this.receiptsService.retry(id);
     return { id: receipt.id, status: receipt.status };
+  }
+
+  @Delete(`:${RouteParam.Id}`)
+  @ApiOperation({ summary: 'Delete a receipt' })
+  async delete(@Param(RouteParam.Id, ParseIntPipe) id: number): Promise<void> {
+    await this.receiptsService.delete(id);
   }
 }

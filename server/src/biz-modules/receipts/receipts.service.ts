@@ -70,4 +70,11 @@ export class ReceiptsService {
     this.logger.log(`Receipt #${id} re-queued for OCR (retry)`);
     return this.receiptsDao.getOneByPkOrFail(id);
   }
+
+  async delete(id: number): Promise<void> {
+    const receipt = await this.receiptsDao.getOneByPkOrFail(id);
+    await this.receiptsDao.deleteByPk(id);
+    await this.storage.delete(receipt.filename);
+    this.logger.log(`Receipt #${id} and file ${receipt.filename} deleted`);
+  }
 }

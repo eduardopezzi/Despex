@@ -100,4 +100,25 @@ describe('Receipts Controller (e2e) with unique Schema', () => {
     expect(updatedReceipt.status).toBe(ReceiptStatus.Pending);
     expect(updatedReceipt.ocrData).toBeNull();
   });
+
+  it('/receipts/:id (DELETE)', async () => {
+    // 1. Upload a receipt
+    const uploadRes = await TestHelpers.expectUpload<Pick<ReceiptEntity, 'id'>>(
+      app,
+      '/receipts/upload',
+      { ocrProvider: OcrProvider.Mistral },
+      { name: 'file', filename: 'delete-test.jpg', content: fileData, contentType: MimeType.Jpeg },
+    );
+    const id = uploadRes.id;
+
+    // 2. Verify it exists
+    await TestHelpers.expectOk(app, `/receipts/${id}`);
+
+    // 3. Delete it
+    await TestHelpers.expectDelete(app, `/receipts/${id}`);
+
+    // 4. Verify it's gone
+    const { default: request } = await import('supertest');
+    await request(app.getHttpServer()).get(`/receipts/${id}`).expect(404);
+  });
 });

@@ -20,4 +20,6 @@ export abstract class StorageProvider {
   abstract readonly name: StorageProviderType;
 
   abstract uploadStream(stream: Readable, filename: string, mimetype: string): Promise<UploadResult>;
+
+  abstract delete(key: string): Promise<void>;
 }

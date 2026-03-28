@@ -46,4 +46,8 @@ export class ReceiptService {
   retryOcr(id: number): Observable<{ id: number; status: string }> {
     return this.http.post<{ id: number; status: string }>(`${this.apiUrl}/${id}/retry`, {});
   }
+
+  deleteReceipt(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  }
 }

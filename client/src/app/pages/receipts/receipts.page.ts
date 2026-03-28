@@ -11,7 +11,8 @@ import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { DialogModule } from 'primeng/dialog';
 import { MenuModule } from 'primeng/menu';
 import { ToastModule } from 'primeng/toast';
-import { MenuItem, MessageService } from 'primeng/api';
+import { MenuItem, MessageService, ConfirmationService } from 'primeng/api';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 
 @Component({
@@ -28,14 +29,16 @@ import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
     MenuModule,
     ToastModule,
     TranslocoModule,
+    ConfirmDialogModule,
   ],
-  providers: [MessageService],
+  providers: [MessageService, ConfirmationService],
   templateUrl: './receipts.page.html',
 })
 export class ReceiptsPageComponent implements OnInit {
   receiptService = inject(ReceiptService);
   private messageService = inject(MessageService);
   private translocoService = inject(TranslocoService);
+  private confirmationService = inject(ConfirmationService);
 
   ReceiptStatus: typeof ReceiptStatus = ReceiptStatus;
 
@@ -185,6 +188,37 @@ export class ReceiptsPageComponent implements OnInit {
           detail: 'Failed to re-queue OCR job.',
         });
         console.error(err);
+      },
+    });
+  }
+
+  deleteReceipt(event: Event, receipt: Receipt) {
+    event.stopPropagation();
+    this.confirmationService.confirm({
+      message: this.translocoService.translate('receipts.delete.confirmation'),
+      header: this.translocoService.translate('receipts.delete.title'),
+      icon: 'pi pi-exclamation-triangle',
+      accept: () => {
+        this.receiptService.deleteReceipt(receipt.id).subscribe({
+          next: () => {
+            this.messageService.add({
+              severity: 'success',
+              summary: this.translocoService.translate('receipts.delete.success'),
+            });
+            this.receiptService.fetchReceipts();
+            if (this.selectedReceipt?.id === receipt.id) {
+              this.showDetail = false;
+            }
+          },
+          error: (err) => {
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Error',
+              detail: 'Failed to delete receipt.',
+            });
+            console.error(err);
+          },
+        });
       },
     });
   }
