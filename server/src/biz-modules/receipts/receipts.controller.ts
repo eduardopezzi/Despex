@@ -31,19 +31,17 @@ export class ReceiptsController {
   }
 
   @Post('upload')
-  @ApiOperation({
-    summary: 'Upload a receipt image/PDF and trigger OCR processing',
-  })
+  @ApiOperation({ summary: 'Upload a receipt image/PDF and trigger OCR processing' })
   @ApiConsumes('multipart/form-data')
   @ApiBody({ type: UploadReceiptDto })
-  async upload(@Req() req: Request): Promise<{ id: number; message: string }> {
+  async upload(@Req() req: Request): Promise<Pick<ReceiptEntity, 'id'>> {
     this.logger.log('Received HTTP request to upload receipt');
     const receipt = await this.receiptsService.upload(req);
-    return { id: receipt.id, message: 'Upload successful — OCR queued.' };
+    return { id: receipt.id };
   }
 
   @Get('uploads/:key')
-  @ApiOperation({ summary: 'Serve a locally-stored receipt file by key' })
+  @ApiOperation({ summary: 'Serve a a file by key' })
   serveFile(@Param('key') key: string, @Res() res: Response): void {
     const filePath = this.localStorage.getFilePath(key);
     if (!existsSync(filePath)) {
