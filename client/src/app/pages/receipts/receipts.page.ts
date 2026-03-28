@@ -166,4 +166,26 @@ export class ReceiptsPageComponent implements OnInit {
     const ext = filename.split('.').pop()?.toLowerCase();
     return ['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(ext || '');
   }
+
+  retryOcr(event: Event, receipt: Receipt) {
+    event.stopPropagation();
+    this.receiptService.retryOcr(receipt.id).subscribe({
+      next: () => {
+        this.messageService.add({
+          severity: 'info',
+          summary: this.translocoService.translate('receipts.card.retrying'),
+          detail: this.translocoService.translate('receipts.card.retryQueued'),
+        });
+        this.receiptService.fetchReceipts();
+      },
+      error: (err) => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Failed to re-queue OCR job.',
+        });
+        console.error(err);
+      },
+    });
+  }
 }

@@ -5,8 +5,11 @@ import { ReceiptEntity } from '@core/database/entities/receipt.entity';
 import { ReposService } from '@core/database/repos.service';
 import { DbService } from '@core/database/db.service';
 import { SecretsModule } from '@core/secrets/secrets.module';
+import { ReceiptsDao } from '@core/database/daos/receipts.dao';
 
 const entitiesModule = TypeOrmModule.forFeature([ReceiptEntity]);
+
+const DAOs = [ReceiptsDao];
 
 @Global()
 @Module({
@@ -18,7 +21,7 @@ const entitiesModule = TypeOrmModule.forFeature([ReceiptEntity]);
     }),
     entitiesModule,
   ],
-  providers: [TypeOrmConfigService, ReposService, DbService],
+  providers: [TypeOrmConfigService, ReposService, DbService, ...DAOs],
   exports: [TypeOrmConfigService, entitiesModule, ReposService, DbService, SecretsModule],
 })
 export class DatabaseModule {}

@@ -42,4 +42,8 @@ export class ReceiptService {
   getFileUrl(key: string): string {
     return `${this.apiUrl}/uploads/${key}`;
   }
+
+  retryOcr(id: number): Observable<{ id: number; status: string }> {
+    return this.http.post<{ id: number; status: string }>(`${this.apiUrl}/${id}/retry`, {});
+  }
 }

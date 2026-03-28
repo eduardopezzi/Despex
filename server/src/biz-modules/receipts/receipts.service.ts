@@ -9,6 +9,7 @@ import { AppSecret } from '@core/types/app-secret.enum';
 import { ALLOWED_MIME_TYPES, DEFAULT_MAX_FILE_SIZE_BYTES } from '@core/constants/media.constants';
 import { parseMultipartStream } from '@core/utils/multipart.util';
 
+import { ReceiptStatus } from '@core/types/receipt-status.enum';
 import { OcrProvider } from '@core/types/ocr-provider.enum';
 
 @Injectable()
@@ -58,5 +59,15 @@ export class ReceiptsService {
     this.logger.log(`Receipt #${receipt.id} queued for OCR`);
 
     return receipt;
+  }
+
+  async retry(id: number): Promise<ReceiptEntity> {
+    await this.receiptsDao.updateByPk(id, {
+      status: ReceiptStatus.Pending,
+      ocrData: null,
+    });
+    await this.queueService.addToOcrQueue({ receiptId: id });
+    this.logger.log(`Receipt #${id} re-queued for OCR (retry)`);
+    return this.receiptsDao.getOneByPkOrFail(id);
   }
 }

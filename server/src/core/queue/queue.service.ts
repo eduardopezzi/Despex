@@ -11,7 +11,13 @@ export class QueueService {
   constructor(@InjectQueue(QueueName.Ocr) private readonly ocrQueue: Queue) {}
 
   async addToOcrQueue(payload: { receiptId: number }): Promise<void> {
-    await this.ocrQueue.add(QueueJobName.ProcessOcr, payload);
+    await this.ocrQueue.add(QueueJobName.ProcessOcr, payload, {
+      attempts: 3,
+      backoff: {
+        type: 'exponential',
+        delay: 1000,
+      },
+    });
     this.logger.debug(`Added job ${QueueJobName.ProcessOcr} to ${QueueName.Ocr} with payload: ${JSON.stringify(payload)}`);
   }
 }
