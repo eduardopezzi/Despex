@@ -48,4 +48,9 @@ export class TestHelpers {
     expect(res.status).toBe(HttpStatus.CREATED);
     return res.body as T;
   }
+
+  static async expectDelete(app: INestApplication, endpoint: string): Promise<void> {
+    const res = await request(app.getHttpServer()).delete(endpoint);
+    expect(res.status).toBe(HttpStatus.OK);
+  }
 }

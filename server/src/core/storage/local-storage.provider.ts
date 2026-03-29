@@ -60,4 +60,13 @@ export class LocalStorageProvider extends StorageProvider {
   getFilePath(key: string): string {
     return join(this.uploadDir, key);
   }
+
+  async delete(key: string): Promise<void> {
+    const filePath = this.getFilePath(key);
+    if (existsSync(filePath)) {
+      const { unlink } = await import('fs/promises');
+      await unlink(filePath);
+      this.logger.log(`Deleted file: ${filePath}`);
+    }
+  }
 }

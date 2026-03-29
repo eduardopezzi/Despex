@@ -6,8 +6,9 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { TestHelpers } from '../../test-helpers';
 import { ReceiptEntity } from '@core/database/entities/receipt.entity';
 import { MimeType } from '@core/types/mime-type.enum';
-import { OcrProvider } from '@open-receipt-ocr/types';
+import { OcrProvider, ReceiptStatus } from '@open-receipt-ocr/types';
 import { MockQueueService, TestContextHelpers } from '@tests/test-context.helpers';
+import { ReceiptsDao } from '@core/database/daos/receipts.dao';
 
 describe('Receipts Controller (e2e) with unique Schema', () => {
   let app: INestApplication;
@@ -64,5 +65,60 @@ describe('Receipts Controller (e2e) with unique Schema', () => {
       originalName: 'test.jpg',
       ocrProvider: OcrProvider.Mistral,
     });
+  });
+
+  it('/receipts/:id/retry (POST)', async () => {
+    const uploadRes = await TestHelpers.expectUpload<Pick<ReceiptEntity, 'id'>>(
+      app,
+      '/receipts/upload',
+      { ocrProvider: OcrProvider.Mistral },
+      { name: 'file', filename: 'retry-test.jpg', content: fileData, contentType: MimeType.Jpeg },
+    );
+    const id = uploadRes.id;
+
+    // Clear the initial queue call from the upload
+    queueServiceMock.addToOcrQueue.mockClear();
+
+    // Import DAO and Status to force a failure state
+    const dao = app.get(ReceiptsDao);
+
+    // Set to failed with some mock data
+    await dao.updateStatus(id, ReceiptStatus.Failed, null);
+
+    // Call retry
+    const retryRes = await TestHelpers.expectCreated<{ id: number; status: string }>(app, `/receipts/${id}/retry`);
+
+    expect(retryRes.id).toBe(id);
+    expect(retryRes.status).toBe(ReceiptStatus.Pending);
+
+    // Verify queue was called again
+    expect(queueServiceMock.addToOcrQueue).toHaveBeenCalledOnce();
+    expect(queueServiceMock.addToOcrQueue).toHaveBeenCalledWith({ receiptId: id });
+
+    // Verify DB state
+    const updatedReceipt = await TestHelpers.expectOk<ReceiptEntity>(app, `/receipts/${id}`);
+    expect(updatedReceipt.status).toBe(ReceiptStatus.Pending);
+    expect(updatedReceipt.ocrData).toBeNull();
+  });
+
+  it('/receipts/:id (DELETE)', async () => {
+    // 1. Upload a receipt
+    const uploadRes = await TestHelpers.expectUpload<Pick<ReceiptEntity, 'id'>>(
+      app,
+      '/receipts/upload',
+      { ocrProvider: OcrProvider.Mistral },
+      { name: 'file', filename: 'delete-test.jpg', content: fileData, contentType: MimeType.Jpeg },
+    );
+    const id = uploadRes.id;
+
+    // 2. Verify it exists
+    await TestHelpers.expectOk(app, `/receipts/${id}`);
+
+    // 3. Delete it
+    await TestHelpers.expectDelete(app, `/receipts/${id}`);
+
+    // 4. Verify it's gone
+    const { default: request } = await import('supertest');
+    await request(app.getHttpServer()).get(`/receipts/${id}`).expect(404);
   });
 });

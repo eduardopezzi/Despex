@@ -1,7 +1,8 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, effect, inject, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReceiptService } from '@services/receipt.service';
 import { Receipt, ReceiptStatus } from '@models/receipt.model';
+import { interval, Subscription } from 'rxjs';
 import { UploadDialogComponent } from '@components/upload-dialog/upload-dialog.component';
 
 import { CardModule } from 'primeng/card';
@@ -11,7 +12,8 @@ import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { DialogModule } from 'primeng/dialog';
 import { MenuModule } from 'primeng/menu';
 import { ToastModule } from 'primeng/toast';
-import { MenuItem, MessageService } from 'primeng/api';
+import { MenuItem, MessageService, ConfirmationService } from 'primeng/api';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 
 @Component({
@@ -28,14 +30,18 @@ import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
     MenuModule,
     ToastModule,
     TranslocoModule,
+    ConfirmDialogModule,
   ],
-  providers: [MessageService],
+  providers: [MessageService, ConfirmationService],
   templateUrl: './receipts.page.html',
 })
-export class ReceiptsPageComponent implements OnInit {
+export class ReceiptsPageComponent implements OnInit, OnDestroy {
   receiptService = inject(ReceiptService);
   private messageService = inject(MessageService);
   private translocoService = inject(TranslocoService);
+  private confirmationService = inject(ConfirmationService);
+
+  private pollingSubscription?: Subscription;
 
   ReceiptStatus: typeof ReceiptStatus = ReceiptStatus;
 
@@ -80,6 +86,42 @@ export class ReceiptsPageComponent implements OnInit {
 
   ngOnInit() {
     this.receiptService.fetchReceipts();
+    this.startPolling();
+  }
+
+  ngOnDestroy() {
+    this.stopPolling();
+  }
+
+  constructor() {
+    // Sync the selectedReceipt if it exists and the list updates
+    effect(() => {
+      const receipts = this.receiptService.receipts();
+      if (this.selectedReceipt) {
+        const updated = receipts.find((r) => r.id === this.selectedReceipt?.id);
+        if (updated) {
+          this.selectedReceipt = updated;
+        }
+      }
+    });
+  }
+
+  private startPolling() {
+    if (this.pollingSubscription) return;
+    this.pollingSubscription = interval(3000).subscribe(() => {
+      const needsPolling = this.receiptService
+        .receipts()
+        .some((r) => r.status === ReceiptStatus.Pending || r.status === ReceiptStatus.Processing);
+
+      if (needsPolling) {
+        this.receiptService.fetchReceipts(false);
+      }
+    });
+  }
+
+  private stopPolling() {
+    this.pollingSubscription?.unsubscribe();
+    this.pollingSubscription = undefined;
   }
 
   copyToClipboard() {
@@ -165,5 +207,58 @@ export class ReceiptsPageComponent implements OnInit {
   isFileImage(filename: string): boolean {
     const ext = filename.split('.').pop()?.toLowerCase();
     return ['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(ext || '');
+  }
+
+  retryOcr(event: Event, receipt: Receipt) {
+    event.stopPropagation();
+    this.receiptService.retryOcr(receipt.id).subscribe({
+      next: () => {
+        this.messageService.add({
+          severity: 'info',
+          summary: this.translocoService.translate('receipts.card.retrying'),
+          detail: this.translocoService.translate('receipts.card.retryQueued'),
+        });
+        this.receiptService.fetchReceipts();
+      },
+      error: (err) => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Failed to re-queue OCR job.',
+        });
+        console.error(err);
+      },
+    });
+  }
+
+  deleteReceipt(event: Event, receipt: Receipt) {
+    event.stopPropagation();
+    this.confirmationService.confirm({
+      message: this.translocoService.translate('receipts.delete.confirmation'),
+      header: this.translocoService.translate('receipts.delete.title'),
+      icon: 'pi pi-exclamation-triangle',
+      accept: () => {
+        this.receiptService.deleteReceipt(receipt.id).subscribe({
+          next: () => {
+            this.messageService.add({
+              severity: 'success',
+              summary: this.translocoService.translate('receipts.delete.success'),
+            });
+            this.receiptService.fetchReceipts();
+            if (this.selectedReceipt?.id === receipt.id) {
+              this.showDetail = false;
+            }
+          },
+          error: (err) => {
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Error',
+              detail: 'Failed to delete receipt.',
+            });
+            console.error(err);
+          },
+        });
+      },
+    });
   }
 }

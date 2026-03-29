@@ -15,8 +15,10 @@ export class ReceiptService {
   receipts = signal<Receipt[]>([]);
   loading = signal<boolean>(false);
 
-  fetchReceipts() {
-    this.loading.set(true);
+  fetchReceipts(showLoading = true) {
+    if (showLoading) {
+      this.loading.set(true);
+    }
     return this.http
       .get<Receipt[]>(this.apiUrl)
       .pipe(
@@ -41,5 +43,13 @@ export class ReceiptService {
 
   getFileUrl(key: string): string {
     return `${this.apiUrl}/uploads/${key}`;
+  }
+
+  retryOcr(id: number): Observable<{ id: number; status: string }> {
+    return this.http.post<{ id: number; status: string }>(`${this.apiUrl}/${id}/retry`, {});
+  }
+
+  deleteReceipt(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
 }
