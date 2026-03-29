@@ -42,11 +42,19 @@ export class ReceiptsController {
 
   @Post(`files/:fileId/reprocess`)
   @ApiOperation({ summary: 'Reprocess a file with a specific OCR provider' })
-  async reprocess(
-    @Param('fileId', ParseIntPipe) fileId: number,
-    @Body('ocrProvider') ocrProvider: OcrProvider,
-  ): Promise<OcrExecutionEntity> {
+  async reprocess(@Param('fileId', ParseIntPipe) fileId: number, @Body('ocrProvider') ocrProvider: OcrProvider): Promise<OcrExecutionEntity> {
     return this.receiptsService.retry(fileId, ocrProvider);
+  }
+
+  @Get('uploads/:key')
+  @ApiOperation({ summary: 'Get an uploaded file' })
+  async getFile(@Param('key') key: string, @Res() res: Response): Promise<void> {
+    const filePath = this.localStorage.getFilePath(key);
+    if (!existsSync(filePath)) {
+      res.status(404).send('File not found');
+      return;
+    }
+    res.sendFile(filePath);
   }
 
   @Delete(`:${RouteParam.Id}`)
