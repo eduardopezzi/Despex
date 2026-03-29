@@ -17,6 +17,7 @@ import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { TooltipModule } from 'primeng/tooltip';
 import { PopoverModule } from 'primeng/popover';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-receipts-page',
@@ -36,7 +37,6 @@ import { PopoverModule } from 'primeng/popover';
     TooltipModule,
     PopoverModule,
   ],
-  providers: [MessageService, ConfirmationService],
   templateUrl: './receipts.page.html',
 })
 export class ReceiptsPageComponent implements OnInit, OnDestroy {
@@ -44,6 +44,7 @@ export class ReceiptsPageComponent implements OnInit, OnDestroy {
   private messageService = inject(MessageService);
   private translocoService = inject(TranslocoService);
   private confirmationService = inject(ConfirmationService);
+  private sanitizer = inject(DomSanitizer);
 
   private pollingSubscription?: Subscription;
 
@@ -198,6 +199,15 @@ export class ReceiptsPageComponent implements OnInit, OnDestroy {
   isFileImage(filename: string): boolean {
     const ext = filename.split('.').pop()?.toLowerCase();
     return ['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(ext || '');
+  }
+
+  isFilePdf(filename: string): boolean {
+    const ext = filename.split('.').pop()?.toLowerCase();
+    return ext === 'pdf';
+  }
+
+  getSafeUrl(filename: string): SafeResourceUrl {
+    return this.sanitizer.bypassSecurityTrustResourceUrl(this.receiptService.getFileUrl(filename));
   }
 
   getLatestExecution(file: OcrFile | null): OcrExecution | undefined {
