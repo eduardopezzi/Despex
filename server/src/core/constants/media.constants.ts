@@ -1,4 +1,4 @@
-import { MimeType } from '@core/types/mime-type.enum';
+import { MimeType } from '@open-receipt-ocr/types';
 
 export const ALLOWED_MIME_TYPES = new Set<string>([MimeType.Pdf, MimeType.Jpeg, MimeType.Png]);
 

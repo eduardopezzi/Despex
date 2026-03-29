@@ -13,7 +13,7 @@
     <p-fileUpload
       name="files"
       [multiple]="true"
-      accept="image/*,application/pdf"
+      [accept]="acceptTypes"
       [maxFileSize]="50000000"
       [customUpload]="true"
       (onSelect)="onSelect($event)"
@@ -87,4 +87,5 @@
       (onClick)="doUpload()" 
     />
   </ng-template>
+  <p-toast position="top-right" />
 </p-dialog>

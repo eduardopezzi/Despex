@@ -4,20 +4,16 @@ import { Job } from 'bullmq';
 import * as fs from 'fs';
 import axios from 'axios';
 import { extname } from 'path';
-import { ReceiptsDao } from '@core/database/daos/receipts.dao';
-import { ReceiptStatus } from '@core/types/receipt-status.enum';
 import { AppSecret } from '@core/types/app-secret.enum';
 import { SecretProvider } from '@core/secrets/secret-provider.interface';
 import { LocalStorageProvider } from '@core/storage/local-storage.provider';
-import { MimeType } from '@core/types/mime-type.enum';
 import { QueueName } from '@core/types/queue-name.enum';
 import { OcrProvider } from '@core/types/ocr-provider.enum';
-import { ReceiptEntity } from '@core/database/entities/receipt.entity';
+import { MimeType } from '@open-receipt-ocr/types';
 
 import { OcrExecutionsDao } from '@core/database/daos/ocr-executions.dao';
 import { OcrFilesDao } from '@core/database/daos/ocr-files.dao';
 import { OcrJobsDao } from '@core/database/daos/ocr-jobs.dao';
-import { OcrExecutionEntity } from '@core/database/entities/ocr-execution.entity';
 import { OcrFileEntity } from '@core/database/entities/ocr-file.entity';
 import { OcrExecutionStatus, OcrFileStatus, OcrJobStatus } from '@open-receipt-ocr/types';
 
@@ -110,6 +106,7 @@ export class OcrProcessor extends WorkerHost {
 
   private async processMistral(file: OcrFileEntity, executionId: number, filePath: string): Promise<string> {
     const mistralApiKey = await this.secretProvider.getSecretOrThrow(AppSecret.MistralApiKey);
+    // TODO: Use storage instead. The file might not be stored in local storage
     const base64Content = fs.readFileSync(filePath).toString('base64');
     const mimeType = OcrProcessor.getMimeType(extname(file.filename).toLowerCase());
 

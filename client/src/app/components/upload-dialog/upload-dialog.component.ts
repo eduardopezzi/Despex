@@ -14,6 +14,9 @@ import { FileUploadModule, FileUploadHandlerEvent } from 'primeng/fileupload';
 
 import { ConfigService } from '@services/config.service';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
+import { MessageService } from 'primeng/api';
+import { ToastModule } from 'primeng/toast';
+import { MimeType } from '@open-receipt-ocr/types';
 
 interface FileWithProvider {
   file: File;
@@ -33,6 +36,7 @@ interface FileWithProvider {
     FormsModule,
     TranslocoModule,
     FileUploadModule,
+    ToastModule,
   ],
   templateUrl: './upload-dialog.component.html',
 })
@@ -40,6 +44,7 @@ export class UploadDialogComponent {
   private receiptService = inject(ReceiptService);
   private configService = inject(ConfigService);
   private translocoService = inject(TranslocoService);
+  private messageService = inject(MessageService);
 
   @Input() set visible(val: boolean) {
     this._visible = val;
@@ -75,14 +80,26 @@ export class UploadDialogComponent {
     this.uploading.set(false);
   }
 
+  readonly ALLOWED_TYPES = [MimeType.Pdf, MimeType.Jpeg, MimeType.Png];
+
+  get acceptTypes() {
+    return this.ALLOWED_TYPES.join(',');
+  }
+
   onSelect(event: any) {
     const newFiles: File[] = event.currentFiles;
     const defaultProvider = this.configService.defaultOcrProvider() as OcrProvider;
 
     const current = this.filesWithProviders();
     const updated = [...current];
+    let skipped = 0;
 
     newFiles.forEach((f) => {
+      if (!this.ALLOWED_TYPES.includes(f.type as MimeType)) {
+        skipped++;
+        return;
+      }
+
       if (!updated.some((item) => item.file.name === f.name && item.file.size === f.size)) {
         updated.push({
           file: f,
@@ -90,6 +107,14 @@ export class UploadDialogComponent {
         });
       }
     });
+
+    if (skipped > 0) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Unsupported files',
+        detail: `${skipped} file(s) were skipped (only PDF, JPG, PNG allowed).`,
+      });
+    }
 
     this.filesWithProviders.set(updated);
   }

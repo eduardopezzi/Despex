@@ -3,10 +3,9 @@ import { DatabaseModule } from '@core/database/database.module';
 import { ReceiptsModule } from '@biz-modules/receipts/receipts.module';
 import { StorageModule } from '@core/storage/storage.module';
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { TestHelpers } from '../../test-helpers';
+import { TestHelpers } from '@tests/test-helpers';
 import { ReceiptEntity } from '@core/database/entities/receipt.entity';
-import { MimeType } from '@core/types/mime-type.enum';
-import { OcrProvider, ReceiptStatus } from '@open-receipt-ocr/types';
+import { MimeType, OcrProvider, ReceiptStatus } from '@open-receipt-ocr/types';
 import { MockQueueService, TestContextHelpers } from '@tests/test-context.helpers';
 import { ReceiptsDao } from '@core/database/daos/receipts.dao';
 

@@ -31,14 +31,9 @@ export class LocalStorageProvider extends StorageProvider {
   ): Promise<UploadResult> {
     const key = `${randomUUID()}${extname(filename)}`;
     const filePath = join(this.uploadDir, key);
-    let size = 0;
 
     return new Promise((resolve, reject) => {
       const writeStream = createWriteStream(filePath);
-
-      stream.on('data', (chunk: Buffer) => {
-        size += chunk.length;
-      });
 
       stream.pipe(writeStream);
 
@@ -46,7 +41,7 @@ export class LocalStorageProvider extends StorageProvider {
         resolve({
           url: `/api/uploads/${key}`,
           key,
-          size,
+          size: writeStream.bytesWritten,
         });
       });
 
