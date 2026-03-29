@@ -11,6 +11,7 @@ import { OcrProvider } from '@open-receipt-ocr/types';
 import { SelectModule } from 'primeng/select';
 import { FormsModule } from '@angular/forms';
 import { FileUploadModule, FileUploadHandlerEvent } from 'primeng/fileupload';
+import { InputTextModule } from 'primeng/inputtext';
 
 import { ConfigService } from '@services/config.service';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
@@ -37,6 +38,7 @@ interface FileWithProvider {
     TranslocoModule,
     FileUploadModule,
     ToastModule,
+    InputTextModule,
   ],
   templateUrl: './upload-dialog.component.html',
 })
@@ -61,6 +63,7 @@ export class UploadDialogComponent {
   @Output() uploaded = new EventEmitter<void>();
 
   filesWithProviders = signal<FileWithProvider[]>([]);
+  jobName = signal<string>('');
   uploading = signal(false);
   message = signal<string | null>(null);
   isError = signal(false);
@@ -75,6 +78,7 @@ export class UploadDialogComponent {
 
   reset() {
     this.filesWithProviders.set([]);
+    this.jobName.set('');
     this.message.set(null);
     this.isError.set(false);
     this.uploading.set(false);
@@ -133,7 +137,7 @@ export class UploadDialogComponent {
     const files = items.map((i) => i.file);
     const providers = items.map((i) => i.ocrProvider);
 
-    this.receiptService.uploadJob(files, providers).subscribe({
+    this.receiptService.uploadJob(files, providers, this.jobName()).subscribe({
       next: () => {
         this.uploading.set(false);
         this.message.set('upload.uploadSuccess');

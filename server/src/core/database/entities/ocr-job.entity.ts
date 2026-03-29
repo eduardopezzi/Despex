@@ -16,6 +16,13 @@ export class OcrJobEntity extends WithModificationDates {
   })
   status!: OcrJobStatus;
 
+  @Column({
+    name: 'name',
+    type: 'varchar',
+    nullable: true,
+  })
+  name?: string;
+
   @OneToMany(() => OcrFileEntity, (file) => file.job, { cascade: true })
   files!: OcrFileEntity[];
 }

@@ -30,8 +30,11 @@ export class ReceiptService {
       .subscribe();
   }
 
-  uploadJob(files: File[], providers: OcrProvider[]) {
+  uploadJob(files: File[], providers: OcrProvider[], jobName?: string) {
     const formData = new FormData();
+    if (jobName) {
+      formData.append('jobName', jobName);
+    }
     files.forEach((file, index) => {
       formData.append('files', file);
       formData.append(`ocrProvider_${index}`, providers[index]);

@@ -23,6 +23,8 @@
   },
   "upload": {
     "title": "Create OCR Job",
+    "jobName": "Job Name",
+    "jobNamePlaceholder": "Give your OCR job a name (e.g. Monthly Invoices)",
     "dropZone": "Drop files here or click to browse",
     "dropZoneHint": "PDF, JPG, PNG · max 50 MB",
     "ocrProvider": "OCR Provider",

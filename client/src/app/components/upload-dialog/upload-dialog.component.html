@@ -10,6 +10,20 @@
   [contentStyle]="{ overflow: 'visible' }"
 >
   <div class="flex flex-col gap-6">
+    <div class="flex flex-col gap-2">
+      <label for="jobName" class="text-sm font-medium text-surface-900 dark:text-surface-100">{{ t('upload.jobName') }}</label>
+      <input 
+        id="jobName" 
+        type="text" 
+        pInputText 
+        [ngModel]="jobName()" 
+        (ngModelChange)="jobName.set($event)" 
+        [placeholder]="t('upload.jobNamePlaceholder')" 
+        class="w-full"
+        [disabled]="uploading()"
+      />
+    </div>
+
     <p-fileUpload
       name="files"
       [multiple]="true"

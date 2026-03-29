@@ -26,6 +26,7 @@ export interface OcrFile {
 export interface OcrJob {
   id: number;
   status: OcrJobStatus;
+  name?: string | null;
   files?: OcrFile[];
   createdAt: string;
   updatedAt: string;

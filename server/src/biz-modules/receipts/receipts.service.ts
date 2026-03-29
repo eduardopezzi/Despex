@@ -48,8 +48,11 @@ export class ReceiptsService {
       allowedMimeTypes: ALLOWED_MIME_TYPES,
     });
 
+    const jobName = parseResult.fields['jobName'];
+
     const ocrJob = await this.ocrJobsDao.create({
       status: OcrJobStatus.Processing,
+      name: jobName,
     });
 
     for (let i = 0; i < parseResult.files.length; i++) {
