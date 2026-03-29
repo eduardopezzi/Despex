@@ -15,8 +15,10 @@ export class ReceiptService {
   receipts = signal<Receipt[]>([]);
   loading = signal<boolean>(false);
 
-  fetchReceipts() {
-    this.loading.set(true);
+  fetchReceipts(showLoading = true) {
+    if (showLoading) {
+      this.loading.set(true);
+    }
     return this.http
       .get<Receipt[]>(this.apiUrl)
       .pipe(

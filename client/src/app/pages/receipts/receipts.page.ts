@@ -1,7 +1,8 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, effect, inject, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReceiptService } from '@services/receipt.service';
 import { Receipt, ReceiptStatus } from '@models/receipt.model';
+import { interval, Subscription } from 'rxjs';
 import { UploadDialogComponent } from '@components/upload-dialog/upload-dialog.component';
 
 import { CardModule } from 'primeng/card';
@@ -34,11 +35,13 @@ import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
   providers: [MessageService, ConfirmationService],
   templateUrl: './receipts.page.html',
 })
-export class ReceiptsPageComponent implements OnInit {
+export class ReceiptsPageComponent implements OnInit, OnDestroy {
   receiptService = inject(ReceiptService);
   private messageService = inject(MessageService);
   private translocoService = inject(TranslocoService);
   private confirmationService = inject(ConfirmationService);
+
+  private pollingSubscription?: Subscription;
 
   ReceiptStatus: typeof ReceiptStatus = ReceiptStatus;
 
@@ -83,6 +86,42 @@ export class ReceiptsPageComponent implements OnInit {
 
   ngOnInit() {
     this.receiptService.fetchReceipts();
+    this.startPolling();
+  }
+
+  ngOnDestroy() {
+    this.stopPolling();
+  }
+
+  constructor() {
+    // Sync the selectedReceipt if it exists and the list updates
+    effect(() => {
+      const receipts = this.receiptService.receipts();
+      if (this.selectedReceipt) {
+        const updated = receipts.find((r) => r.id === this.selectedReceipt?.id);
+        if (updated) {
+          this.selectedReceipt = updated;
+        }
+      }
+    });
+  }
+
+  private startPolling() {
+    if (this.pollingSubscription) return;
+    this.pollingSubscription = interval(3000).subscribe(() => {
+      const needsPolling = this.receiptService
+        .receipts()
+        .some((r) => r.status === ReceiptStatus.Pending || r.status === ReceiptStatus.Processing);
+
+      if (needsPolling) {
+        this.receiptService.fetchReceipts(false);
+      }
+    });
+  }
+
+  private stopPolling() {
+    this.pollingSubscription?.unsubscribe();
+    this.pollingSubscription = undefined;
   }
 
   copyToClipboard() {
