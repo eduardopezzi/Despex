@@ -10,7 +10,7 @@ export class QueueService {
 
   constructor(@InjectQueue(QueueName.Ocr) private readonly ocrQueue: Queue) {}
 
-  async addToOcrQueue(payload: { receiptId: number }): Promise<void> {
+  async addToOcrQueue(payload: { executionId: number }): Promise<void> {
     await this.ocrQueue.add(QueueJobName.ProcessOcr, payload, {
       attempts: 3,
       backoff: {

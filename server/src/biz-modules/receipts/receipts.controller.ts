@@ -1,12 +1,13 @@
-import { Controller, Delete, Get, Logger, Param, ParseIntPipe, Post, Req, Res } from '@nestjs/common';
-import { ApiBody, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Body, Controller, Delete, Get, Logger, Param, ParseIntPipe, Post, Req, Res } from '@nestjs/common';
+import { ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { existsSync } from 'fs';
 import type { Request, Response } from 'express';
 import { ReceiptsService } from '@biz-modules/receipts/receipts.service';
-import { UploadReceiptDto } from '@biz-modules/receipts/dto/upload-receipt.dto';
-import { ReceiptEntity } from '@core/database/entities/receipt.entity';
 import { RouteParam } from '@core/types/route-param.enum';
 import { LocalStorageProvider } from '@core/storage/local-storage.provider';
+import { OcrJobEntity } from '@core/database/entities/ocr-job.entity';
+import { OcrExecutionEntity } from '@core/database/entities/ocr-execution.entity';
+import { OcrProvider } from '@open-receipt-ocr/types';
 
 @ApiTags('receipts')
 @Controller('receipts')
@@ -19,48 +20,38 @@ export class ReceiptsController {
   ) {}
 
   @Get()
-  @ApiOperation({ summary: 'List all receipts sorted by date descending' })
-  findAll(): Promise<ReceiptEntity[]> {
-    return this.receiptsService.findAll();
+  @ApiOperation({ summary: 'List all OCR jobs sorted by date descending' })
+  findAll(): Promise<OcrJobEntity[]> {
+    return this.receiptsService.findAllJobs();
   }
 
   @Get(`:${RouteParam.Id}`)
-  @ApiOperation({ summary: 'Get a single receipt by ID' })
-  findOne(@Param(RouteParam.Id, ParseIntPipe) id: number): Promise<ReceiptEntity> {
-    return this.receiptsService.findOneOrFail(id);
+  @ApiOperation({ summary: 'Get a single OCR job by ID with files and executions' })
+  findOne(@Param(RouteParam.Id, ParseIntPipe) id: number): Promise<OcrJobEntity> {
+    return this.receiptsService.getJob(id);
   }
 
   @Post('upload')
-  @ApiOperation({ summary: 'Upload a receipt image/PDF and trigger OCR processing' })
+  @ApiOperation({ summary: 'Upload N images/PDFs and trigger OCR processing' })
   @ApiConsumes('multipart/form-data')
-  @ApiBody({ type: UploadReceiptDto })
-  async upload(@Req() req: Request): Promise<Pick<ReceiptEntity, 'id'>> {
-    this.logger.log('Received HTTP request to upload receipt');
-    const receipt = await this.receiptsService.upload(req);
-    return { id: receipt.id };
+  async upload(@Req() req: Request): Promise<Pick<OcrJobEntity, 'id'>> {
+    this.logger.log('Received HTTP request to upload OCR job');
+    const job = await this.receiptsService.upload(req);
+    return { id: job.id };
   }
 
-  @Get('uploads/:key')
-  @ApiOperation({ summary: 'Serve a a file by key' })
-  serveFile(@Param('key') key: string, @Res() res: Response): void {
-    const filePath = this.localStorage.getFilePath(key);
-    if (!existsSync(filePath)) {
-      res.status(404).send('File not found');
-      return;
-    }
-    res.sendFile(filePath);
-  }
-
-  @Post(`:${RouteParam.Id}/retry`)
-  @ApiOperation({ summary: 'Retry OCR processing for a receipt' })
-  async retry(@Param(RouteParam.Id, ParseIntPipe) id: number): Promise<Pick<ReceiptEntity, 'id' | 'status'>> {
-    const receipt = await this.receiptsService.retry(id);
-    return { id: receipt.id, status: receipt.status };
+  @Post(`files/:fileId/reprocess`)
+  @ApiOperation({ summary: 'Reprocess a file with a specific OCR provider' })
+  async reprocess(
+    @Param('fileId', ParseIntPipe) fileId: number,
+    @Body('ocrProvider') ocrProvider: OcrProvider,
+  ): Promise<OcrExecutionEntity> {
+    return this.receiptsService.retry(fileId, ocrProvider);
   }
 
   @Delete(`:${RouteParam.Id}`)
-  @ApiOperation({ summary: 'Delete a receipt' })
+  @ApiOperation({ summary: 'Delete an OCR job and its files' })
   async delete(@Param(RouteParam.Id, ParseIntPipe) id: number): Promise<void> {
-    await this.receiptsService.delete(id);
+    await this.receiptsService.deleteJob(id);
   }
 }

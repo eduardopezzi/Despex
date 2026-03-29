@@ -1,6 +1,6 @@
 import { Injectable, signal, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { OcrProvider, Receipt } from '@models/receipt.model';
+import { OcrProvider, OcrJob, OcrExecution } from '@open-receipt-ocr/types';
 import { Observable, tap } from 'rxjs';
 import { environment } from '@environments/environment';
 
@@ -12,44 +12,46 @@ export class ReceiptService {
   private apiUrl = `${environment.apiUrl}/receipts`;
 
   // State using Signal
-  receipts = signal<Receipt[]>([]);
+  jobs = signal<OcrJob[]>([]);
   loading = signal<boolean>(false);
 
-  fetchReceipts(showLoading = true) {
+  fetchJobs(showLoading = true) {
     if (showLoading) {
       this.loading.set(true);
     }
     return this.http
-      .get<Receipt[]>(this.apiUrl)
+      .get<OcrJob[]>(this.apiUrl)
       .pipe(
         tap((data) => {
-          this.receipts.set(data);
+          this.jobs.set(data);
           this.loading.set(false);
         }),
       )
       .subscribe();
   }
 
-  uploadReceipt(file: File, ocrProvider: OcrProvider = OcrProvider.Mistral) {
+  uploadJob(files: File[], providers: OcrProvider[]) {
     const formData = new FormData();
-    formData.append('file', file);
-    formData.append('ocrProvider', ocrProvider);
-    return this.http.post<{ id: number; message: string }>(`${this.apiUrl}/upload`, formData);
+    files.forEach((file, index) => {
+      formData.append('files', file);
+      formData.append(`ocrProvider_${index}`, providers[index]);
+    });
+    return this.http.post<{ id: number }>(`${this.apiUrl}/upload`, formData);
   }
 
-  getReceipt(id: number): Observable<Receipt> {
-    return this.http.get<Receipt>(`${this.apiUrl}/${id}`);
+  getJob(id: number): Observable<OcrJob> {
+    return this.http.get<OcrJob>(`${this.apiUrl}/${id}`);
   }
 
   getFileUrl(key: string): string {
     return `${this.apiUrl}/uploads/${key}`;
   }
 
-  retryOcr(id: number): Observable<{ id: number; status: string }> {
-    return this.http.post<{ id: number; status: string }>(`${this.apiUrl}/${id}/retry`, {});
+  reprocessFile(fileId: number, ocrProvider: OcrProvider): Observable<OcrExecution> {
+    return this.http.post<OcrExecution>(`${this.apiUrl}/files/${fileId}/reprocess`, { ocrProvider });
   }
 
-  deleteReceipt(id: number): Observable<void> {
+  deleteJob(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
 }

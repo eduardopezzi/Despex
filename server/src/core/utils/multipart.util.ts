@@ -9,11 +9,6 @@ interface MultipartFileResult {
   mimeType: string;
 }
 
-interface ParseMultipartResult {
-  file: MultipartFileResult;
-  fields: Record<string, string>;
-}
-
 interface ParseMultipartOptions {
   maxSizeBytes: number;
   allowedMimeTypes: Set<string>;
@@ -21,20 +16,23 @@ interface ParseMultipartOptions {
 
 const logger = new Logger('MultipartUtil');
 
+interface ParseMultipartResult {
+  files: MultipartFileResult[];
+  fields: Record<string, string>;
+}
+
 export function parseMultipartStream(req: Request, storage: StorageProvider, options: ParseMultipartOptions): Promise<ParseMultipartResult> {
   return new Promise((resolve, reject) => {
     const busboy = Busboy({
       headers: req.headers,
       limits: {
-        files: 1,
         fileSize: options.maxSizeBytes,
       },
     });
 
     const fields: Record<string, string> = {};
-    let fileResult: MultipartFileResult | null = null;
-    let fileUploaded = false;
-    let uploadPromise: Promise<void> | null = null;
+    const files: MultipartFileResult[] = [];
+    const uploadPromises: Promise<void>[] = [];
     let settled = false;
 
     const settle = (err?: Error, result?: ParseMultipartResult) => {
@@ -61,11 +59,10 @@ export function parseMultipartStream(req: Request, storage: StorageProvider, opt
 
     busboy.on('file', (fieldname, stream, info) => {
       const { filename, mimeType } = info;
-      fileUploaded = true;
 
       try {
         if (!filename) {
-          stream.resume(); // Ensure stream is drained to unblock further request parsing
+          stream.resume();
           return settle(new BadRequestException('Upload must include a filename.'));
         }
 
@@ -87,21 +84,22 @@ export function parseMultipartStream(req: Request, storage: StorageProvider, opt
           settle(new InternalServerErrorException(`File stream error: ${message}`));
         });
 
-        // Hand off stream processing to the active storage provider and store the Promise
-        uploadPromise = storage
+        const uploadPromise = storage
           .uploadStream(stream, filename, mimeType)
           .then((result) => {
-            fileResult = {
+            files.push({
               key: result.key,
               originalName: filename,
               mimeType,
-            };
+            });
           })
           .catch((err: unknown) => {
             stream.resume();
             const message = err instanceof Error ? err.message : String(err);
             settle(new InternalServerErrorException(`Storage error: ${message}`));
           });
+
+        uploadPromises.push(uploadPromise);
       } catch (err: unknown) {
         stream.resume();
         const message = err instanceof Error ? err.message : String(err);
@@ -115,24 +113,19 @@ export function parseMultipartStream(req: Request, storage: StorageProvider, opt
     });
 
     busboy.on('finish', () => {
-      if (!fileUploaded) {
-        return settle(new BadRequestException('No file field found in the multipart request.'));
-      }
-
-      // Given the file may be still completing its async persist via the storage provider,
-      // wait until the stream upload Promise has completely resolved before finalizing the request.
-      if (uploadPromise) {
-        uploadPromise
-          .then(() => {
-            if (!settled && fileResult) {
-              settle(undefined, { file: fileResult, fields });
+      Promise.all(uploadPromises)
+        .then(() => {
+          if (!settled) {
+            if (files.length === 0) {
+              return settle(new BadRequestException('No file field found in the multipart request.'));
             }
-          })
-          .catch((err: unknown) => {
-            const message = err instanceof Error ? err.message : String(err);
-            settle(new InternalServerErrorException(`Failed to await upload completion: ${message}`));
-          });
-      }
+            settle(undefined, { files, fields });
+          }
+        })
+        .catch((err: unknown) => {
+          const message = err instanceof Error ? err.message : String(err);
+          settle(new InternalServerErrorException(`Failed to await upload completion: ${message}`));
+        });
     });
 
     req.on('error', (err: unknown) => {

@@ -1,232 +1,278 @@
-<p-toast />
-<p-confirmDialog />
-<!-- Page header -->
-<div *transloco="let t" class="flex flex-col gap-8">
-  <div class="flex items-center justify-between">
-    <div>
-      <h1 class="text-2xl font-bold text-surface-900 dark:text-surface-0 mb-1">{{ t('receipts.pageTitle') }}</h1>
-      <p class="text-sm text-surface-500 dark:text-surface-400">
-        {{ receiptService.receipts().length }} {{ receiptService.receipts().length === 1 ? 'receipt' : 'receipts' }} processed
+<div *transloco="let t" class="p-6 lg:p-10 max-w-[1600px] mx-auto min-h-screen">
+  <!-- Header -->
+  <header class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
+    <div class="space-y-1">
+      <h1 class="text-4xl font-black tracking-tight text-surface-900 dark:text-surface-0 flex items-center gap-3">
+        <span class="bg-primary-500 text-white p-2 rounded-xl shadow-lg shadow-primary-500/20">
+          <i class="pi pi-receipt text-2xl"></i>
+        </span>
+        {{ t('receipts.title') }}
+      </h1>
+      <p class="text-surface-500 dark:text-surface-400 font-medium">
+        {{ t('receipts.subtitle') }}
       </p>
     </div>
+
     <p-button
-      [label]="t('receipts.uploadNew')"
-      icon="pi pi-cloud-upload"
+      [label]="t('receipts.addJob')"
+      icon="pi pi-plus"
       (onClick)="showUploadDialog = true"
-      [rounded]="false"
-      styleClass="font-semibold"
+      severity="primary"
+      size="large"
+      styleClass="px-8 py-4 rounded-2xl font-bold shadow-xl shadow-primary-500/20 hover:scale-105 transition-transform"
     />
+  </header>
+
+  <!-- Content -->
+  <div class="relative">
+    @if (receiptService.loading() && receiptService.jobs().length === 0) {
+      <div class="flex flex-col items-center justify-center py-32 gap-6 animate-pulse">
+        <p-progressSpinner styleClass="w-16 h-16" strokeWidth="4" />
+        <p class="text-surface-400 font-bold uppercase tracking-widest text-sm">{{ t('common.loading') }}</p>
+      </div>
+    } @else if (receiptService.jobs().length === 0) {
+      <div class="flex flex-col items-center justify-center py-32 text-center bg-surface-50 dark:bg-surface-900/40 rounded-[3rem] border-2 border-dashed border-surface-200 dark:border-surface-800 animate-in fade-in zoom-in duration-700">
+        <div class="w-24 h-24 bg-surface-100 dark:bg-surface-800 rounded-full flex items-center justify-center mb-8">
+          <i class="pi pi-inbox text-5xl text-surface-300 dark:text-surface-600"></i>
+        </div>
+        <h3 class="text-2xl font-bold text-surface-800 dark:text-surface-100 mb-2">{{ t('receipts.noJobs') }}</h3>
+        <p class="text-surface-500 dark:text-surface-400 mb-8 max-w-sm">{{ t('receipts.noJobsHint') }}</p>
+        <p-button [label]="t('receipts.addJob')" icon="pi pi-plus" (onClick)="showUploadDialog = true" severity="secondary" [outlined]="true" />
+      </div>
+    } @else {
+      <!-- Job Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
+        @for (job of receiptService.jobs(); track job.id) {
+          <div
+            class="group cursor-pointer transition-all duration-300 hover:scale-[1.02]"
+            (click)="viewDetail(job)"
+          >
+            <p-card styleClass="h-full border-none shadow-sm hover:shadow-2xl transition-all duration-300 overflow-hidden relative rounded-3xl">
+              <div class="flex flex-col h-full gap-4">
+                <!-- Card Header -->
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-surface-100 dark:bg-surface-800 flex items-center justify-center group-hover:bg-primary-500 group-hover:text-white transition-colors duration-300">
+                      <span class="text-xs font-black">#{{ job.id }}</span>
+                    </div>
+                    <div class="flex flex-col">
+                      <span class="text-[10px] font-bold text-surface-400 uppercase tracking-widest">{{ job.createdAt | date: 'MMM d, y' }}</span>
+                      <span class="text-xs font-semibold text-surface-500">{{ job.createdAt | date: 'HH:mm' }}</span>
+                    </div>
+                  </div>
+                  <p-tag [value]="t('receipts.status.' + job.status)" [severity]="getJobStatusSeverity(job.status)" styleClass="font-bold px-3 py-1 rounded-full uppercase text-[10px]" />
+                </div>
+
+                <!-- Files Preview -->
+                <div class="flex -space-x-4 overflow-hidden py-4">
+                  @for (file of job.files?.slice(0, 4); track file.id) {
+                    <div class="inline-block h-12 w-12 rounded-xl ring-4 ring-white dark:ring-surface-900 bg-surface-50 dark:bg-surface-800 flex items-center justify-center shadow-sm">
+                      <i [class]="getFileIcon(file.filename) + ' text-xl'"></i>
+                    </div>
+                  }
+                  @if ((job.files?.length || 0) > 4) {
+                    <div class="inline-block h-12 w-12 rounded-xl ring-4 ring-white dark:ring-surface-900 bg-surface-100 dark:bg-surface-800 flex items-center justify-center shadow-sm text-xs font-bold text-surface-500">
+                      +{{ (job.files?.length || 0) - 4 }}
+                    </div>
+                  }
+                </div>
+
+                <div class="flex items-center justify-between mt-auto">
+                    <span class="text-sm font-semibold text-surface-600 dark:text-surface-400">
+                        {{ job.files?.length }} {{ job.files?.length === 1 ? t('receipts.file') : t('receipts.files') }}
+                    </span>
+                    <p-button
+                        icon="pi pi-trash"
+                        [text]="true"
+                        severity="danger"
+                        size="small"
+                        (onClick)="deleteJob($event, job)"
+                        pTooltip="{{ t('common.delete') }}"
+                        tooltipPosition="top"
+                    />
+                </div>
+              </div>
+            </p-card>
+          </div>
+        }
+      </div>
+    }
   </div>
 
-  <!-- Loading state -->
-  @if (receiptService.loading()) {
-    <div class="flex items-center justify-center py-24">
-      <p-progressSpinner class="w-12 h-12" />
-    </div>
-  }
-
-  <!-- Empty state -->
-  @if (!receiptService.loading() && receiptService.receipts().length === 0) {
-    <div class="flex flex-col items-center justify-center py-24 gap-5 text-center">
-      <div class="w-20 h-20 rounded-2xl bg-primary-50 dark:bg-primary-900/30 flex items-center justify-center">
-        <i class="pi pi-receipt text-3xl text-primary-400"></i>
-      </div>
-      <div>
-        <h3 class="text-lg font-semibold text-surface-700 dark:text-surface-200 mb-1">{{ t('receipts.noReceipts') }}</h3>
-        <p class="text-sm text-surface-500 dark:text-surface-400">{{ t('receipts.noReceiptsHint') }}</p>
-      </div>
-      <p-button [label]="t('receipts.uploadFirst')" icon="pi pi-plus" (onClick)="showUploadDialog = true" />
-    </div>
-  }
-
-  <!-- Receipt cards grid -->
-  @if (!receiptService.loading() && receiptService.receipts().length > 0) {
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-      @for (receipt of receiptService.receipts(); track receipt.id) {
-        <div
-          class="group bg-surface-0 dark:bg-surface-900 rounded-2xl border border-surface-200 dark:border-surface-800 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 overflow-hidden cursor-pointer"
-          (click)="selectedReceipt = receipt; showDetail = true"
-          (keydown.enter)="selectedReceipt = receipt; showDetail = true"
-          tabindex="0"
-        >
-          <!-- Card preview area -->
-          <div
-            class="h-36 flex items-center justify-center overflow-hidden relative border-b border-surface-100 dark:border-surface-800"
-            [ngClass]="getCardBg(receipt.status)"
-          >
-            @if (isFileImage(receipt.filename)) {
-              <img
-                [src]="receiptService.getFileUrl(receipt.filename)"
-                [alt]="receipt.originalName"
-                class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-              />
-            } @else {
-              <div class="flex flex-col items-center gap-2 opacity-60">
-                <i [class]="getFileIcon(receipt.originalName)" class="text-5xl group-hover:scale-110 transition-transform duration-200"> </i>
-              </div>
-            }
-
-            <!-- Shadow overlay on hover -->
-            <div class="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors duration-200"></div>
-          </div>
-
-          <!-- Card body -->
-          <div class="p-4">
-            <div class="flex items-start justify-between gap-2 mb-2">
-              <p class="text-sm font-semibold text-surface-800 dark:text-surface-100 truncate leading-snug" [title]="receipt.originalName">
-                {{ receipt.originalName }}
-              </p>
-              <div class="flex items-center gap-1 shrink-0">
-                @if (receipt.status === ReceiptStatus.Failed) {
-                  <p-button
-                    icon="pi pi-refresh"
-                    [title]="t('receipts.card.retry')"
-                    size="small"
-                    [text]="true"
-                    severity="danger"
-                    (onClick)="retryOcr($event, receipt)"
-                  />
-                }
-                <p-tag
-                  [value]="t('receipts.status.' + receipt.status.toLowerCase())"
-                  [severity]="getStatusSeverity(receipt.status)"
-                  styleClass="text-xs"
-                />
-                <p-button
-                  icon="pi pi-trash"
-                  [title]="t('receipts.card.delete')"
-                  size="small"
-                  [text]="true"
-                  severity="secondary"
-                  (onClick)="deleteReceipt($event, receipt)"
-                />
-              </div>
-            </div>
-            <p class="text-xs text-surface-400 dark:text-surface-500">
-              {{ receipt.createdAt | date: 'MMM d, yyyy · HH:mm' }}
-            </p>
-          </div>
-        </div>
-      }
-    </div>
-  }
-
-  <!-- Upload dialog -->
-  <app-upload-dialog [(visible)]="showUploadDialog" (uploaded)="onUploaded()" />
-
-  <!-- Detail dialog -->
+  <!-- Detail Dialog -->
   <p-dialog
     [(visible)]="showDetail"
     [modal]="true"
-    [closable]="true"
-    [dismissableMask]="true"
-    [style]="{ width: '600px' }"
-    [header]="selectedReceipt?.originalName ?? t('receipts.detail.title')"
+    [maximizable]="true"
+    [header]="t('receipts.detail.title') + ' #' + selectedJob?.id"
+    [style]="{ width: '90vw', maxWidth: '1400px', height: '85vh' }"
+    [contentStyle]="{ padding: '0', overflow: 'hidden' }"
+    styleClass="rounded-3xl overflow-hidden"
+    appendTo="body"
   >
-    @if (selectedReceipt) {
-      <div class="flex flex-col gap-4">
-        <!-- Image Preview -->
-        @if (isFileImage(selectedReceipt.filename)) {
-          <div
-            class="w-full h-56 rounded-xl overflow-hidden border border-surface-200 dark:border-surface-800 bg-surface-50 dark:bg-surface-900 flex items-center justify-center"
-          >
-            <img
-              [src]="receiptService.getFileUrl(selectedReceipt.filename)"
-              class="max-w-full max-h-full object-contain shadow-sm"
-              [alt]="selectedReceipt.originalName"
-            />
+    @if (selectedJob) {
+      <div class="flex h-full bg-surface-50 dark:bg-surface-950">
+        <!-- Sidebar: Files List -->
+        <aside class="w-80 flex-none border-r border-surface-200 dark:border-surface-800 bg-white dark:bg-surface-900 overflow-y-auto">
+          <div class="p-4 border-b border-surface-100 dark:border-surface-800">
+            <h4 class="text-xs font-black text-surface-400 uppercase tracking-[0.2em]">{{ t('receipts.detail.jobFiles') }}</h4>
           </div>
-        }
-        <div class="flex justify-between items-center border-b border-surface-100 dark:border-surface-800 pb-3">
-          <span class="text-sm text-surface-500">{{ t('receipts.detail.status') }}</span>
-          <p-tag [value]="t('receipts.status.' + selectedReceipt.status.toLowerCase())" [severity]="getStatusSeverity(selectedReceipt.status)" />
-        </div>
-        <div class="flex justify-between items-center border-b border-surface-100 dark:border-surface-800 pb-3">
-          <span class="text-sm text-surface-500">{{ t('receipts.detail.uploaded') }}</span>
-          <span class="text-sm font-medium text-surface-800 dark:text-surface-100">{{ selectedReceipt.createdAt | date: 'medium' }}</span>
-        </div>
-        <div class="flex justify-between items-center border-b border-surface-100 dark:border-surface-800 pb-3">
-          <span class="text-sm text-surface-500">{{ t('receipts.detail.ocrProvider') }}</span>
-          <div class="flex items-center gap-2">
-            <i class="pi pi-sparkles text-primary-500 text-xs"></i>
-            <span class="text-sm font-medium text-surface-800 dark:text-surface-100">{{
-              t('ocr.providers.' + selectedReceipt.ocrProvider.toLowerCase())
-            }}</span>
-          </div>
-        </div>
-        <div class="flex justify-between items-center border-b border-surface-100 dark:border-surface-800 pb-3">
-          <span class="text-sm text-surface-500">{{ t('receipts.detail.fileKey') }}</span>
-          <span class="text-xs font-mono text-surface-500 truncate max-w-[300px]" [title]="selectedReceipt.filename">{{
-            selectedReceipt.filename
-          }}</span>
-        </div>
-
-        <!-- OCR data -->
-        <div>
-          <div class="flex items-center justify-between mb-3">
-            <p class="text-sm font-semibold text-surface-700 dark:text-surface-200">{{ t('receipts.detail.extractedData') }}</p>
-
-            @if (selectedReceipt.status === ReceiptStatus.Completed && selectedReceipt.ocrData) {
-              <div>
-                <p-button
-                  [label]="t('receipts.detail.exportContent')"
-                  icon="pi pi-chevron-down"
-                  iconPos="right"
-                  size="small"
-                  severity="secondary"
-                  [outlined]="true"
-                  (onClick)="exportMenu.toggle($event)"
-                />
-                <p-menu #exportMenu [model]="exportItems" [popup]="true" />
-              </div>
+          <div class="flex flex-col">
+            @for (file of selectedJob.files; track file.id) {
+              <button
+                (click)="selectedFile = file"
+                class="flex items-center gap-4 p-4 text-left transition-all hover:bg-surface-50 dark:hover:bg-surface-800/50"
+                [class.bg-primary-50]="selectedFile?.id === file.id"
+                [class.dark:bg-primary-950\/20]="selectedFile?.id === file.id"
+                [class.border-l-4]="selectedFile?.id === file.id"
+                [class.border-primary-500]="selectedFile?.id === file.id"
+              >
+                <div class="flex-none w-10 h-10 rounded-xl bg-surface-100 dark:bg-surface-800 flex items-center justify-center">
+                  <i [class]="getFileIcon(file.filename)"></i>
+                </div>
+                <div class="flex-grow min-w-0">
+                  <p class="text-sm font-bold truncate text-surface-900 dark:text-surface-100">{{ file.originalName }}</p>
+                  <p-tag [value]="t('receipts.status.' + file.status)" [severity]="getFileStatusSeverity(file.status)" styleClass="text-[9px] px-2 py-0.5 rounded-full" />
+                </div>
+              </button>
             }
           </div>
+        </aside>
 
-          @if (selectedReceipt.status === ReceiptStatus.Completed && selectedReceipt.ocrData) {
-            <pre
-              class="bg-surface-50 dark:bg-surface-800 border border-surface-200 dark:border-surface-700 rounded-xl p-4 text-xs font-mono text-surface-700 dark:text-surface-300 overflow-auto max-h-72 whitespace-pre-wrap"
-              >{{ selectedReceipt.ocrData }}</pre
-            >
-          } @else if (selectedReceipt.status === ReceiptStatus.Processing) {
-            <div class="flex items-center gap-3 py-4 text-surface-500">
-              <i class="pi pi-spin pi-spinner text-primary-500 text-xl"></i>
-              <span class="text-sm">{{ t('receipts.detail.processingMsg') }}</span>
-            </div>
-          } @else if (selectedReceipt.status === ReceiptStatus.Pending) {
-            <div class="flex items-center gap-3 py-4 text-surface-500">
-              <i class="pi pi-hourglass text-xl"></i>
-              <span class="text-sm">{{ t('receipts.detail.pendingMsg') }}</span>
-            </div>
-          } @else if (selectedReceipt.status === ReceiptStatus.Failed) {
-            <div class="flex flex-col gap-3 py-4">
-              <div class="flex items-center gap-3 text-red-500">
-                <i class="pi pi-exclamation-triangle text-xl"></i>
-                <span class="text-sm">{{ t('receipts.detail.failedMsg') }}</span>
+        <!-- Main Content: File details & Results -->
+        <main class="flex-grow overflow-y-auto p-4 md:p-8">
+          @if (selectedFile) {
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 h-full">
+              <!-- Left: Image Preview & Actions -->
+              <div class="flex flex-col gap-6 h-full min-h-[400px]">
+                <div class="flex items-center justify-between bg-white dark:bg-surface-900 p-4 rounded-2xl shadow-sm">
+                   <h3 class="font-bold text-surface-800 dark:text-surface-100 truncate flex items-center gap-2">
+                       <i class="pi pi-file"></i>
+                       {{ selectedFile.originalName }}
+                   </h3>
+                   <div class="flex items-center gap-2">
+                     <p-button [label]="t('receipts.detail.reprocess')" icon="pi pi-refresh" severity="secondary" size="small" [outlined]="true" (onClick)="op.toggle($event)" />
+                   </div>
+                </div>
+
+                <p-popover #op styleClass="shadow-2xl border border-surface-200 dark:border-surface-800 rounded-2xl overflow-hidden p-0">
+                  <div class="flex flex-col min-w-[200px]">
+                    <div class="p-3 bg-surface-50 dark:bg-surface-900 border-b border-surface-100 dark:border-surface-800">
+                      <span class="text-[10px] font-black uppercase text-surface-400">{{ t('upload.ocrProvider') }}</span>
+                    </div>
+                    @for (provider of [OcrProvider.Mistral, OcrProvider.Azure, OcrProvider.Aws]; track provider) {
+                      <button
+                        (click)="reprocess(selectedFile, provider); op.hide()"
+                        class="flex items-center gap-3 p-3 text-sm hover:bg-surface-50 dark:hover:bg-surface-800 transition-colors"
+                        [disabled]="provider !== OcrProvider.Mistral"
+                      >
+                        <i class="pi pi-sparkles text-primary-500"></i>
+                        <span>{{ provider | titlecase }}</span>
+                        @if (provider !== OcrProvider.Mistral) {
+                          <span class="ml-auto text-[9px] text-surface-400">{{ t('common.comingSoon') }}</span>
+                        }
+                      </button>
+                    }
+                  </div>
+                </p-popover>
+
+                <div class="flex-grow bg-white dark:bg-surface-900 rounded-[2rem] overflow-hidden border border-surface-200 dark:border-surface-800 shadow-sm flex items-center justify-center p-4 relative">
+                  @if (isFileImage(selectedFile.filename)) {
+                    <img [src]="receiptService.getFileUrl(selectedFile.filename)" class="max-w-full max-h-full object-contain rounded-xl" alt="Preview" />
+                  } @else {
+                    <div class="flex flex-col items-center gap-4 text-surface-400">
+                      <i class="pi pi-file-pdf text-8xl"></i>
+                      <p class="font-bold uppercase tracking-widest text-xs">{{ t('receipts.detail.noPreview') }}</p>
+                    </div>
+                  }
+                </div>
               </div>
-              <p-button
-                [label]="t('receipts.detail.retryButton')"
-                icon="pi pi-refresh"
-                size="small"
-                severity="danger"
-                [outlined]="true"
-                (onClick)="retryOcr($event, selectedReceipt)"
-              />
+
+              <!-- Right: Execution History & Result -->
+              <div class="flex flex-col gap-6">
+                <!-- Results Header -->
+                <div class="flex items-center justify-between">
+                     <h3 class="text-xl font-bold text-surface-900 dark:text-surface-0">{{ t('receipts.detail.results') }}</h3>
+                     <div class="flex gap-2">
+                        <p-button icon="pi pi-copy" [text]="true" [outlined]="true" size="small" (onClick)="copyToClipboard()" pTooltip="{{ t('receipts.detail.copyToClipboard') }}" />
+                        <p-button icon="pi pi-file-export" [text]="true" [outlined]="true" size="small" (onClick)="downloadMarkdown()" pTooltip="{{ t('receipts.detail.downloadMarkdown') }}" />
+                     </div>
+                </div>
+
+                <!-- Executions List -->
+                <div class="bg-white dark:bg-surface-900 rounded-3xl p-6 shadow-sm border border-surface-200 dark:border-surface-800 overflow-hidden flex flex-col gap-4">
+                  <h4 class="text-xs font-black text-surface-400 uppercase tracking-widest mb-2">{{ t('receipts.detail.executionHistory') }}</h4>
+                  <div class="flex flex-col gap-3 max-h-[200px] overflow-y-auto pr-2">
+                    @for (exec of selectedFile.executions?.slice()?.reverse(); track exec.id) {
+                        <div
+                          class="flex items-center justify-between p-3 rounded-2xl border transition-all"
+                          [class.border-surface-200]="getLatestExecution(selectedFile)?.id !== exec.id"
+                          [class.border-primary-500]="getLatestExecution(selectedFile)?.id === exec.id"
+                          [class.bg-surface-50/50]="getLatestExecution(selectedFile)?.id !== exec.id"
+                        >
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-lg bg-white dark:bg-surface-800 flex items-center justify-center">
+                                    <i class="pi pi-sparkles text-primary-500 text-xs"></i>
+                                </div>
+                                <div class="flex flex-col">
+                                    <span class="text-sm font-bold text-surface-800 dark:text-surface-100">{{ exec.ocrProvider | titlecase }}</span>
+                                    <span class="text-[10px] text-surface-500">{{ exec.createdAt | date:'short' }}</span>
+                                </div>
+                            </div>
+                            <p-tag [value]="t('receipts.status.' + exec.status)" [severity]="getExecutionStatusSeverity(exec.status)" styleClass="text-[9px]" />
+                        </div>
+                    }
+                  </div>
+                </div>
+
+                <!-- Latest Result Content -->
+                <div class="flex-grow flex flex-col bg-white dark:bg-surface-900 rounded-3xl shadow-sm border border-surface-200 dark:border-surface-800 overflow-hidden">
+                    <div class="p-4 border-b border-surface-100 dark:border-surface-800 bg-surface-50/50 dark:bg-surface-800/20 flex items-center justify-between">
+                        <span class="text-xs font-black text-surface-400 uppercase tracking-widest">{{ t('receipts.detail.ocrOutput') }}</span>
+                    </div>
+                    <div class="flex-grow p-6 overflow-y-auto prose dark:prose-invert max-w-none text-sm font-mono whitespace-pre-wrap">
+                        @if (getLatestExecution(selectedFile); as latest) {
+                            @if (latest.status === OcrExecutionStatus.Running) {
+                                <div class="flex flex-col items-center justify-center py-20 gap-4">
+                                    <p-progressSpinner styleClass="w-12 h-12" strokeWidth="4" />
+                                    <p class="text-surface-400 font-bold animate-pulse">{{ t('receipts.detail.ocrInProgress') }}</p>
+                                </div>
+                            } @else if (latest.status === OcrExecutionStatus.Completed) {
+                                {{ latest.ocrData }}
+                            } @else if (latest.status === OcrExecutionStatus.Failed) {
+                                <div class="p-6 rounded-2xl bg-red-50 dark:bg-red-950/20 border border-red-100 dark:border-red-900 text-red-600 dark:text-red-400">
+                                    <p class="font-bold flex items-center gap-2 mb-2">
+                                        <i class="pi pi-exclamation-circle text-xl"></i>
+                                        {{ t('receipts.status.failed') }}
+                                    </p>
+                                    <p class="text-xs opacity-80">{{ latest.errorMessage }}</p>
+                                </div>
+                            }
+                        } @else {
+                            <div class="flex flex-col items-center justify-center py-20 text-surface-300">
+                                <i class="pi pi-code text-5xl mb-4 opacity-10"></i>
+                                <p class="text-xs italic">{{ t('receipts.detail.noData') }}</p>
+                            </div>
+                        }
+                    </div>
+                </div>
+              </div>
+            </div>
+          } @else {
+            <div class="flex flex-col items-center justify-center h-full text-surface-300">
+              <i class="pi pi-file-edit text-6xl mb-4"></i>
+              <p class="font-bold uppercase tracking-widest">{{ t('receipts.detail.selectFile') }}</p>
             </div>
           }
-        </div>
+        </main>
       </div>
-      <ng-template pTemplate="footer">
-        <div class="flex justify-start">
-          <p-button
-            [label]="t('common.delete')"
-            icon="pi pi-trash"
-            severity="danger"
-            [text]="true"
-            size="small"
-            (onClick)="deleteReceipt($event, selectedReceipt)"
-          />
-        </div>
-      </ng-template>
     }
   </p-dialog>
+
+  <!-- Upload Dialog -->
+  <app-upload-dialog [(visible)]="showUploadDialog" (uploaded)="onUploaded()" />
+
+  <!-- Global Confirmations / Toast -->
+  <p-confirmDialog />
+  <p-toast position="top-right" />
 </div>

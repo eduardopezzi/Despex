@@ -1,7 +1,7 @@
 import { Component, effect, inject, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReceiptService } from '@services/receipt.service';
-import { Receipt, ReceiptStatus } from '@models/receipt.model';
+import { OcrJob, OcrFile, OcrExecution, OcrJobStatus, OcrFileStatus, OcrExecutionStatus, OcrProvider } from '@open-receipt-ocr/types';
 import { interval, Subscription } from 'rxjs';
 import { UploadDialogComponent } from '@components/upload-dialog/upload-dialog.component';
 
@@ -15,6 +15,8 @@ import { ToastModule } from 'primeng/toast';
 import { MenuItem, MessageService, ConfirmationService } from 'primeng/api';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
+import { TooltipModule } from 'primeng/tooltip';
+import { PopoverModule } from 'primeng/popover';
 
 @Component({
   selector: 'app-receipts-page',
@@ -31,6 +33,8 @@ import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
     ToastModule,
     TranslocoModule,
     ConfirmDialogModule,
+    TooltipModule,
+    PopoverModule,
   ],
   providers: [MessageService, ConfirmationService],
   templateUrl: './receipts.page.html',
@@ -43,11 +47,15 @@ export class ReceiptsPageComponent implements OnInit, OnDestroy {
 
   private pollingSubscription?: Subscription;
 
-  ReceiptStatus: typeof ReceiptStatus = ReceiptStatus;
+  OcrJobStatus = OcrJobStatus;
+  OcrFileStatus = OcrFileStatus;
+  OcrExecutionStatus = OcrExecutionStatus;
+  OcrProvider = OcrProvider;
 
   showUploadDialog = false;
   showDetail = false;
-  selectedReceipt: Receipt | null = null;
+  selectedJob: OcrJob | null = null;
+  selectedFile: OcrFile | null = null;
 
   get exportItems(): MenuItem[] {
     return [
@@ -66,26 +74,11 @@ export class ReceiptsPageComponent implements OnInit, OnDestroy {
           },
         ],
       },
-      {
-        label: this.translocoService.translate('receipts.detail.exportTitleExternal'),
-        items: [
-          {
-            label: this.translocoService.translate('receipts.detail.sendToN8n'),
-            icon: 'pi pi-bolt',
-            command: () => this.sendToN8N(),
-          },
-          {
-            label: this.translocoService.translate('receipts.detail.sendToGoogleDrive'),
-            icon: 'pi pi-google',
-            command: () => this.sendToGoogleDrive(),
-          },
-        ],
-      },
     ];
   }
 
   ngOnInit() {
-    this.receiptService.fetchReceipts();
+    this.receiptService.fetchJobs();
     this.startPolling();
   }
 
@@ -94,13 +87,16 @@ export class ReceiptsPageComponent implements OnInit, OnDestroy {
   }
 
   constructor() {
-    // Sync the selectedReceipt if it exists and the list updates
     effect(() => {
-      const receipts = this.receiptService.receipts();
-      if (this.selectedReceipt) {
-        const updated = receipts.find((r) => r.id === this.selectedReceipt?.id);
+      const jobs = this.receiptService.jobs();
+      if (this.selectedJob) {
+        const updated = jobs.find((j) => j.id === this.selectedJob?.id);
         if (updated) {
-          this.selectedReceipt = updated;
+          this.selectedJob = updated;
+          if (this.selectedFile) {
+            const updatedFile = updated.files?.find(f => f.id === this.selectedFile?.id);
+            if (updatedFile) this.selectedFile = updatedFile;
+          }
         }
       }
     });
@@ -110,11 +106,11 @@ export class ReceiptsPageComponent implements OnInit, OnDestroy {
     if (this.pollingSubscription) return;
     this.pollingSubscription = interval(3000).subscribe(() => {
       const needsPolling = this.receiptService
-        .receipts()
-        .some((r) => r.status === ReceiptStatus.Pending || r.status === ReceiptStatus.Processing);
+        .jobs()
+        .some((j) => j.status === OcrJobStatus.Pending || j.status === OcrJobStatus.Processing);
 
       if (needsPolling) {
-        this.receiptService.fetchReceipts(false);
+        this.receiptService.fetchJobs(false);
       }
     });
   }
@@ -124,9 +120,18 @@ export class ReceiptsPageComponent implements OnInit, OnDestroy {
     this.pollingSubscription = undefined;
   }
 
+  viewDetail(job: OcrJob) {
+    this.selectedJob = job;
+    this.showDetail = true;
+    if (job.files && job.files.length > 0) {
+      this.selectedFile = job.files[0];
+    }
+  }
+
   copyToClipboard() {
-    if (!this.selectedReceipt?.ocrData) return;
-    navigator.clipboard.writeText(this.selectedReceipt.ocrData);
+    const latestExecution = this.getLatestExecution(this.selectedFile);
+    if (!latestExecution?.ocrData) return;
+    navigator.clipboard.writeText(latestExecution.ocrData);
     this.messageService.add({
       severity: 'success',
       summary: this.translocoService.translate('receipts.detail.copied'),
@@ -135,12 +140,13 @@ export class ReceiptsPageComponent implements OnInit, OnDestroy {
   }
 
   downloadMarkdown() {
-    if (!this.selectedReceipt?.ocrData) return;
-    const blob = new Blob([this.selectedReceipt.ocrData], { type: 'text/markdown' });
+    const latestExecution = this.getLatestExecution(this.selectedFile);
+    if (!latestExecution?.ocrData || !this.selectedFile) return;
+    const blob = new Blob([latestExecution.ocrData], { type: 'text/markdown' });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${this.selectedReceipt.originalName}.md`;
+    a.download = `${this.selectedFile.originalName}.md`;
     a.click();
     window.URL.revokeObjectURL(url);
     this.messageService.add({
@@ -150,50 +156,35 @@ export class ReceiptsPageComponent implements OnInit, OnDestroy {
     });
   }
 
-  sendToN8N() {
-    this.messageService.add({
-      severity: 'info',
-      summary: 'n8n',
-      detail: this.translocoService.translate('receipts.detail.n8nComingSoon'),
-    });
-  }
-
-  sendToGoogleDrive() {
-    this.messageService.add({
-      severity: 'info',
-      summary: 'Google Drive',
-      detail: this.translocoService.translate('receipts.detail.googleDriveComingSoon'),
-    });
-  }
-
   onUploaded() {
     this.showUploadDialog = false;
-    this.receiptService.fetchReceipts();
+    this.receiptService.fetchJobs();
   }
 
-  getStatusSeverity(status: ReceiptStatus): 'success' | 'info' | 'warn' | 'danger' | 'secondary' {
+  getJobStatusSeverity(status: OcrJobStatus): 'success' | 'info' | 'warn' | 'danger' | 'secondary' {
     switch (status) {
-      case ReceiptStatus.Pending:
-        return 'secondary';
-      case ReceiptStatus.Processing:
-        return 'info';
-      case ReceiptStatus.Completed:
-        return 'success';
-      case ReceiptStatus.Failed:
-        return 'danger';
+      case OcrJobStatus.Pending: return 'secondary';
+      case OcrJobStatus.Processing: return 'info';
+      case OcrJobStatus.Completed: return 'success';
+      case OcrJobStatus.Failed: return 'danger';
     }
   }
 
-  getCardBg(status: ReceiptStatus): string {
+  getFileStatusSeverity(status: OcrFileStatus): 'success' | 'info' | 'warn' | 'danger' | 'secondary' {
     switch (status) {
-      case ReceiptStatus.Pending:
-        return 'bg-surface-100 dark:bg-surface-800';
-      case ReceiptStatus.Processing:
-        return 'bg-blue-50 dark:bg-blue-950/40';
-      case ReceiptStatus.Completed:
-        return 'bg-emerald-50 dark:bg-emerald-950/40';
-      case ReceiptStatus.Failed:
-        return 'bg-red-50 dark:bg-red-950/40';
+      case OcrFileStatus.Pending: return 'secondary';
+      case OcrFileStatus.Processing: return 'info';
+      case OcrFileStatus.Completed: return 'success';
+      case OcrFileStatus.Failed: return 'danger';
+    }
+  }
+
+  getExecutionStatusSeverity(status: OcrExecutionStatus): 'success' | 'info' | 'warn' | 'danger' | 'secondary' {
+    switch (status) {
+      case OcrExecutionStatus.Pending: return 'secondary';
+      case OcrExecutionStatus.Running: return 'info';
+      case OcrExecutionStatus.Completed: return 'success';
+      case OcrExecutionStatus.Failed: return 'danger';
     }
   }
 
@@ -209,52 +200,48 @@ export class ReceiptsPageComponent implements OnInit, OnDestroy {
     return ['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(ext || '');
   }
 
-  retryOcr(event: Event, receipt: Receipt) {
-    event.stopPropagation();
-    this.receiptService.retryOcr(receipt.id).subscribe({
+  getLatestExecution(file: OcrFile | null): OcrExecution | undefined {
+    if (!file?.executions || file.executions.length === 0) return undefined;
+    return [...file.executions].sort((a,b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
+  }
+
+  reprocess(file: OcrFile, provider: OcrProvider) {
+    this.receiptService.reprocessFile(file.id, provider).subscribe({
       next: () => {
         this.messageService.add({
           severity: 'info',
           summary: this.translocoService.translate('receipts.card.retrying'),
           detail: this.translocoService.translate('receipts.card.retryQueued'),
         });
-        this.receiptService.fetchReceipts();
+        this.receiptService.fetchJobs();
       },
       error: (err) => {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: 'Failed to re-queue OCR job.',
-        });
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to re-queue OCR job.' });
         console.error(err);
       },
     });
   }
 
-  deleteReceipt(event: Event, receipt: Receipt) {
+  deleteJob(event: Event, job: OcrJob) {
     event.stopPropagation();
     this.confirmationService.confirm({
       message: this.translocoService.translate('receipts.delete.confirmation'),
       header: this.translocoService.translate('receipts.delete.title'),
       icon: 'pi pi-exclamation-triangle',
       accept: () => {
-        this.receiptService.deleteReceipt(receipt.id).subscribe({
+        this.receiptService.deleteJob(job.id).subscribe({
           next: () => {
             this.messageService.add({
               severity: 'success',
               summary: this.translocoService.translate('receipts.delete.success'),
             });
-            this.receiptService.fetchReceipts();
-            if (this.selectedReceipt?.id === receipt.id) {
+            this.receiptService.fetchJobs();
+            if (this.selectedJob?.id === job.id) {
               this.showDetail = false;
             }
           },
           error: (err) => {
-            this.messageService.add({
-              severity: 'error',
-              summary: 'Error',
-              detail: 'Failed to delete receipt.',
-            });
+            this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to delete job.' });
             console.error(err);
           },
         });

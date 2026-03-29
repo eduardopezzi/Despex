@@ -7,18 +7,33 @@ import { ButtonModule } from 'primeng/button';
 import { MessageModule } from 'primeng/message';
 import { ProgressBarModule } from 'primeng/progressbar';
 
-import { OcrProvider } from '@models/receipt.model';
+import { OcrProvider } from '@open-receipt-ocr/types';
 import { SelectModule } from 'primeng/select';
 import { FormsModule } from '@angular/forms';
+import { FileUploadModule, FileUploadHandlerEvent } from 'primeng/fileupload';
 
 import { ConfigService } from '@services/config.service';
-
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
+
+interface FileWithProvider {
+  file: File;
+  ocrProvider: OcrProvider;
+}
 
 @Component({
   selector: 'app-upload-dialog',
   standalone: true,
-  imports: [CommonModule, DialogModule, ButtonModule, MessageModule, ProgressBarModule, SelectModule, FormsModule, TranslocoModule],
+  imports: [
+    CommonModule,
+    DialogModule,
+    ButtonModule,
+    MessageModule,
+    ProgressBarModule,
+    SelectModule,
+    FormsModule,
+    TranslocoModule,
+    FileUploadModule,
+  ],
   templateUrl: './upload-dialog.component.html',
 })
 export class UploadDialogComponent {
@@ -29,11 +44,7 @@ export class UploadDialogComponent {
   @Input() set visible(val: boolean) {
     this._visible = val;
     if (val) {
-      // When opening, reset OCR provider to default
-      const def = this.configService.defaultOcrProvider();
-      if (def !== 'ask') {
-        this.ocrProvider.set(def);
-      }
+      this.reset();
     }
   }
   get visible() {
@@ -44,13 +55,11 @@ export class UploadDialogComponent {
   @Output() visibleChange = new EventEmitter<boolean>();
   @Output() uploaded = new EventEmitter<void>();
 
-  file = signal<File | null>(null);
+  filesWithProviders = signal<FileWithProvider[]>([]);
   uploading = signal(false);
   message = signal<string | null>(null);
   isError = signal(false);
-  isDragging = signal(false);
 
-  ocrProvider = signal<OcrProvider>(OcrProvider.Mistral);
   get ocrOptions() {
     return [
       { label: this.translocoService.translate('config.providers.mistral'), value: OcrProvider.Mistral },
@@ -59,50 +68,74 @@ export class UploadDialogComponent {
     ];
   }
 
-  onFileSelected(event: Event) {
-    const input = event.target as HTMLInputElement;
-    if (input.files?.[0]) this.setFile(input.files[0]);
-  }
-
-  onDrop(event: DragEvent) {
-    event.preventDefault();
-    this.isDragging.set(false);
-    const f = event.dataTransfer?.files[0];
-    if (f) this.setFile(f);
-  }
-
-  private setFile(f: File) {
-    this.file.set(f);
+  reset() {
+    this.filesWithProviders.set([]);
     this.message.set(null);
     this.isError.set(false);
+    this.uploading.set(false);
+  }
+
+  onSelect(event: any) {
+    const newFiles: File[] = event.currentFiles;
+    const defaultProvider = this.configService.defaultOcrProvider() as OcrProvider;
+
+    const current = this.filesWithProviders();
+    const updated = [...current];
+
+    newFiles.forEach((f) => {
+      if (!updated.some((item) => item.file.name === f.name && item.file.size === f.size)) {
+        updated.push({
+          file: f,
+          ocrProvider: defaultProvider === ('ask' as any) ? OcrProvider.Mistral : defaultProvider,
+        });
+      }
+    });
+
+    this.filesWithProviders.set(updated);
+  }
+
+  removeFile(item: FileWithProvider) {
+    this.filesWithProviders.set(this.filesWithProviders().filter((f) => f !== item));
   }
 
   doUpload() {
-    const f = this.file();
-    if (!f) return;
+    const items = this.filesWithProviders();
+    if (items.length === 0) return;
+
     this.uploading.set(true);
     this.message.set(null);
 
-    this.receiptService.uploadReceipt(f, this.ocrProvider()).subscribe({
+    const files = items.map((i) => i.file);
+    const providers = items.map((i) => i.ocrProvider);
+
+    this.receiptService.uploadJob(files, providers).subscribe({
       next: () => {
         this.uploading.set(false);
         this.message.set('upload.uploadSuccess');
         this.isError.set(false);
-        this.file.set(null);
+        this.filesWithProviders.set([]);
         this.uploaded.emit();
+        setTimeout(() => this.close(), 1000);
       },
-      error: () => {
+      error: (err) => {
         this.uploading.set(false);
         this.message.set('upload.uploadFailed');
         this.isError.set(true);
+        console.error(err);
       },
     });
   }
 
   close() {
-    this.file.set(null);
-    this.message.set(null);
-    this.isError.set(false);
+    this.reset();
     this.visibleChange.emit(false);
+  }
+
+  formatSize(bytes: number) {
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   }
 }
