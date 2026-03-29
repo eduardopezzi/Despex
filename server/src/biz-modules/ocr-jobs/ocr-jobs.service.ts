@@ -33,7 +33,7 @@ export class OcrJobsService {
     private readonly secretProvider: SecretProvider,
     private readonly dbService: DbService,
     @Inject(StorageProvider) private readonly storage: StorageProvider,
-  ) { }
+  ) {}
 
   findAllJobs(): Promise<OcrJobEntity[]> {
     return this.ocrJobsDao.findAllWithRelations();
