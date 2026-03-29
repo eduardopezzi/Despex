@@ -207,10 +207,11 @@
                   <div class="flex flex-col gap-3 max-h-[200px] overflow-y-auto pr-2">
                     @for (exec of selectedFile.executions?.slice()?.reverse(); track exec.id) {
                         <div
-                          class="flex items-center justify-between p-3 rounded-2xl border transition-all"
-                          [class.border-surface-200]="getLatestExecution(selectedFile)?.id !== exec.id"
-                          [class.border-primary-500]="getLatestExecution(selectedFile)?.id === exec.id"
-                          [class.bg-surface-50/50]="getLatestExecution(selectedFile)?.id !== exec.id"
+                          class="flex items-center justify-between p-3 rounded-2xl border transition-all cursor-pointer hover:bg-surface-50/80"
+                          [class.border-surface-200]="selectedExecution?.id !== exec.id"
+                          [class.border-primary-500]="selectedExecution?.id === exec.id"
+                          [class.bg-surface-50/50]="selectedExecution?.id !== exec.id"
+                          (click)="selectedExecution = exec"
                         >
                             <div class="flex items-center gap-3">
                                 <div class="w-8 h-8 rounded-lg bg-white dark:bg-surface-800 flex items-center justify-center">
@@ -233,21 +234,21 @@
                         <span class="text-xs font-black text-surface-400 uppercase tracking-widest">{{ t('receipts.detail.ocrOutput') }}</span>
                     </div>
                     <div class="flex-grow p-6 overflow-y-auto prose dark:prose-invert max-w-none text-sm font-mono whitespace-pre-wrap">
-                        @if (getLatestExecution(selectedFile); as latest) {
-                            @if (latest.status === OcrExecutionStatus.Running) {
+                        @if (selectedExecution; as current) {
+                            @if (current.status === OcrExecutionStatus.Running) {
                                 <div class="flex flex-col items-center justify-center py-20 gap-4">
                                     <p-progressSpinner styleClass="w-12 h-12" strokeWidth="4" />
                                     <p class="text-surface-400 font-bold animate-pulse">{{ t('receipts.detail.ocrInProgress') }}</p>
                                 </div>
-                            } @else if (latest.status === OcrExecutionStatus.Completed) {
-                                {{ latest.ocrData }}
-                            } @else if (latest.status === OcrExecutionStatus.Failed) {
+                            } @else if (current.status === OcrExecutionStatus.Completed) {
+                                {{ current.ocrData }}
+                            } @else if (current.status === OcrExecutionStatus.Failed) {
                                 <div class="p-6 rounded-2xl bg-red-50 dark:bg-red-950/20 border border-red-100 dark:border-red-900 text-red-600 dark:text-red-400">
                                     <p class="font-bold flex items-center gap-2 mb-2">
                                         <i class="pi pi-exclamation-circle text-xl"></i>
                                         {{ t('receipts.status.failed') }}
                                     </p>
-                                    <p class="text-xs opacity-80">{{ latest.errorMessage }}</p>
+                                    <p class="text-xs opacity-80">{{ current.errorMessage }}</p>
                                 </div>
                             }
                         } @else {

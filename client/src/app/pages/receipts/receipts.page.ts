@@ -56,7 +56,15 @@ export class ReceiptsPageComponent implements OnInit, OnDestroy {
   showUploadDialog = false;
   showDetail = false;
   selectedJob: OcrJob | null = null;
-  selectedFile: OcrFile | null = null;
+  private _selectedFile: OcrFile | null = null;
+  get selectedFile() {
+    return this._selectedFile;
+  }
+  set selectedFile(file: OcrFile | null) {
+    this._selectedFile = file;
+    this.selectedExecution = this.getLatestExecution(file) || null;
+  }
+  selectedExecution: OcrExecution | null = null;
 
   get exportItems(): MenuItem[] {
     return [
@@ -94,9 +102,23 @@ export class ReceiptsPageComponent implements OnInit, OnDestroy {
         const updated = jobs.find((j) => j.id === this.selectedJob?.id);
         if (updated) {
           this.selectedJob = updated;
-          if (this.selectedFile) {
-            const updatedFile = updated.files?.find(f => f.id === this.selectedFile?.id);
-            if (updatedFile) this.selectedFile = updatedFile;
+          if (this._selectedFile) {
+            const updatedFile = updated.files?.find((f) => f.id === this._selectedFile?.id);
+            if (updatedFile) {
+              const wasOnLatest = this.selectedExecution?.id === this.getLatestExecution(this._selectedFile)?.id;
+              this._selectedFile = updatedFile;
+
+              if (this.selectedExecution) {
+                const updatedExecution = updatedFile.executions?.find((e) => e.id === this.selectedExecution?.id);
+                if (updatedExecution) {
+                  this.selectedExecution = updatedExecution;
+                } else if (wasOnLatest) {
+                  this.selectedExecution = this.getLatestExecution(updatedFile) || null;
+                }
+              } else {
+                this.selectedExecution = this.getLatestExecution(updatedFile) || null;
+              }
+            }
           }
         }
       }
@@ -106,9 +128,7 @@ export class ReceiptsPageComponent implements OnInit, OnDestroy {
   private startPolling() {
     if (this.pollingSubscription) return;
     this.pollingSubscription = interval(3000).subscribe(() => {
-      const needsPolling = this.receiptService
-        .jobs()
-        .some((j) => j.status === OcrJobStatus.Pending || j.status === OcrJobStatus.Processing);
+      const needsPolling = this.receiptService.jobs().some((j) => j.status === OcrJobStatus.Pending || j.status === OcrJobStatus.Processing);
 
       if (needsPolling) {
         this.receiptService.fetchJobs(false);
@@ -130,9 +150,8 @@ export class ReceiptsPageComponent implements OnInit, OnDestroy {
   }
 
   copyToClipboard() {
-    const latestExecution = this.getLatestExecution(this.selectedFile);
-    if (!latestExecution?.ocrData) return;
-    navigator.clipboard.writeText(latestExecution.ocrData);
+    if (!this.selectedExecution?.ocrData) return;
+    navigator.clipboard.writeText(this.selectedExecution.ocrData);
     this.messageService.add({
       severity: 'success',
       summary: this.translocoService.translate('receipts.detail.copied'),
@@ -141,9 +160,8 @@ export class ReceiptsPageComponent implements OnInit, OnDestroy {
   }
 
   downloadMarkdown() {
-    const latestExecution = this.getLatestExecution(this.selectedFile);
-    if (!latestExecution?.ocrData || !this.selectedFile) return;
-    const blob = new Blob([latestExecution.ocrData], { type: 'text/markdown' });
+    if (!this.selectedExecution?.ocrData || !this.selectedFile) return;
+    const blob = new Blob([this.selectedExecution.ocrData], { type: 'text/markdown' });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -164,28 +182,40 @@ export class ReceiptsPageComponent implements OnInit, OnDestroy {
 
   getJobStatusSeverity(status: OcrJobStatus): 'success' | 'info' | 'warn' | 'danger' | 'secondary' {
     switch (status) {
-      case OcrJobStatus.Pending: return 'secondary';
-      case OcrJobStatus.Processing: return 'info';
-      case OcrJobStatus.Completed: return 'success';
-      case OcrJobStatus.Failed: return 'danger';
+      case OcrJobStatus.Pending:
+        return 'secondary';
+      case OcrJobStatus.Processing:
+        return 'info';
+      case OcrJobStatus.Completed:
+        return 'success';
+      case OcrJobStatus.Failed:
+        return 'danger';
     }
   }
 
   getFileStatusSeverity(status: OcrFileStatus): 'success' | 'info' | 'warn' | 'danger' | 'secondary' {
     switch (status) {
-      case OcrFileStatus.Pending: return 'secondary';
-      case OcrFileStatus.Processing: return 'info';
-      case OcrFileStatus.Completed: return 'success';
-      case OcrFileStatus.Failed: return 'danger';
+      case OcrFileStatus.Pending:
+        return 'secondary';
+      case OcrFileStatus.Processing:
+        return 'info';
+      case OcrFileStatus.Completed:
+        return 'success';
+      case OcrFileStatus.Failed:
+        return 'danger';
     }
   }
 
   getExecutionStatusSeverity(status: OcrExecutionStatus): 'success' | 'info' | 'warn' | 'danger' | 'secondary' {
     switch (status) {
-      case OcrExecutionStatus.Pending: return 'secondary';
-      case OcrExecutionStatus.Running: return 'info';
-      case OcrExecutionStatus.Completed: return 'success';
-      case OcrExecutionStatus.Failed: return 'danger';
+      case OcrExecutionStatus.Pending:
+        return 'secondary';
+      case OcrExecutionStatus.Running:
+        return 'info';
+      case OcrExecutionStatus.Completed:
+        return 'success';
+      case OcrExecutionStatus.Failed:
+        return 'danger';
     }
   }
 
@@ -212,7 +242,7 @@ export class ReceiptsPageComponent implements OnInit, OnDestroy {
 
   getLatestExecution(file: OcrFile | null): OcrExecution | undefined {
     if (!file?.executions || file.executions.length === 0) return undefined;
-    return [...file.executions].sort((a,b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
+    return [...file.executions].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
   }
 
   reprocess(file: OcrFile, provider: OcrProvider) {
