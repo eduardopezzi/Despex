@@ -1,4 +1,5 @@
 import { BadRequestException, Inject, Injectable, Logger } from '@nestjs/common';
+import { Readable } from 'stream';
 import type { Request } from 'express';
 import { QueueService } from '@core/queue/queue.service';
 import { SecretProvider } from '@core/secrets/secret-provider.interface';
@@ -104,6 +105,14 @@ export class ReceiptsService {
     await this.queueService.addToOcrQueue({ executionId: execution.id });
     this.logger.log(`New execution #${execution.id} for File #${fileId} queued for OCR (retry)`);
     return execution;
+  }
+
+  async getFileStream(key: string): Promise<Readable> {
+    return this.storage.getStream(key);
+  }
+
+  async fileExists(key: string): Promise<boolean> {
+    return this.storage.exists(key);
   }
 
   async deleteJob(id: number): Promise<void> {

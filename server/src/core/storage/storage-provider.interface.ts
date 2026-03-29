@@ -21,5 +21,9 @@ export abstract class StorageProvider {
 
   abstract uploadStream(stream: Readable, filename: string, mimetype: string): Promise<UploadResult>;
 
+  abstract getStream(key: string): Promise<Readable>;
+
+  abstract exists(key: string): Promise<boolean>;
+
   abstract delete(key: string): Promise<void>;
 }

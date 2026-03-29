@@ -56,6 +56,20 @@ export class LocalStorageProvider extends StorageProvider {
     return join(this.uploadDir, key);
   }
 
+  async getStream(key: string): Promise<Readable> {
+    const filePath = this.getFilePath(key);
+    if (!existsSync(filePath)) {
+      throw new InternalServerErrorException(`File ${key} not found in local storage`);
+    }
+    const { createReadStream } = await import('fs');
+    return createReadStream(filePath);
+  }
+
+  async exists(key: string): Promise<boolean> {
+    const filePath = this.getFilePath(key);
+    return existsSync(filePath);
+  }
+
   async delete(key: string): Promise<void> {
     const filePath = this.getFilePath(key);
     if (existsSync(filePath)) {

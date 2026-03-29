@@ -1,10 +1,8 @@
-import { Body, Controller, Delete, Get, Logger, Param, ParseIntPipe, Post, Req, Res } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Logger, Param, ParseIntPipe, Post, Req, Res, NotFoundException } from '@nestjs/common';
 import { ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { existsSync } from 'fs';
 import type { Request, Response } from 'express';
 import { ReceiptsService } from '@biz-modules/receipts/receipts.service';
 import { RouteParam } from '@core/types/route-param.enum';
-import { LocalStorageProvider } from '@core/storage/local-storage.provider';
 import { OcrJobEntity } from '@core/database/entities/ocr-job.entity';
 import { OcrExecutionEntity } from '@core/database/entities/ocr-execution.entity';
 import { OcrProvider } from '@open-receipt-ocr/types';
@@ -14,10 +12,7 @@ import { OcrProvider } from '@open-receipt-ocr/types';
 export class ReceiptsController {
   private readonly logger = new Logger(ReceiptsController.name);
 
-  constructor(
-    private readonly receiptsService: ReceiptsService,
-    private readonly localStorage: LocalStorageProvider,
-  ) {}
+  constructor(private readonly receiptsService: ReceiptsService) {}
 
   @Get()
   @ApiOperation({ summary: 'List all OCR jobs sorted by date descending' })
@@ -49,12 +44,13 @@ export class ReceiptsController {
   @Get('uploads/:key')
   @ApiOperation({ summary: 'Get an uploaded file' })
   async getFile(@Param('key') key: string, @Res() res: Response): Promise<void> {
-    const filePath = this.localStorage.getFilePath(key);
-    if (!existsSync(filePath)) {
-      res.status(404).send('File not found');
-      return;
+    const exists = await this.receiptsService.fileExists(key);
+    if (!exists) {
+      throw new NotFoundException(`File ${key} not found`);
     }
-    res.sendFile(filePath);
+
+    const stream = await this.receiptsService.getFileStream(key);
+    stream.pipe(res);
   }
 
   @Delete(`:${RouteParam.Id}`)
