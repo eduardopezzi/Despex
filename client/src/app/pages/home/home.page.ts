@@ -1,6 +1,6 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReceiptService } from '@services/receipt.service';
+import { OcrJobService } from '@services/ocr-job.service';
 import { OcrJobStatus, OcrJob } from '@open-receipt-ocr/types';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
@@ -17,21 +17,21 @@ import { TranslocoModule } from '@jsverse/transloco';
   templateUrl: './home.page.html',
 })
 export class HomePageComponent implements OnInit {
-  receiptService = inject(ReceiptService);
+  ocrJobService = inject(OcrJobService);
   showUpload = false;
 
   OcrJobStatus = OcrJobStatus;
 
   ngOnInit() {
-    this.receiptService.fetchJobs();
+    this.ocrJobService.fetchJobs();
   }
 
   get recentJobs() {
-    return this.receiptService.jobs().slice(0, 6);
+    return this.ocrJobService.jobs().slice(0, 6);
   }
 
   get stats() {
-    const all = this.receiptService.jobs();
+    const all = this.ocrJobService.jobs();
     return [
       {
         label: 'receipts.status.total',
@@ -66,7 +66,7 @@ export class HomePageComponent implements OnInit {
 
   onUploaded() {
     this.showUpload = false;
-    this.receiptService.fetchJobs();
+    this.ocrJobService.fetchJobs();
   }
 
   getStatusSeverity(status: OcrJobStatus): 'success' | 'info' | 'warn' | 'danger' | 'secondary' {

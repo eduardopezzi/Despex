@@ -12,10 +12,10 @@
   },
   "layout": {
     "appTitle": "ReceiptOCR",
-    "appSubtitle": "Open Receipt OCR",
+    "appSubtitle": "Painel de OCR Aberto",
     "menu": "Menu",
     "dashboard": "Painel",
-    "receipts": "Recibos",
+    "receipts": "Trabalhos OCR",
     "admin": "Admin",
     "selfHosted": "Auto-hospedado",
     "collapse": "Recolher",

@@ -5,7 +5,7 @@ import { join } from 'path';
 import { DatabaseModule } from '@core/database/database.module';
 import { SecretsModule } from '@core/secrets/secrets.module';
 import { StorageModule } from '@core/storage/storage.module';
-import { ReceiptsModule } from '@biz-modules/receipts/receipts.module';
+import { OcrJobsModule } from '@biz-modules/ocr-jobs/ocr-jobs.module';
 import { SecretProvider } from '@core/secrets/secret-provider.interface';
 import { AppSecret } from '@core/types/app-secret.enum';
 
@@ -25,7 +25,7 @@ const moduleImports: NestModuleImport[] = [
       },
     }),
   }),
-  ReceiptsModule,
+  OcrJobsModule,
 ];
 
 if (process.env[AppSecret.NodeEnv] === 'production') {

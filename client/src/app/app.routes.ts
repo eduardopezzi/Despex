@@ -11,8 +11,8 @@ export const routes: Routes = [
         loadComponent: () => import('@pages/home/home.page').then((m) => m.HomePageComponent),
       },
       {
-        path: 'receipts',
-        loadComponent: () => import('@pages/receipts/receipts.page').then((m) => m.ReceiptsPageComponent),
+        path: 'ocr-jobs',
+        loadComponent: () => import('@pages/ocr-jobs/ocr-jobs.page').then((m) => m.OcrJobsPageComponent),
       },
     ],
   },

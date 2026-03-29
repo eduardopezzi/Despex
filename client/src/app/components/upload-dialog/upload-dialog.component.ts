@@ -1,6 +1,6 @@
 import { Component, EventEmitter, inject, Input, Output, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReceiptService } from '@services/receipt.service';
+import { OcrJobService } from '@services/ocr-job.service';
 
 import { DialogModule } from 'primeng/dialog';
 import { ButtonModule } from 'primeng/button';
@@ -43,7 +43,7 @@ interface FileWithProvider {
   templateUrl: './upload-dialog.component.html',
 })
 export class UploadDialogComponent {
-  private receiptService = inject(ReceiptService);
+  private ocrJobService = inject(OcrJobService);
   private configService = inject(ConfigService);
   private translocoService = inject(TranslocoService);
   private messageService = inject(MessageService);
@@ -137,7 +137,7 @@ export class UploadDialogComponent {
     const files = items.map((i) => i.file);
     const providers = items.map((i) => i.ocrProvider);
 
-    this.receiptService.uploadJob(files, providers, this.jobName()).subscribe({
+    this.ocrJobService.uploadJob(files, providers, this.jobName()).subscribe({
       next: () => {
         this.uploading.set(false);
         this.message.set('upload.uploadSuccess');

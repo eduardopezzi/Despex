@@ -18,8 +18,8 @@ import { OcrExecutionEntity } from '@core/database/entities/ocr-execution.entity
 import { OcrExecutionStatus, OcrFileStatus, OcrJobStatus } from '@open-receipt-ocr/types';
 
 @Injectable()
-export class ReceiptsService {
-  private readonly logger = new Logger(ReceiptsService.name);
+export class OcrJobsService {
+  private readonly logger = new Logger(OcrJobsService.name);
 
   constructor(
     private readonly ocrJobsDao: OcrJobsDao,

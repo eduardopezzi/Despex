@@ -7,9 +7,9 @@ import { environment } from '@environments/environment';
 @Injectable({
   providedIn: 'root',
 })
-export class ReceiptService {
+export class OcrJobService {
   private http = inject(HttpClient);
-  private apiUrl = `${environment.apiUrl}/receipts`;
+  private apiUrl = `${environment.apiUrl}/ocr-jobs`;
 
   // State using Signal
   jobs = signal<OcrJob[]>([]);

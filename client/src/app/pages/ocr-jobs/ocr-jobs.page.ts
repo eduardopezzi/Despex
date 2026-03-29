@@ -1,6 +1,6 @@
 import { Component, effect, inject, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReceiptService } from '@services/receipt.service';
+import { OcrJobService } from '@services/ocr-job.service';
 import { OcrJob, OcrFile, OcrExecution, OcrJobStatus, OcrFileStatus, OcrExecutionStatus, OcrProvider } from '@open-receipt-ocr/types';
 import { interval, Subscription } from 'rxjs';
 import { UploadDialogComponent } from '@components/upload-dialog/upload-dialog.component';
@@ -20,7 +20,7 @@ import { PopoverModule } from 'primeng/popover';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 
 @Component({
-  selector: 'app-receipts-page',
+  selector: 'app-ocr-jobs-page',
   standalone: true,
   imports: [
     CommonModule,
@@ -37,10 +37,10 @@ import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
     TooltipModule,
     PopoverModule,
   ],
-  templateUrl: './receipts.page.html',
+  templateUrl: './ocr-jobs.page.html',
 })
-export class ReceiptsPageComponent implements OnInit, OnDestroy {
-  receiptService = inject(ReceiptService);
+export class OcrJobsPageComponent implements OnInit, OnDestroy {
+  ocrJobService = inject(OcrJobService);
   private messageService = inject(MessageService);
   private translocoService = inject(TranslocoService);
   private confirmationService = inject(ConfirmationService);
@@ -87,7 +87,7 @@ export class ReceiptsPageComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    this.receiptService.fetchJobs();
+    this.ocrJobService.fetchJobs();
     this.startPolling();
   }
 
@@ -97,7 +97,7 @@ export class ReceiptsPageComponent implements OnInit, OnDestroy {
 
   constructor() {
     effect(() => {
-      const jobs = this.receiptService.jobs();
+      const jobs = this.ocrJobService.jobs();
       if (this.selectedJob) {
         const updated = jobs.find((j) => j.id === this.selectedJob?.id);
         if (updated) {
@@ -128,10 +128,10 @@ export class ReceiptsPageComponent implements OnInit, OnDestroy {
   private startPolling() {
     if (this.pollingSubscription) return;
     this.pollingSubscription = interval(3000).subscribe(() => {
-      const needsPolling = this.receiptService.jobs().some((j) => j.status === OcrJobStatus.Pending || j.status === OcrJobStatus.Processing);
+      const needsPolling = this.ocrJobService.jobs().some((j) => j.status === OcrJobStatus.Pending || j.status === OcrJobStatus.Processing);
 
       if (needsPolling) {
-        this.receiptService.fetchJobs(false);
+        this.ocrJobService.fetchJobs(false);
       }
     });
   }
@@ -177,7 +177,7 @@ export class ReceiptsPageComponent implements OnInit, OnDestroy {
 
   onUploaded() {
     this.showUploadDialog = false;
-    this.receiptService.fetchJobs();
+    this.ocrJobService.fetchJobs();
   }
 
   getJobStatusSeverity(status: OcrJobStatus): 'success' | 'info' | 'warn' | 'danger' | 'secondary' {
@@ -237,7 +237,7 @@ export class ReceiptsPageComponent implements OnInit, OnDestroy {
   }
 
   getSafeUrl(filename: string): SafeResourceUrl {
-    return this.sanitizer.bypassSecurityTrustResourceUrl(this.receiptService.getFileUrl(filename));
+    return this.sanitizer.bypassSecurityTrustResourceUrl(this.ocrJobService.getFileUrl(filename));
   }
 
   getLatestExecution(file: OcrFile | null): OcrExecution | undefined {
@@ -246,14 +246,14 @@ export class ReceiptsPageComponent implements OnInit, OnDestroy {
   }
 
   reprocess(file: OcrFile, provider: OcrProvider) {
-    this.receiptService.reprocessFile(file.id, provider).subscribe({
+    this.ocrJobService.reprocessFile(file.id, provider).subscribe({
       next: () => {
         this.messageService.add({
           severity: 'info',
           summary: this.translocoService.translate('receipts.card.retrying'),
           detail: this.translocoService.translate('receipts.card.retryQueued'),
         });
-        this.receiptService.fetchJobs();
+        this.ocrJobService.fetchJobs();
       },
       error: (err) => {
         this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to re-queue OCR job.' });
@@ -269,13 +269,13 @@ export class ReceiptsPageComponent implements OnInit, OnDestroy {
       header: this.translocoService.translate('receipts.delete.title'),
       icon: 'pi pi-exclamation-triangle',
       accept: () => {
-        this.receiptService.deleteJob(job.id).subscribe({
+        this.ocrJobService.deleteJob(job.id).subscribe({
           next: () => {
             this.messageService.add({
               severity: 'success',
               summary: this.translocoService.translate('receipts.delete.success'),
             });
-            this.receiptService.fetchJobs();
+            this.ocrJobService.fetchJobs();
             if (this.selectedJob?.id === job.id) {
               this.showDetail = false;
             }
