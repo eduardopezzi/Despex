@@ -1,5 +1,6 @@
 import { NotFoundException } from '@nestjs/common';
 import { DeepPartial, FindManyOptions, FindOneOptions, FindOptionsWhere, ObjectLiteral, Repository } from 'typeorm';
+import { NoTxn, TxnDef } from '@core/database/txn-def.interface';
 
 /**
  * Generic DAO (Data Access Object) base class.
@@ -16,6 +17,10 @@ import { DeepPartial, FindManyOptions, FindOneOptions, FindOptionsWhere, ObjectL
 export class BaseDao<T extends ObjectLiteral> {
   constructor(protected readonly repo: Repository<T>) {}
 
+  protected repositoryWithTxnDef(txnDef: TxnDef | undefined) {
+    return txnDef?.txn ? txnDef?.txn.withRepository(this.repo) : this.repo;
+  }
+
   /** Primary key property name as declared on the entity class (from TypeORM metadata). */
   private get pkName(): string {
     return this.repo.metadata.primaryColumns[0].propertyName;
@@ -23,23 +28,23 @@ export class BaseDao<T extends ObjectLiteral> {
 
   // ─── Read ─────────────────────────────────────────────────────────────────
 
-  getAll(options?: FindManyOptions<T>): Promise<T[]> {
-    return this.repo.find(options);
+  getAll(txnDef: TxnDef = NoTxn, options?: FindManyOptions<T>): Promise<T[]> {
+    return this.repositoryWithTxnDef(txnDef).find(options);
   }
 
-  getOne(options: FindOneOptions<T>): Promise<T | null> {
-    return this.repo.findOne(options);
+  getOne(txnDef: TxnDef = NoTxn, options: FindOneOptions<T>): Promise<T | null> {
+    return this.repositoryWithTxnDef(txnDef).findOne(options);
   }
 
-  getOneByPk(id: string | number, options?: Omit<FindOneOptions<T>, 'where'>): Promise<T | null> {
-    return this.repo.findOne({
+  getOneByPk(txnDef: TxnDef = NoTxn, id: string | number, options?: Omit<FindOneOptions<T>, 'where'>): Promise<T | null> {
+    return this.repositoryWithTxnDef(txnDef).findOne({
       ...options,
       where: { [this.pkName]: id } as FindOptionsWhere<T>,
     });
   }
 
-  async getOneByPkOrFail(id: string | number, options?: Omit<FindOneOptions<T>, 'where'>): Promise<T> {
-    const entity = await this.getOneByPk(id, options);
+  async getOneByPkOrFail(txnDef: TxnDef = NoTxn, id: string | number, options?: Omit<FindOneOptions<T>, 'where'>): Promise<T> {
+    const entity = await this.getOneByPk(txnDef, id, options);
     if (!entity) {
       throw new NotFoundException(`${this.repo.metadata.name} with id "${id}" not found`);
     }
@@ -48,29 +53,32 @@ export class BaseDao<T extends ObjectLiteral> {
 
   // ─── Write ────────────────────────────────────────────────────────────────
 
-  create(data: DeepPartial<T>): Promise<T> {
-    const entity = this.repo.create(data);
-    return this.repo.save(entity);
+  create(txnDef: TxnDef, data: DeepPartial<T>): Promise<T> {
+    const repo = this.repositoryWithTxnDef(txnDef);
+    const entity = repo.create(data);
+    return repo.save(entity);
   }
 
-  async updateByPk(id: string | number, data: DeepPartial<T>): Promise<T> {
-    const entity = await this.getOneByPkOrFail(id);
-    const updated = this.repo.merge(entity, data);
-    return this.repo.save(updated);
+  async updateByPk(txnDef: TxnDef, id: string | number, data: DeepPartial<T>): Promise<T> {
+    const entity = await this.getOneByPkOrFail(txnDef, id);
+    const repo = this.repositoryWithTxnDef(txnDef);
+    const updated = repo.merge(entity, data);
+    return repo.save(updated);
   }
 
-  async deleteByPk(id: string | number): Promise<void> {
-    await this.getOneByPkOrFail(id);
-    await this.repo.delete({ [this.pkName]: id } as FindOptionsWhere<T>);
+  async deleteByPk(txnDef: TxnDef, id: string | number): Promise<void> {
+    await this.getOneByPkOrFail(txnDef, id);
+    const repo = this.repositoryWithTxnDef(txnDef);
+    await repo.delete({ [this.pkName]: id } as FindOptionsWhere<T>);
   }
 
   // ─── Helpers ──────────────────────────────────────────────────────────────
 
-  count(options?: FindManyOptions<T>): Promise<number> {
-    return this.repo.count(options);
+  count(txnDef: TxnDef = NoTxn, options?: FindManyOptions<T>): Promise<number> {
+    return this.repositoryWithTxnDef(txnDef).count(options);
   }
 
-  exists(where: FindOptionsWhere<T>): Promise<boolean> {
-    return this.repo.existsBy(where);
+  exists(txnDef: TxnDef = NoTxn, where: FindOptionsWhere<T>): Promise<boolean> {
+    return this.repositoryWithTxnDef(txnDef).existsBy(where);
   }
 }

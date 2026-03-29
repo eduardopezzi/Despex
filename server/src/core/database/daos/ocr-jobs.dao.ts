@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { BaseDao } from '@core/database/base.dao';
 import { OcrJobEntity } from '@core/database/entities/ocr-job.entity';
 import { ReposService } from '@core/database/repos.service';
+import { NoTxn, TxnDef } from '@core/database/txn-def.interface';
 
 @Injectable()
 export class OcrJobsDao extends BaseDao<OcrJobEntity> {
@@ -9,15 +10,15 @@ export class OcrJobsDao extends BaseDao<OcrJobEntity> {
     super(repos.ocrJob);
   }
 
-  findAllWithRelations(): Promise<OcrJobEntity[]> {
-    return this.repo.find({
+  findAllWithRelations(txnDef: TxnDef = NoTxn): Promise<OcrJobEntity[]> {
+    return this.repositoryWithTxnDef(txnDef).find({
       relations: ['files', 'files.executions'],
       order: { createdAt: 'DESC' },
     });
   }
 
-  findOneWithRelations(id: number): Promise<OcrJobEntity | null> {
-    return this.repo.findOne({
+  findOneWithRelations(txnDef: TxnDef = NoTxn, id: number): Promise<OcrJobEntity | null> {
+    return this.repositoryWithTxnDef(txnDef).findOne({
       where: { id },
       relations: ['files', 'files.executions'],
     });

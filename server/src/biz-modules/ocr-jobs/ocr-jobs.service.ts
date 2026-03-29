@@ -1,4 +1,7 @@
 import { BadRequestException, Inject, Injectable, Logger } from '@nestjs/common';
+import { EntityManager } from 'typeorm';
+import { DbService } from '@core/database/db.service';
+import { NoTxn, WithTxn } from '@core/database/txn-def.interface';
 import { Readable } from 'stream';
 import type { Request } from 'express';
 import { QueueService } from '@core/queue/queue.service';
@@ -14,6 +17,7 @@ import { OcrJobsDao } from '@core/database/daos/ocr-jobs.dao';
 import { OcrFilesDao } from '@core/database/daos/ocr-files.dao';
 import { OcrExecutionsDao } from '@core/database/daos/ocr-executions.dao';
 import { OcrJobEntity } from '@core/database/entities/ocr-job.entity';
+import { OcrFileEntity } from '@core/database/entities/ocr-file.entity';
 import { OcrExecutionEntity } from '@core/database/entities/ocr-execution.entity';
 import { OcrExecutionStatus, OcrFileStatus, OcrJobStatus } from '@open-receipt-ocr/types';
 
@@ -27,8 +31,9 @@ export class OcrJobsService {
     private readonly ocrExecutionsDao: OcrExecutionsDao,
     private readonly queueService: QueueService,
     private readonly secretProvider: SecretProvider,
+    private readonly dbService: DbService,
     @Inject(StorageProvider) private readonly storage: StorageProvider,
-  ) {}
+  ) { }
 
   findAllJobs(): Promise<OcrJobEntity[]> {
     return this.ocrJobsDao.findAllWithRelations();
@@ -48,44 +53,55 @@ export class OcrJobsService {
       allowedMimeTypes: ALLOWED_MIME_TYPES,
     });
 
-    const jobName = parseResult.fields['jobName'];
+    const { ocrJob, executionsToQueue } = await this.dbService.transaction(async (em) => {
+      const txn = WithTxn(em);
 
-    const ocrJob = await this.ocrJobsDao.create({
-      status: OcrJobStatus.Processing,
-      name: jobName,
-    });
+      const jobName = parseResult.fields['jobName'];
+      const job = await this.ocrJobsDao.create(txn, {
+        status: OcrJobStatus.Processing,
+        name: jobName,
+      });
 
-    for (let i = 0; i < parseResult.files.length; i++) {
-      const file = parseResult.files[i];
-      let ocrProvider: OcrProvider = OcrProvider.Mistral;
+      const executions: { id: number; fileId: number }[] = [];
 
-      const providerField = `ocrProvider_${i}`;
-      if (parseResult.fields[providerField] && Object.values(OcrProvider).includes(parseResult.fields[providerField] as OcrProvider)) {
-        ocrProvider = parseResult.fields[providerField] as OcrProvider;
+      for (let i = 0; i < parseResult.files.length; i++) {
+        const file = parseResult.files[i];
+        let ocrProvider: OcrProvider = OcrProvider.Mistral;
+
+        const providerField = `ocrProvider_${i}`;
+        if (parseResult.fields[providerField] && Object.values(OcrProvider).includes(parseResult.fields[providerField] as OcrProvider)) {
+          ocrProvider = parseResult.fields[providerField] as OcrProvider;
+        }
+
+        const ocrFile = await this.ocrFilesDao.create(txn, {
+          jobId: job.id,
+          filename: file.key,
+          originalName: file.originalName,
+          status: OcrFileStatus.Processing,
+        });
+
+        const execution = await this.ocrExecutionsDao.create(txn, {
+          fileId: ocrFile.id,
+          ocrProvider,
+          status: OcrExecutionStatus.Pending,
+        });
+
+        executions.push({ id: execution.id, fileId: ocrFile.id });
       }
 
-      const ocrFile = await this.ocrFilesDao.create({
-        jobId: ocrJob.id,
-        filename: file.key,
-        originalName: file.originalName,
-        status: OcrFileStatus.Processing,
-      });
+      return { ocrJob: job, executionsToQueue: executions };
+    });
 
-      const execution = await this.ocrExecutionsDao.create({
-        fileId: ocrFile.id,
-        ocrProvider,
-        status: OcrExecutionStatus.Pending,
-      });
-
-      await this.queueService.addToOcrQueue({ executionId: execution.id });
-      this.logger.log(`Execution #${execution.id} for File #${ocrFile.id} queued for OCR`);
+    for (const exec of executionsToQueue) {
+      await this.queueService.addToOcrQueue({ executionId: exec.id });
+      this.logger.log(`Execution #${exec.id} for File #${exec.fileId} queued for OCR`);
     }
 
     return ocrJob;
   }
 
   async getJob(id: number): Promise<OcrJobEntity> {
-    const job = await this.ocrJobsDao.findOneWithRelations(id);
+    const job = await this.ocrJobsDao.findOneWithRelations(NoTxn, id);
     if (!job) {
       throw new BadRequestException(`OCR Job #${id} not found`);
     }
@@ -93,16 +109,21 @@ export class OcrJobsService {
   }
 
   async retry(fileId: number, ocrProvider: OcrProvider): Promise<OcrExecutionEntity> {
-    const file = await this.ocrFilesDao.getOneByPkOrFail(fileId);
+    const execution = await this.dbService.transaction(async (em) => {
+      const txn = WithTxn(em);
+      const file = await this.ocrFilesDao.getOneByPkOrFail(txn, fileId);
 
-    const execution = await this.ocrExecutionsDao.create({
-      fileId: file.id,
-      ocrProvider,
-      status: OcrExecutionStatus.Pending,
-    });
+      const exec = await this.ocrExecutionsDao.create(txn, {
+        fileId: file.id,
+        ocrProvider,
+        status: OcrExecutionStatus.Pending,
+      });
 
-    await this.ocrFilesDao.updateByPk(fileId, {
-      status: OcrFileStatus.Processing,
+      await this.ocrFilesDao.updateByPk(txn, fileId, {
+        status: OcrFileStatus.Processing,
+      });
+
+      return exec;
     });
 
     await this.queueService.addToOcrQueue({ executionId: execution.id });
@@ -119,7 +140,7 @@ export class OcrJobsService {
   }
 
   async deleteJob(id: number): Promise<void> {
-    const job = await this.ocrJobsDao.findOneWithRelations(id);
+    const job = await this.ocrJobsDao.findOneWithRelations(NoTxn, id);
     if (!job) return;
 
     for (const file of job.files) {
@@ -130,7 +151,7 @@ export class OcrJobsService {
       }
     }
 
-    await this.ocrJobsDao.deleteByPk(id);
+    await this.ocrJobsDao.deleteByPk(NoTxn, id);
     this.logger.log(`OCR Job #${id} and associated files deleted`);
   }
 }
