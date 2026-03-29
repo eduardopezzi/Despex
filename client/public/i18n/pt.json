@@ -12,10 +12,10 @@
   },
   "layout": {
     "appTitle": "ReceiptOCR",
-    "appSubtitle": "Open Receipt OCR",
+    "appSubtitle": "Painel de OCR Aberto",
     "menu": "Menu",
     "dashboard": "Painel",
-    "receipts": "Recibos",
+    "receipts": "Trabalhos OCR",
     "admin": "Admin",
     "selfHosted": "Auto-hospedado",
     "collapse": "Recolher",
@@ -23,6 +23,8 @@
   },
   "upload": {
     "title": "Carregar Recibo",
+    "jobName": "Nome do Trabalho",
+    "jobNamePlaceholder": "Dê um nome ao seu trabalho (ex: Recibos Mensais)",
     "dropZone": "Largue o ficheiro aqui",
     "dropZoneHint": "PDF, JPG, PNG · máx 20 MB",
     "ocrProvider": "Fornecedor OCR",

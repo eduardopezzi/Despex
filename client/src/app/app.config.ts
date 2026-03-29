@@ -8,12 +8,16 @@ import { routes } from './app.routes';
 import { provideTransloco } from '@jsverse/transloco';
 import { TranslocoHttpLoader } from './transloco-loader';
 
+import { MessageService, ConfirmationService } from 'primeng/api';
+
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideRouter(routes),
     provideHttpClient(withFetch()),
     provideAnimationsAsync(),
+    MessageService,
+    ConfirmationService,
     provideTransloco({
       config: {
         availableLangs: ['en', 'pt'],

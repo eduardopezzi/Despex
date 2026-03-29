@@ -1,7 +1,7 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReceiptService } from '@services/receipt.service';
-import { ReceiptStatus } from '@models/receipt.model';
+import { OcrJobService } from '@services/ocr-job.service';
+import { OcrJobStatus, OcrJob } from '@open-receipt-ocr/types';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { TagModule } from 'primeng/tag';
@@ -17,19 +17,21 @@ import { TranslocoModule } from '@jsverse/transloco';
   templateUrl: './home.page.html',
 })
 export class HomePageComponent implements OnInit {
-  receiptService = inject(ReceiptService);
+  ocrJobService = inject(OcrJobService);
   showUpload = false;
 
+  OcrJobStatus = OcrJobStatus;
+
   ngOnInit() {
-    this.receiptService.fetchReceipts();
+    this.ocrJobService.fetchJobs();
   }
 
-  get recentReceipts() {
-    return this.receiptService.receipts().slice(0, 6);
+  get recentJobs() {
+    return this.ocrJobService.jobs().slice(0, 6);
   }
 
   get stats() {
-    const all = this.receiptService.receipts();
+    const all = this.ocrJobService.jobs();
     return [
       {
         label: 'receipts.status.total',
@@ -40,23 +42,23 @@ export class HomePageComponent implements OnInit {
       },
       {
         label: 'receipts.status.completed',
-        value: all.filter((i) => i.status === ReceiptStatus.Completed).length,
+        value: all.filter((i: OcrJob) => i.status === OcrJobStatus.Completed).length,
         icon: 'pi pi-check-circle',
         iconBg: 'bg-emerald-50 dark:bg-emerald-900/30',
         iconColor: 'text-emerald-500',
       },
       {
         label: 'receipts.status.processing',
-        value: all.filter((i) => i.status === ReceiptStatus.Processing || i.status === ReceiptStatus.Pending).length,
+        value: all.filter((i: OcrJob) => i.status === OcrJobStatus.Processing || i.status === OcrJobStatus.Pending).length,
         icon: 'pi pi-spin pi-spinner',
         iconBg: 'bg-blue-50 dark:bg-blue-900/30',
         iconColor: 'text-blue-500',
       },
       {
         label: 'receipts.status.failed',
-        value: all.filter((i) => i.status === ReceiptStatus.Failed).length,
+        value: all.filter((i: OcrJob) => i.status === OcrJobStatus.Failed).length,
         icon: 'pi pi-exclamation-triangle',
-        iconBg: 'bg-red-50 dark:bg-red-900/30',
+        iconBg: 'bg-red-50 dark:bg-red-950/30',
         iconColor: 'text-red-500',
       },
     ];
@@ -64,31 +66,31 @@ export class HomePageComponent implements OnInit {
 
   onUploaded() {
     this.showUpload = false;
-    this.receiptService.fetchReceipts();
+    this.ocrJobService.fetchJobs();
   }
 
-  getStatusSeverity(status: ReceiptStatus): 'success' | 'info' | 'warn' | 'danger' | 'secondary' {
+  getStatusSeverity(status: OcrJobStatus): 'success' | 'info' | 'warn' | 'danger' | 'secondary' {
     switch (status) {
-      case ReceiptStatus.Pending:
+      case OcrJobStatus.Pending:
         return 'secondary';
-      case ReceiptStatus.Processing:
+      case OcrJobStatus.Processing:
         return 'info';
-      case ReceiptStatus.Completed:
+      case OcrJobStatus.Completed:
         return 'success';
-      case ReceiptStatus.Failed:
+      case OcrJobStatus.Failed:
         return 'danger';
     }
   }
 
-  getCardBg(status: ReceiptStatus): string {
+  getCardBg(status: OcrJobStatus): string {
     switch (status) {
-      case ReceiptStatus.Pending:
+      case OcrJobStatus.Pending:
         return 'bg-surface-100 dark:bg-surface-800';
-      case ReceiptStatus.Processing:
+      case OcrJobStatus.Processing:
         return 'bg-blue-50 dark:bg-blue-950/40';
-      case ReceiptStatus.Completed:
+      case OcrJobStatus.Completed:
         return 'bg-emerald-50 dark:bg-emerald-950/40';
-      case ReceiptStatus.Failed:
+      case OcrJobStatus.Failed:
         return 'bg-red-50 dark:bg-red-950/40';
     }
   }

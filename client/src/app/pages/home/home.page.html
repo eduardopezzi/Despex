@@ -1,59 +1,73 @@
-<!-- Welcome -->
-<div *transloco="let t" class="flex flex-col gap-8">
-  <div class="mb-2">
-    <h1 class="text-2xl font-bold text-surface-900 dark:text-surface-0 mb-1">{{ t('receipts.home.welcome') }}</h1>
-    <p class="text-sm text-surface-500 dark:text-surface-400">{{ t('receipts.home.overview') }}</p>
-  </div>
+<div *transloco="let t" class="p-6 lg:p-10 max-w-[1600px] mx-auto min-h-screen">
+  <!-- Header -->
+  <header class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12 animate-in fade-in slide-in-from-top-4 duration-700">
+    <div class="space-y-1">
+      <h1 class="text-4xl font-black tracking-tight text-surface-900 dark:text-surface-0">{{ t('receipts.home.welcome') }}</h1>
+      <p class="text-surface-500 dark:text-surface-400 font-medium">{{ t('receipts.home.overview') }}</p>
+    </div>
+    <p-button [label]="t('receipts.addJob')" icon="pi pi-plus" (onClick)="showUpload = true" severity="primary" size="large" styleClass="px-8 py-4 rounded-2xl font-bold shadow-xl shadow-primary-500/20 hover:scale-105 transition-transform" />
+  </header>
 
-  <!-- Stats row -->
-  <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-2">
+  <!-- Stats Grid -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
     @for (stat of stats; track stat.label) {
-      <div class="bg-surface-0 dark:bg-surface-900 border border-surface-200 dark:border-surface-800 rounded-2xl p-5 shadow-sm">
-        <div class="flex items-center gap-3 mb-2">
-          <div class="w-9 h-9 rounded-xl flex items-center justify-center" [ngClass]="stat.iconBg">
-            <i [class]="stat.icon + ' ' + stat.iconColor + ' text-lg'"></i>
+      <div class="group">
+        <p-card styleClass="border-none shadow-sm hover:shadow-xl transition-all duration-300 rounded-3xl overflow-hidden group-hover:-translate-y-1">
+          <div class="flex items-center gap-5">
+            <div class="w-16 h-16 rounded-2xl flex items-center justify-center text-2xl transition-transform duration-500 group-hover:rotate-12 {{ stat.iconBg }} {{ stat.iconColor }}">
+              <i [class]="stat.icon"></i>
+            </div>
+            <div class="flex flex-col">
+              <span class="text-[10px] font-black uppercase text-surface-400 tracking-widest">{{ t(stat.label) }}</span>
+              <span class="text-3xl font-black text-surface-900 dark:text-surface-0">{{ stat.value }}</span>
+            </div>
           </div>
-          <span class="text-xs font-semibold text-surface-500 uppercase tracking-wide">{{ t(stat.label) }}</span>
-        </div>
-        <p class="text-3xl font-bold text-surface-900 dark:text-surface-0">{{ stat.value }}</p>
+        </p-card>
       </div>
     }
   </div>
 
-  <!-- Recent receipts -->
-  <div class="flex items-center justify-between">
-    <h2 class="text-base font-semibold text-surface-800 dark:text-surface-100">{{ t('receipts.home.recentReceipts') }}</h2>
-    <p-button [label]="t('receipts.uploadNew')" icon="pi pi-cloud-upload" size="small" (onClick)="showUpload = true" />
-  </div>
-
-  @if (receiptService.loading()) {
-    <div class="flex justify-center py-16"><p-progressSpinner styleClass="w-10 h-10" /></div>
-  }
-  @if (!receiptService.loading() && receiptService.receipts().length === 0) {
-    <div class="bg-surface-0 dark:bg-surface-900 border border-dashed border-surface-300 dark:border-surface-700 rounded-2xl p-12 text-center">
-      <i class="pi pi-receipt text-4xl text-surface-300 dark:text-surface-600 mb-4 block"></i>
-      <p class="text-surface-500 text-sm">{{ t('receipts.home.noReceipts') }}</p>
+  <!-- Recent activity -->
+  <div class="space-y-6">
+    <div class="flex items-center justify-between">
+      <h2 class="text-xl font-bold text-surface-900 dark:text-surface-0">{{ t('receipts.home.recentReceipts') }}</h2>
+      <p-button label="View all" icon="pi pi-arrow-right" [link]="true" routerLink="/ocr-jobs" />
     </div>
-  }
 
-  @if (!receiptService.loading() && receiptService.receipts().length > 0) {
-    <div class="bg-surface-0 dark:bg-surface-900 border border-surface-200 dark:border-surface-800 rounded-2xl shadow-sm overflow-hidden">
-      @for (receipt of recentReceipts; track receipt.id) {
-        <div
-          class="flex items-center gap-4 px-5 py-4 border-b border-surface-100 dark:border-surface-800 last:border-0 hover:bg-surface-50 dark:hover:bg-surface-800/50 transition-colors cursor-pointer"
-        >
-          <div class="w-10 h-10 rounded-xl flex items-center justify-center" [ngClass]="getCardBg(receipt.status)">
-            <i [class]="getFileIcon(receipt.originalName)"></i>
-          </div>
-          <div class="flex-1 min-w-0">
-            <p class="text-sm font-medium text-surface-800 dark:text-surface-100 truncate">{{ receipt.originalName }}</p>
-            <p class="text-xs text-surface-400">{{ receipt.createdAt | date: 'MMM d · HH:mm' }}</p>
-          </div>
-          <p-tag [value]="t('receipts.status.' + receipt.status.toLowerCase())" [severity]="getStatusSeverity(receipt.status)" styleClass="text-xs" />
+    @if (ocrJobService.loading() && ocrJobService.jobs().length === 0) {
+      <div class="flex flex-col items-center justify-center py-20 gap-4">
+        <p-progressSpinner styleClass="w-12 h-12" strokeWidth="4" />
+        <p class="text-surface-400 font-bold uppercase tracking-widest text-[10px]">{{ t('common.loading') }}</p>
+      </div>
+    } @else if (ocrJobService.jobs().length > 0) {
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        @for (job of recentJobs; track job.id) {
+          <p-card styleClass="border-none shadow-sm hover:bg-surface-50 dark:hover:bg-surface-800/30 transition-all rounded-[2rem] cursor-pointer" routerLink="/ocr-jobs">
+            <div class="flex items-center justify-between gap-4">
+              <div class="flex items-center gap-4">
+                <div class="w-12 h-12 rounded-xl bg-surface-100 dark:bg-surface-800 flex items-center justify-center">
+                  <i class="pi pi-receipt text-xl text-primary-500"></i>
+                </div>
+                <div class="flex flex-col min-w-0">
+                  <p class="font-bold text-surface-900 dark:text-surface-100 truncate">Job #{{ job.id }}</p>
+                  <span class="text-[10px] font-bold text-surface-400 uppercase tracking-widest">{{ job.createdAt | date: 'MMM d, HH:mm' }}</span>
+                </div>
+              </div>
+              <p-tag [value]="t('receipts.status.' + job.status)" [severity]="getStatusSeverity(job.status)" styleClass="text-[9px] px-2 py-1 rounded-full uppercase font-black" />
+            </div>
+          </p-card>
+        }
+      </div>
+    } @else {
+      <div class="bg-surface-50 dark:bg-surface-900/40 rounded-[2.5rem] border-2 border-dashed border-surface-200 dark:border-surface-800 p-16 text-center animate-in fade-in zoom-in duration-500">
+        <div class="w-20 h-20 bg-surface-100 dark:bg-surface-800 rounded-full flex items-center justify-center mx-auto mb-6">
+          <i class="pi pi-inbox text-4xl text-surface-300 dark:text-surface-600"></i>
         </div>
-      }
-    </div>
-  }
+        <p class="text-surface-500 dark:text-surface-400 font-medium mb-8">{{ t('receipts.noJobs') }}</p>
+        <p-button [label]="t('receipts.addJob')" icon="pi pi-plus" (onClick)="showUpload = true" severity="secondary" [outlined]="true" />
+      </div>
+    }
+  </div>
 
   <app-upload-dialog [(visible)]="showUpload" (uploaded)="onUploaded()" />
 </div>

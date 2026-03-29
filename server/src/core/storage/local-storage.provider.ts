@@ -31,14 +31,9 @@ export class LocalStorageProvider extends StorageProvider {
   ): Promise<UploadResult> {
     const key = `${randomUUID()}${extname(filename)}`;
     const filePath = join(this.uploadDir, key);
-    let size = 0;
 
     return new Promise((resolve, reject) => {
       const writeStream = createWriteStream(filePath);
-
-      stream.on('data', (chunk: Buffer) => {
-        size += chunk.length;
-      });
 
       stream.pipe(writeStream);
 
@@ -46,7 +41,7 @@ export class LocalStorageProvider extends StorageProvider {
         resolve({
           url: `/api/uploads/${key}`,
           key,
-          size,
+          size: writeStream.bytesWritten,
         });
       });
 
@@ -59,6 +54,20 @@ export class LocalStorageProvider extends StorageProvider {
   /** Returns the full disk path for a given storage key — used for file serving. */
   getFilePath(key: string): string {
     return join(this.uploadDir, key);
+  }
+
+  async getStream(key: string): Promise<Readable> {
+    const filePath = this.getFilePath(key);
+    if (!existsSync(filePath)) {
+      throw new InternalServerErrorException(`File ${key} not found in local storage`);
+    }
+    const { createReadStream } = await import('fs');
+    return createReadStream(filePath);
+  }
+
+  async exists(key: string): Promise<boolean> {
+    const filePath = this.getFilePath(key);
+    return existsSync(filePath);
   }
 
   async delete(key: string): Promise<void> {

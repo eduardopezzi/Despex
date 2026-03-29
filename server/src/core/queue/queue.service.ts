@@ -1,8 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
-import { QueueName } from '../types/queue-name.enum';
-import { QueueJobName } from '../types/queue-job-name.enum';
+import { QueueName } from '@core/types/queue-name.enum';
+import { QueueJobName } from '@core/types/queue-job-name.enum';
 
 @Injectable()
 export class QueueService {
@@ -10,7 +10,7 @@ export class QueueService {
 
   constructor(@InjectQueue(QueueName.Ocr) private readonly ocrQueue: Queue) {}
 
-  async addToOcrQueue(payload: { receiptId: number }): Promise<void> {
+  async addToOcrQueue(payload: { executionId: number }): Promise<void> {
     await this.ocrQueue.add(QueueJobName.ProcessOcr, payload, {
       attempts: 3,
       backoff: {
