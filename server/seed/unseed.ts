@@ -1,9 +1,12 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from '../src/app/app.module';
 import { OcrFilesDao } from '@core/database/daos/ocr-files.dao';
+import { OcrExecutionsDao } from '@core/database/daos/ocr-executions.dao';
+import { OcrJobsDao } from '@core/database/daos/ocr-jobs.dao';
+import { ReceiptsDao } from '@core/database/daos/receipts.dao';
 import { StorageProvider } from '@core/storage/storage-provider.interface';
+import { NoTxn, WithTxn } from '@core/database/txn-def.interface';
 import { DbService } from '@core/database/db.service';
-import { NoTxn } from '@core/database/txn-def.interface';
 import { Logger } from '@nestjs/common';
 
 async function unseed() {
@@ -11,7 +14,10 @@ async function unseed() {
   logger.log('Starting unseed process...');
 
   const app = await NestFactory.createApplicationContext(AppModule);
+  const ocrExecutionsDao = app.get(OcrExecutionsDao);
   const ocrFilesDao = app.get(OcrFilesDao);
+  const ocrJobsDao = app.get(OcrJobsDao);
+  const receiptsDao = app.get(ReceiptsDao);
   const dbService = app.get(DbService);
   const storage = app.get<StorageProvider>(StorageProvider);
 
@@ -33,17 +39,18 @@ async function unseed() {
   logger.log('Truncating database tables (OCR Job data)...');
 
   await dbService.transaction(async (em) => {
-    // Delete in order of dependencies
-    await em.query('DELETE FROM ocr_executions');
-    await em.query('DELETE FROM ocr_files');
-    await em.query('DELETE FROM ocr_jobs');
+    const txn = WithTxn(em);
 
-    // Check if receipts table exists before trying to delete
+    // Truncate in order of dependencies
+    await ocrExecutionsDao.truncate(txn);
+    await ocrFilesDao.truncate(txn);
+    await ocrJobsDao.truncate(txn);
+
     try {
-      await em.query('DELETE FROM receipts');
+      await receiptsDao.truncate(txn);
       logger.log('  Cleared receipts table');
-    } catch (e) {
-      // Table might not exist or be named differently
+    } catch {
+      // Table might not exist or entity not registered
     }
   });
 

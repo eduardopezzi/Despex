@@ -72,6 +72,11 @@ export class BaseDao<T extends ObjectLiteral> {
     await repo.delete({ [this.pkName]: id } as FindOptionsWhere<T>);
   }
 
+  async truncate(txnDef: TxnDef = NoTxn): Promise<void> {
+    const repo = this.repositoryWithTxnDef(txnDef);
+    await repo.clear();
+  }
+
   // ─── Helpers ──────────────────────────────────────────────────────────────
 
   count(txnDef: TxnDef = NoTxn, options?: FindManyOptions<T>): Promise<number> {
