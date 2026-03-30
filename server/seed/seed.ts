@@ -58,7 +58,6 @@ async function seed() {
       for (let j = 0; j < numFiles; j++) {
         const staticFile = staticFiles[Math.floor(Math.random() * staticFiles.length)];
         const ext = path.extname(staticFile).toLowerCase();
-        const storageKey = `${randomUUID()}${ext}`;
         const originalName = path.basename(staticFile);
 
         let mimetype = 'application/octet-stream';
@@ -68,11 +67,11 @@ async function seed() {
 
         // Copy file to storage
         const stream = fs.createReadStream(staticFile);
-        await storage.uploadStream(stream, storageKey, mimetype);
+        const uploadResult = await storage.uploadStream(stream, originalName, mimetype);
 
         const ocrFile = await ocrFilesDao.create(txn, {
           jobId: job.id,
-          filename: storageKey,
+          filename: uploadResult.key,
           originalName: originalName,
           status: OcrFileStatus.Processing,
         });
