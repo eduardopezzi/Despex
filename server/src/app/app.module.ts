@@ -1,4 +1,5 @@
 import { DynamicModule, ForwardReference, Module, Type } from '@nestjs/common';
+import { APP_INTERCEPTOR } from '@nestjs/core';
 import { BullModule } from '@nestjs/bullmq';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
@@ -8,6 +9,7 @@ import { StorageModule } from '@core/storage/storage.module';
 import { OcrJobsModule } from '@biz-modules/ocr-jobs/ocr-jobs.module';
 import { SecretProvider } from '@core/secrets/secret-provider.interface';
 import { AppSecret } from '@core/types/app-secret.enum';
+import { LoggingInterceptor } from '@core/interceptors/logging.interceptor';
 
 type NestModuleImport = Type | DynamicModule | Promise<DynamicModule> | ForwardReference;
 
@@ -39,5 +41,11 @@ if (process.env[AppSecret.NodeEnv] === 'production') {
 
 @Module({
   imports: moduleImports,
+  providers: [
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: LoggingInterceptor,
+    },
+  ],
 })
 export class AppModule {}
