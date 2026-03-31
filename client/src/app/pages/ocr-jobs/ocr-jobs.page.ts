@@ -57,12 +57,17 @@ export class OcrJobsPageComponent implements OnInit, OnDestroy {
   showDetail = false;
   selectedJob: OcrJob | null = null;
   private _selectedFile: OcrFile | null = null;
+  safeUrl: SafeResourceUrl | null = null;
   get selectedFile() {
     return this._selectedFile;
   }
   set selectedFile(file: OcrFile | null) {
+    const hasFilenameChanged = this._selectedFile?.filename !== file?.filename;
     this._selectedFile = file;
     this.selectedExecution = this.getLatestExecution(file) || null;
+    if (hasFilenameChanged || (file && !this.safeUrl)) {
+      this.safeUrl = file ? this.getSafeUrl(file.filename) : null;
+    }
   }
   selectedExecution: OcrExecution | null = null;
 
@@ -106,7 +111,11 @@ export class OcrJobsPageComponent implements OnInit, OnDestroy {
             const updatedFile = updated.files?.find((f) => f.id === this._selectedFile?.id);
             if (updatedFile) {
               const wasOnLatest = this.selectedExecution?.id === this.getLatestExecution(this._selectedFile)?.id;
+              const hasFilenameChanged = this._selectedFile?.filename !== updatedFile.filename;
               this._selectedFile = updatedFile;
+              if (hasFilenameChanged || !this.safeUrl) {
+                this.safeUrl = this.getSafeUrl(updatedFile.filename);
+              }
 
               if (this.selectedExecution) {
                 const updatedExecution = updatedFile.executions?.find((e) => e.id === this.selectedExecution?.id);
