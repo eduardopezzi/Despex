@@ -6,10 +6,9 @@ import { OcrExecutionsDao } from '@core/database/daos/ocr-executions.dao';
 import { StorageProvider } from '@core/storage/storage-provider.interface';
 import { DbService } from '@core/database/db.service';
 import { WithTxn } from '@core/database/txn-def.interface';
-import { OcrJobStatus, OcrFileStatus, OcrExecutionStatus, OcrProvider } from '@open-receipt-ocr/types';
+import { OcrJobStatus, OcrFileStatus, OcrExecutionStatus, OcrProvider, MimeType, FileExtension } from '@open-receipt-ocr/types';
 import * as fs from 'fs';
 import * as path from 'path';
-import { randomUUID } from 'crypto';
 import { Logger } from '@nestjs/common';
 
 async function seed() {
@@ -61,9 +60,9 @@ async function seed() {
         const originalName = path.basename(staticFile);
 
         let mimetype = 'application/octet-stream';
-        if (ext === '.pdf') mimetype = 'application/pdf';
-        else if (ext === '.png') mimetype = 'image/png';
-        else if (ext === '.jpg' || ext === '.jpeg') mimetype = 'image/jpeg';
+        if (ext === FileExtension.Pdf) mimetype = MimeType.Pdf;
+        else if (ext === FileExtension.Png) mimetype = MimeType.Png;
+        else if (ext === FileExtension.Jpg || ext === FileExtension.Jpeg) mimetype = MimeType.Jpeg;
 
         // Copy file to storage
         const stream = fs.createReadStream(staticFile);

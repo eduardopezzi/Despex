@@ -8,7 +8,7 @@ import { SecretProvider } from '@core/secrets/secret-provider.interface';
 import { StorageProvider } from '@core/storage/storage-provider.interface';
 import { QueueName } from '@core/types/queue-name.enum';
 import { OcrProvider } from '@core/types/ocr-provider.enum';
-import { MimeType } from '@open-receipt-ocr/types';
+import { MimeType, FileExtension } from '@open-receipt-ocr/types';
 
 import { OcrExecutionsDao } from '@core/database/daos/ocr-executions.dao';
 import { OcrFilesDao } from '@core/database/daos/ocr-files.dao';
@@ -162,12 +162,12 @@ export class OcrProcessor extends WorkerHost {
 
   private static getMimeType(ext: string): string {
     switch (ext) {
-      case '.pdf':
+      case FileExtension.Pdf:
         return MimeType.Pdf;
-      case '.jpg':
-      case '.jpeg':
+      case FileExtension.Jpg:
+      case FileExtension.Jpeg:
         return MimeType.Jpeg;
-      case '.png':
+      case FileExtension.Png:
         return MimeType.Png;
       default:
         return MimeType.OctetStream;
