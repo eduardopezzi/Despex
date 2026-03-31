@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Logger, Param, ParseIntPipe, Post, Req, Res, NotFoundException } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Logger, Param, ParseIntPipe, Post, Req, Res, NotFoundException, Query } from '@nestjs/common';
 import { ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
 import type { Request, Response } from 'express';
 import { OcrJobsService } from '@biz-modules/ocr-jobs/ocr-jobs.service';
@@ -15,9 +15,10 @@ export class OcrJobsController {
   constructor(private readonly ocrJobsService: OcrJobsService) {}
 
   @Get()
-  @ApiOperation({ summary: 'List all OCR jobs sorted by date descending' })
-  findAll(): Promise<OcrJobEntity[]> {
-    return this.ocrJobsService.findAllJobs();
+  @ApiOperation({ summary: 'List all OCR jobs sorted by date descending with pagination' })
+  async findAll(@Query('page') page?: number, @Query('pageSize') pageSize?: number): Promise<{ data: OcrJobEntity[]; total: number }> {
+    const [data, total] = await this.ocrJobsService.findAllJobs(page, pageSize);
+    return { data, total };
   }
 
   @Get(`:${RouteParam.Id}`)

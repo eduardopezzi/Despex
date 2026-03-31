@@ -10,10 +10,12 @@ export class OcrJobsDao extends BaseDao<OcrJobEntity> {
     super(repos.ocrJob);
   }
 
-  findAllWithRelations(txnDef: TxnDef = NoTxn): Promise<OcrJobEntity[]> {
-    return this.repositoryWithTxnDef(txnDef).find({
+  findAllWithRelations(txnDef: TxnDef = NoTxn, skip?: number, take?: number): Promise<[OcrJobEntity[], number]> {
+    return this.repositoryWithTxnDef(txnDef).findAndCount({
       relations: ['files', 'files.executions'],
       order: { createdAt: 'DESC' },
+      skip,
+      take,
     });
   }
 

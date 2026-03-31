@@ -17,6 +17,7 @@ import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { TooltipModule } from 'primeng/tooltip';
 import { PopoverModule } from 'primeng/popover';
+import { PaginatorModule } from 'primeng/paginator';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 
 @Component({
@@ -36,6 +37,7 @@ import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
     ConfirmDialogModule,
     TooltipModule,
     PopoverModule,
+    PaginatorModule,
   ],
   templateUrl: './ocr-jobs.page.html',
 })
@@ -58,6 +60,10 @@ export class OcrJobsPageComponent implements OnInit, OnDestroy {
   selectedJob: OcrJob | null = null;
   private _selectedFile: OcrFile | null = null;
   safeUrl: SafeResourceUrl | null = null;
+
+  first = 0;
+  rows = 20;
+
   get selectedFile() {
     return this._selectedFile;
   }
@@ -92,12 +98,23 @@ export class OcrJobsPageComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    this.ocrJobService.fetchJobs();
+    this.fetchJobsWithPagination();
     this.startPolling();
   }
 
   ngOnDestroy() {
     this.stopPolling();
+  }
+
+  fetchJobsWithPagination(showLoading = true) {
+    const page = Math.floor(this.first / this.rows) + 1;
+    this.ocrJobService.fetchJobs(showLoading, page, this.rows);
+  }
+
+  onPageChange(event: any) {
+    this.first = event.first;
+    this.rows = event.rows;
+    this.fetchJobsWithPagination();
   }
 
   constructor() {
@@ -140,7 +157,7 @@ export class OcrJobsPageComponent implements OnInit, OnDestroy {
       const needsPolling = this.ocrJobService.jobs().some((j) => j.status === OcrJobStatus.Pending || j.status === OcrJobStatus.Processing);
 
       if (needsPolling) {
-        this.ocrJobService.fetchJobs(false);
+        this.fetchJobsWithPagination(false);
       }
     });
   }
@@ -186,7 +203,7 @@ export class OcrJobsPageComponent implements OnInit, OnDestroy {
 
   onUploaded() {
     this.showUploadDialog = false;
-    this.ocrJobService.fetchJobs();
+    this.fetchJobsWithPagination();
   }
 
   getJobStatusSeverity(status: OcrJobStatus): 'success' | 'info' | 'warn' | 'danger' | 'secondary' {
@@ -262,7 +279,7 @@ export class OcrJobsPageComponent implements OnInit, OnDestroy {
           summary: this.translocoService.translate('receipts.card.retrying'),
           detail: this.translocoService.translate('receipts.card.retryQueued'),
         });
-        this.ocrJobService.fetchJobs();
+        this.fetchJobsWithPagination();
       },
       error: (err) => {
         this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to re-queue OCR job.' });
@@ -284,7 +301,7 @@ export class OcrJobsPageComponent implements OnInit, OnDestroy {
               severity: 'success',
               summary: this.translocoService.translate('receipts.delete.success'),
             });
-            this.ocrJobService.fetchJobs();
+            this.fetchJobsWithPagination();
             if (this.selectedJob?.id === job.id) {
               this.showDetail = false;
             }

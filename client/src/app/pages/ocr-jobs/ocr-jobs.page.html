@@ -101,6 +101,20 @@
           </div>
         }
       </div>
+
+      <!-- Pagination -->
+      <div class="mt-12 flex justify-center bg-white/50 dark:bg-surface-900/50 backdrop-blur-sm p-4 rounded-[2rem] border border-surface-200 dark:border-surface-800 shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-700">
+        <p-paginator
+          (onPageChange)="onPageChange($event)"
+          [first]="first"
+          [rows]="rows"
+          [totalRecords]="ocrJobService.totalCount()"
+          [rowsPerPageOptions]="[10, 20, 50, 100]"
+          [showCurrentPageReport]="true"
+          [currentPageReportTemplate]="'{first} - {last} ' + t('common.of') + ' {totalRecords}'"
+          styleClass="bg-transparent border-none lg:scale-110"
+        />
+      </div>
     }
   </div>
 

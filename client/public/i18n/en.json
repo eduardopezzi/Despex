@@ -8,7 +8,8 @@
     "copy": "Copy",
     "delete": "Delete",
     "loading": "Loading...",
-    "comingSoon": "Coming Soon"
+    "comingSoon": "Coming Soon",
+    "of": "of"
   },
   "layout": {
     "appTitle": "ReceiptOCR",
