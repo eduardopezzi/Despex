@@ -56,7 +56,7 @@ async function seed() {
       const numFiles = Math.floor(Math.random() * 3) + 1; // 1-3 files per job
       for (let j = 0; j < numFiles; j++) {
         const staticFile = staticFiles[Math.floor(Math.random() * staticFiles.length)];
-        const ext = path.extname(staticFile).toLowerCase();
+        const ext = path.extname(staticFile).toLowerCase() as FileExtension;
         const originalName = path.basename(staticFile);
 
         let mimetype = 'application/octet-stream';
