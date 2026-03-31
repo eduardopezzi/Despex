@@ -1,7 +1,7 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { OcrJobService } from '@services/ocr-job.service';
-import { OcrJobStatus, OcrJob } from '@open-receipt-ocr/types';
+import { OcrJobStatus, OcrJob, ImageExtensions } from '@open-receipt-ocr/types';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { TagModule } from 'primeng/tag';
@@ -82,25 +82,5 @@ export class HomePageComponent implements OnInit {
       case OcrJobStatus.Failed:
         return 'danger';
     }
-  }
-
-  getCardBg(status: OcrJobStatus): string {
-    switch (status) {
-      case OcrJobStatus.Pending:
-        return 'bg-surface-100 dark:bg-surface-800';
-      case OcrJobStatus.Processing:
-        return 'bg-blue-50 dark:bg-blue-950/40';
-      case OcrJobStatus.Completed:
-        return 'bg-emerald-50 dark:bg-emerald-950/40';
-      case OcrJobStatus.Failed:
-        return 'bg-red-50 dark:bg-red-950/40';
-    }
-  }
-
-  getFileIcon(filename: string): string {
-    const ext = filename.split('.').pop()?.toLowerCase();
-    if (ext === FileExtension.Pdf) return 'pi pi-file-pdf text-red-400';
-    if ([FileExtension.Png, FileExtension.Jpg, FileExtension.Jpeg].includes(ext as FileExtension)) return 'pi pi-image text-emerald-400';
-    return 'pi pi-file text-surface-400';
   }
 }

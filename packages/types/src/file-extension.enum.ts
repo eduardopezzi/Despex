@@ -3,6 +3,6 @@ export enum FileExtension {
   Jpg = '.jpg',
   Jpeg = '.jpeg',
   Png = '.png',
-  Webp = '.webp',
-  Gif = '.gif',
 }
+
+export const ImageExtensions = [FileExtension.Png, FileExtension.Jpg, FileExtension.Jpeg];

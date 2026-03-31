@@ -1,7 +1,17 @@
 import { Component, effect, inject, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { OcrJobService } from '@services/ocr-job.service';
-import { OcrJob, OcrFile, OcrExecution, OcrJobStatus, OcrFileStatus, OcrExecutionStatus, OcrProvider, FileExtension } from '@open-receipt-ocr/types';
+import {
+  OcrJob,
+  OcrFile,
+  OcrExecution,
+  OcrJobStatus,
+  OcrFileStatus,
+  OcrExecutionStatus,
+  OcrProvider,
+  FileExtension,
+  ImageExtensions,
+} from '@open-receipt-ocr/types';
 import { interval, Subscription } from 'rxjs';
 import { UploadDialogComponent } from '@components/upload-dialog/upload-dialog.component';
 
@@ -248,13 +258,13 @@ export class OcrJobsPageComponent implements OnInit, OnDestroy {
   getFileIcon(filename: string): string {
     const ext = '.' + (filename.split('.').pop()?.toLowerCase() || '');
     if (ext === FileExtension.Pdf) return 'pi pi-file-pdf text-red-400';
-    if ([FileExtension.Png, FileExtension.Jpg, FileExtension.Jpeg].includes(ext as FileExtension)) return 'pi pi-image text-emerald-400';
+    if (ImageExtensions.includes(ext as FileExtension)) return 'pi pi-image text-emerald-400';
     return 'pi pi-file text-surface-400';
   }
 
   isFileImage(filename: string): boolean {
     const ext = '.' + (filename.split('.').pop()?.toLowerCase() || '');
-    return [FileExtension.Jpg, FileExtension.Jpeg, FileExtension.Png, FileExtension.Webp, FileExtension.Gif].includes(ext as FileExtension);
+    return ImageExtensions.includes(ext as FileExtension);
   }
 
   isFilePdf(filename: string): boolean {
