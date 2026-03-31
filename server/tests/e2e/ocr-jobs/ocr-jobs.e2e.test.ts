@@ -5,7 +5,7 @@ import { StorageModule } from '@core/storage/storage.module';
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
 import { TestHelpers } from '@tests/test-helpers';
 import { OcrJobEntity } from '@core/database/entities/ocr-job.entity';
-import { MimeType, OcrProvider, OcrJobStatus, OcrFileStatus, OcrExecutionStatus } from '@open-receipt-ocr/types';
+import { MimeType, OcrProvider, OcrJobStatus, OcrFileStatus, OcrExecutionStatus, PaginatedResponse } from '@open-receipt-ocr/types';
 import { MockQueueService, TestContextHelpers } from '@tests/test-context.helpers';
 import { OcrFilesDao } from '@core/database/daos/ocr-files.dao';
 import { NoTxn } from '@core/database/txn-def.interface';
@@ -36,8 +36,10 @@ describe('OCR Jobs Controller (e2e)', () => {
 
   describe('/ocr-jobs GET', () => {
     it('/ocr-jobs (GET) - empty', async () => {
-      const body = await TestHelpers.expectOk<{ data: OcrJobEntity[]; total: number }>(app, '/ocr-jobs');
-      expect(body).toEqual({ data: [], total: 0 });
+      const body = await TestHelpers.expectOk<PaginatedResponse<OcrJobEntity>>(app, '/ocr-jobs');
+      expect(body.data).toBeArray();
+      expect(body.data).toBeEmpty();
+      expect(body.total).toBe(0);
     });
 
     it('/ocr-jobs (GET) - pagination and sorting', async () => {
@@ -53,24 +55,24 @@ describe('OCR Jobs Controller (e2e)', () => {
       }
 
       // 2. Fetch all - should be sorted by DESC (C, B, A)
-      const all = await TestHelpers.expectOk<{ data: OcrJobEntity[]; total: number }>(app, '/ocr-jobs');
+      const all = await TestHelpers.expectOk<PaginatedResponse<OcrJobEntity>>(app, '/ocr-jobs');
       expect(all.total).toBe(3);
-      expect(all.data).toHaveLength(3);
+      expect(all.data).toBeArrayOfSize(3);
       expect(all.data[0].name).toBe('Job C');
       expect(all.data[1].name).toBe('Job B');
       expect(all.data[2].name).toBe('Job A');
 
       // 3. Fetch first page with size 2
-      const page1 = await TestHelpers.expectOk<{ data: OcrJobEntity[]; total: number }>(app, '/ocr-jobs?page=1&pageSize=2');
+      const page1 = await TestHelpers.expectOk<PaginatedResponse<OcrJobEntity>>(app, '/ocr-jobs?page=1&pageSize=2');
       expect(page1.total).toBe(3);
-      expect(page1.data).toHaveLength(2);
+      expect(page1.data).toBeArrayOfSize(2);
       expect(page1.data[0].name).toBe('Job C');
       expect(page1.data[1].name).toBe('Job B');
 
       // 4. Fetch second page with size 2
-      const page2 = await TestHelpers.expectOk<{ data: OcrJobEntity[]; total: number }>(app, '/ocr-jobs?page=2&pageSize=2');
+      const page2 = await TestHelpers.expectOk<PaginatedResponse<OcrJobEntity>>(app, '/ocr-jobs?page=2&pageSize=2');
       expect(page2.total).toBe(3);
-      expect(page2.data).toHaveLength(1);
+      expect(page2.data).toBeArrayOfSize(1);
       expect(page2.data[0].name).toBe('Job A');
     });
   });
