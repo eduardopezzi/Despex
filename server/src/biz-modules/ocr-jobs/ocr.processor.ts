@@ -1,21 +1,22 @@
 import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Inject, Logger } from '@nestjs/common';
 import { Job } from 'bullmq';
-import * as fs from 'fs';
 import axios from 'axios';
 import { extname } from 'path';
 import { AppSecret } from '@core/types/app-secret.enum';
 import { SecretProvider } from '@core/secrets/secret-provider.interface';
-import { LocalStorageProvider } from '@core/storage/local-storage.provider';
+import { StorageProvider } from '@core/storage/storage-provider.interface';
 import { QueueName } from '@core/types/queue-name.enum';
 import { OcrProvider } from '@core/types/ocr-provider.enum';
-import { MimeType } from '@open-receipt-ocr/types';
+import { MimeType, FileExtension } from '@open-receipt-ocr/types';
 
 import { OcrExecutionsDao } from '@core/database/daos/ocr-executions.dao';
 import { OcrFilesDao } from '@core/database/daos/ocr-files.dao';
 import { OcrJobsDao } from '@core/database/daos/ocr-jobs.dao';
 import { OcrFileEntity } from '@core/database/entities/ocr-file.entity';
 import { OcrExecutionStatus, OcrFileStatus, OcrJobStatus } from '@open-receipt-ocr/types';
+import { NoTxn, WithTxn } from '@core/database/txn-def.interface';
+import { DbService } from '@core/database/db.service';
 
 @Processor(QueueName.Ocr)
 export class OcrProcessor extends WorkerHost {
@@ -26,7 +27,8 @@ export class OcrProcessor extends WorkerHost {
     private readonly ocrFilesDao: OcrFilesDao,
     private readonly ocrJobsDao: OcrJobsDao,
     @Inject(SecretProvider) private readonly secretProvider: SecretProvider,
-    private readonly localStorage: LocalStorageProvider,
+    private readonly storage: StorageProvider,
+    private readonly db: DbService,
   ) {
     super();
   }
@@ -35,32 +37,36 @@ export class OcrProcessor extends WorkerHost {
     const { executionId } = job.data;
     this.logger.log(`Processing OCR for execution #${executionId}`);
 
-    const execution = await this.ocrExecutionsDao.getOneByPk(executionId);
+    const execution = await this.ocrExecutionsDao.getOneByPk(NoTxn, executionId);
     if (!execution) {
       this.logger.error(`Execution #${executionId} not found — skipping`);
       return;
     }
 
-    const file = await this.ocrFilesDao.getOneByPk(execution.fileId);
+    const file = await this.ocrFilesDao.getOneByPk(NoTxn, execution.fileId);
     if (!file) {
       this.logger.error(`File #${execution.fileId} for execution #${executionId} not found — skipping`);
       return;
     }
 
     try {
-      await this.ocrExecutionsDao.updateByPk(executionId, { status: OcrExecutionStatus.Running });
-      await this.ocrFilesDao.updateByPk(file.id, { status: OcrFileStatus.Processing });
+      await this.db.transaction(async (em) => {
+        const txn = WithTxn(em);
 
-      const filePath = this.localStorage.getFilePath(file.filename);
-      if (!fs.existsSync(filePath)) {
-        throw new Error(`File not found on disk: ${filePath}`);
+        await this.ocrExecutionsDao.updateByPk(txn, executionId, { status: OcrExecutionStatus.Running });
+        await this.ocrFilesDao.updateByPk(txn, file.id, { status: OcrFileStatus.Processing });
+      });
+
+      const fileExists = await this.storage.exists(file.filename);
+      if (!fileExists) {
+        throw new Error(`File not found in storage: ${file.filename}`);
       }
 
       let ocrData: string;
 
       switch (execution.ocrProvider) {
         case OcrProvider.Mistral:
-          ocrData = await this.processMistral(file, executionId, filePath);
+          ocrData = await this.processMistral(file, executionId);
           break;
         case OcrProvider.Azure:
         case OcrProvider.Aws:
@@ -69,45 +75,54 @@ export class OcrProcessor extends WorkerHost {
           throw new Error(`Unknown OCR Provider: ${execution.ocrProvider}`);
       }
 
-      await this.ocrExecutionsDao.updateByPk(executionId, {
-        status: OcrExecutionStatus.Completed,
-        ocrData,
-      });
+      await this.db.transaction(async (em) => {
+        const txn = WithTxn(em);
 
-      await this.ocrFilesDao.updateByPk(file.id, {
-        status: OcrFileStatus.Completed,
-      });
+        await this.ocrExecutionsDao.updateByPk(txn, executionId, {
+          status: OcrExecutionStatus.Completed,
+          ocrData,
+        });
 
-      // Update Job status to Completed if all files are completed
-      const job = await this.ocrJobsDao.findOneWithRelations(file.jobId);
-      if (job && job.files.every((f) => f.status === OcrFileStatus.Completed)) {
-        await this.ocrJobsDao.updateByPk(job.id, { status: OcrJobStatus.Completed });
-      }
+        await this.ocrFilesDao.updateByPk(txn, file.id, {
+          status: OcrFileStatus.Completed,
+        });
+
+        // Update Job status to Completed if all files are completed
+        const job = await this.ocrJobsDao.findOneWithRelations(txn, file.jobId);
+        if (job && job.files.every((f) => f.status === OcrFileStatus.Completed)) {
+          await this.ocrJobsDao.updateByPk(txn, job.id, { status: OcrJobStatus.Completed });
+        }
+      });
 
       this.logger.log(`Successfully completed OCR for execution #${executionId}`);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       this.logger.error(`OCR failed for execution #${executionId}: ${message}`);
 
-      await this.ocrExecutionsDao.updateByPk(executionId, {
-        status: OcrExecutionStatus.Failed,
-        errorMessage: message,
-      });
+      await this.db.transaction(async (em) => {
+        const txn = WithTxn(em);
 
-      await this.ocrFilesDao.updateByPk(file.id, {
-        status: OcrFileStatus.Failed,
-      });
+        await this.ocrExecutionsDao.updateByPk(txn, executionId, {
+          status: OcrExecutionStatus.Failed,
+          errorMessage: message,
+        });
 
-      await this.ocrJobsDao.updateByPk(file.jobId, { status: OcrJobStatus.Failed });
+        await this.ocrFilesDao.updateByPk(txn, file.id, {
+          status: OcrFileStatus.Failed,
+        });
+
+        await this.ocrJobsDao.updateByPk(txn, file.jobId, { status: OcrJobStatus.Failed });
+      });
 
       throw error;
     }
   }
 
-  private async processMistral(file: OcrFileEntity, executionId: number, filePath: string): Promise<string> {
+  private async processMistral(file: OcrFileEntity, executionId: number): Promise<string> {
     const mistralApiKey = await this.secretProvider.getSecretOrThrow(AppSecret.MistralApiKey);
-    // TODO: Use storage instead. The file might not be stored in local storage
-    const base64Content = fs.readFileSync(filePath).toString('base64');
+    
+    const fileStream = await this.storage.getStream(file.filename);
+    const base64Content = await this.streamToBase64(fileStream);
     const mimeType = OcrProcessor.getMimeType(extname(file.filename).toLowerCase());
 
     this.logger.log(`Calling Mistral OCR API for execution #${executionId}`);
@@ -133,14 +148,26 @@ export class OcrProcessor extends WorkerHost {
     return JSON.stringify(response.data);
   }
 
+  private streamToBase64(stream: NodeJS.ReadableStream): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const chunks: Buffer[] = [];
+      stream.on('data', (chunk) => chunks.push(chunk));
+      stream.on('end', () => {
+        const buffer = Buffer.concat(chunks);
+        resolve(buffer.toString('base64'));
+      });
+      stream.on('error', reject);
+    });
+  }
+
   private static getMimeType(ext: string): string {
     switch (ext) {
-      case '.pdf':
+      case FileExtension.Pdf:
         return MimeType.Pdf;
-      case '.jpg':
-      case '.jpeg':
+      case FileExtension.Jpg:
+      case FileExtension.Jpeg:
         return MimeType.Jpeg;
-      case '.png':
+      case FileExtension.Png:
         return MimeType.Png;
       default:
         return MimeType.OctetStream;

@@ -35,8 +35,10 @@ export class OcrJobsService {
     @Inject(StorageProvider) private readonly storage: StorageProvider,
   ) {}
 
-  findAllJobs(): Promise<OcrJobEntity[]> {
-    return this.ocrJobsDao.findAllWithRelations();
+  findAllJobs(page?: number, pageSize?: number): Promise<[OcrJobEntity[], number]> {
+    const skip = page && pageSize ? (page - 1) * pageSize : undefined;
+    const take = pageSize;
+    return this.ocrJobsDao.findAllWithRelations(NoTxn, skip, take);
   }
 
   async upload(req: Request): Promise<OcrJobEntity> {

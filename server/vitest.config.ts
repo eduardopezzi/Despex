@@ -7,6 +7,7 @@ export default defineConfig({
     globals: true,
     environment: 'node',
     include: ['tests/**/*.test.ts', 'src/**/*.spec.ts'],
+    setupFiles: ['./tests/setup-vitest.ts'],
   },
   plugins: [
     // This plugin enables SWC which compiles NestJS decorators very fast

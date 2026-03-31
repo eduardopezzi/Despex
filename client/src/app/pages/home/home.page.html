@@ -2,10 +2,10 @@
   <!-- Header -->
   <header class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12 animate-in fade-in slide-in-from-top-4 duration-700">
     <div class="space-y-1">
-      <h1 class="text-4xl font-black tracking-tight text-surface-900 dark:text-surface-0">{{ t('receipts.home.welcome') }}</h1>
-      <p class="text-surface-500 dark:text-surface-400 font-medium">{{ t('receipts.home.overview') }}</p>
+      <h1 class="text-4xl font-black tracking-tight text-surface-900 dark:text-surface-0">{{ t('ocrJobs.home.welcome') }}</h1>
+      <p class="text-surface-500 dark:text-surface-400 font-medium">{{ t('ocrJobs.home.overview') }}</p>
     </div>
-    <p-button [label]="t('receipts.addJob')" icon="pi pi-plus" (onClick)="showUpload = true" severity="primary" size="large" styleClass="px-8 py-4 rounded-2xl font-bold shadow-xl shadow-primary-500/20 hover:scale-105 transition-transform" />
+    <p-button [label]="t('ocrJobs.addJob')" icon="pi pi-plus" (onClick)="showUpload = true" severity="primary" size="large" styleClass="px-8 py-4 rounded-2xl font-bold shadow-xl shadow-primary-500/20 hover:scale-105 transition-transform" />
   </header>
 
   <!-- Stats Grid -->
@@ -30,8 +30,8 @@
   <!-- Recent activity -->
   <div class="space-y-6">
     <div class="flex items-center justify-between">
-      <h2 class="text-xl font-bold text-surface-900 dark:text-surface-0">{{ t('receipts.home.recentReceipts') }}</h2>
-      <p-button label="View all" icon="pi pi-arrow-right" [link]="true" routerLink="/ocr-jobs" />
+      <h2 class="text-xl font-bold text-surface-900 dark:text-surface-0">{{ t('ocrJobs.home.recentReceipts') }}</h2>
+      <p-button [label]="t('ocrJobs.home.viewAll')" icon="pi pi-arrow-right" [link]="true" routerLink="/ocr-jobs" />
     </div>
 
     @if (ocrJobService.loading() && ocrJobService.jobs().length === 0) {
@@ -53,7 +53,7 @@
                   <span class="text-[10px] font-bold text-surface-400 uppercase tracking-widest">{{ job.createdAt | date: 'MMM d, HH:mm' }}</span>
                 </div>
               </div>
-              <p-tag [value]="t('receipts.status.' + job.status)" [severity]="getStatusSeverity(job.status)" styleClass="text-[9px] px-2 py-1 rounded-full uppercase font-black" />
+              <p-tag [value]="t('ocrJobs.status.' + job.status)" [severity]="getStatusSeverity(job.status)" styleClass="text-[9px] px-2 py-1 rounded-full uppercase font-black" />
             </div>
           </p-card>
         }
@@ -63,8 +63,8 @@
         <div class="w-20 h-20 bg-surface-100 dark:bg-surface-800 rounded-full flex items-center justify-center mx-auto mb-6">
           <i class="pi pi-inbox text-4xl text-surface-300 dark:text-surface-600"></i>
         </div>
-        <p class="text-surface-500 dark:text-surface-400 font-medium mb-8">{{ t('receipts.noJobs') }}</p>
-        <p-button [label]="t('receipts.addJob')" icon="pi pi-plus" (onClick)="showUpload = true" severity="secondary" [outlined]="true" />
+        <p class="text-surface-500 dark:text-surface-400 font-medium mb-8">{{ t('ocrJobs.noJobs') }}</p>
+        <p-button [label]="t('ocrJobs.addJob')" icon="pi pi-plus" (onClick)="showUpload = true" severity="secondary" [outlined]="true" />
       </div>
     }
   </div>

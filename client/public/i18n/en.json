@@ -8,14 +8,15 @@
     "copy": "Copy",
     "delete": "Delete",
     "loading": "Loading...",
-    "comingSoon": "Coming Soon"
+    "comingSoon": "Coming Soon",
+    "of": "of"
   },
   "layout": {
     "appTitle": "ReceiptOCR",
     "appSubtitle": "Open OCR Dashboard",
     "menu": "Menu",
     "dashboard": "Dashboard",
-    "receipts": "OCR Jobs",
+    "ocrJobs": "OCR Jobs",
     "admin": "Admin",
     "selfHosted": "Self-hosted",
     "collapse": "Collapse",
@@ -35,7 +36,7 @@
     "processing": "Uploading and creating job...",
     "singleSelection": "Single Selection"
   },
-  "receipts": {
+  "ocrJobs": {
     "title": "OCR Jobs",
     "subtitle": "Manage your document processing pipeline",
     "addJob": "Add OCR Job",
@@ -43,6 +44,12 @@
     "files": "files",
     "noJobs": "No OCR Jobs yet",
     "noJobsHint": "Upload one or more documents to create your first OCR job.",
+    "home": {
+      "welcome": "Welcome back!",
+      "overview": "Here is an overview of your recent OCR activity",
+      "recentReceipts": "Recent OCR Jobs",
+      "viewAll": "View all"
+    },
     "status": {
       "total": "Total",
       "pending": "Pending",
@@ -69,7 +76,6 @@
       "downloadSuccess": "Markdown saved"
     },
     "card": {
-      "retry": "Reprocess",
       "retrying": "Reprocessing",
       "retryQueued": "New OCR execution queued",
       "delete": "Delete Job"

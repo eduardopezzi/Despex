@@ -53,23 +53,28 @@ export class BaseDao<T extends ObjectLiteral> {
 
   // ─── Write ────────────────────────────────────────────────────────────────
 
-  create(txnDef: TxnDef, data: DeepPartial<T>): Promise<T> {
+  create(txnDef: TxnDef = NoTxn, data: DeepPartial<T>): Promise<T> {
     const repo = this.repositoryWithTxnDef(txnDef);
     const entity = repo.create(data);
     return repo.save(entity);
   }
 
-  async updateByPk(txnDef: TxnDef, id: string | number, data: DeepPartial<T>): Promise<T> {
+  async updateByPk(txnDef: TxnDef = NoTxn, id: string | number, data: DeepPartial<T>): Promise<T> {
     const entity = await this.getOneByPkOrFail(txnDef, id);
     const repo = this.repositoryWithTxnDef(txnDef);
     const updated = repo.merge(entity, data);
     return repo.save(updated);
   }
 
-  async deleteByPk(txnDef: TxnDef, id: string | number): Promise<void> {
+  async deleteByPk(txnDef: TxnDef = NoTxn, id: string | number): Promise<void> {
     await this.getOneByPkOrFail(txnDef, id);
     const repo = this.repositoryWithTxnDef(txnDef);
     await repo.delete({ [this.pkName]: id } as FindOptionsWhere<T>);
+  }
+
+  async truncate(txnDef: TxnDef = NoTxn): Promise<void> {
+    const repo = this.repositoryWithTxnDef(txnDef);
+    await repo.clear();
   }
 
   // ─── Helpers ──────────────────────────────────────────────────────────────
