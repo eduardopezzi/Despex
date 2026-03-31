@@ -80,15 +80,15 @@ export class OcrJobsPageComponent implements OnInit, OnDestroy {
   get exportItems(): MenuItem[] {
     return [
       {
-        label: this.translocoService.translate('receipts.detail.exportTitleNative'),
+        label: this.translocoService.translate('ocrJobs.detail.exportTitleNative'),
         items: [
           {
-            label: this.translocoService.translate('receipts.detail.copyToClipboard'),
+            label: this.translocoService.translate('ocrJobs.detail.copyToClipboard'),
             icon: 'pi pi-copy',
             command: () => this.copyToClipboard(),
           },
           {
-            label: this.translocoService.translate('receipts.detail.downloadMarkdown'),
+            label: this.translocoService.translate('ocrJobs.detail.downloadMarkdown'),
             icon: 'pi pi-file-export',
             command: () => this.downloadMarkdown(),
           },
@@ -180,8 +180,8 @@ export class OcrJobsPageComponent implements OnInit, OnDestroy {
     navigator.clipboard.writeText(this.selectedExecution.ocrData);
     this.messageService.add({
       severity: 'success',
-      summary: this.translocoService.translate('receipts.detail.copied'),
-      detail: this.translocoService.translate('receipts.detail.copySuccess'),
+      summary: this.translocoService.translate('ocrJobs.detail.copied'),
+      detail: this.translocoService.translate('ocrJobs.detail.copySuccess'),
     });
   }
 
@@ -196,8 +196,8 @@ export class OcrJobsPageComponent implements OnInit, OnDestroy {
     window.URL.revokeObjectURL(url);
     this.messageService.add({
       severity: 'success',
-      summary: this.translocoService.translate('receipts.detail.downloaded'),
-      detail: this.translocoService.translate('receipts.detail.downloadSuccess'),
+      summary: this.translocoService.translate('ocrJobs.detail.downloaded'),
+      detail: this.translocoService.translate('ocrJobs.detail.downloadSuccess'),
     });
   }
 
@@ -276,8 +276,8 @@ export class OcrJobsPageComponent implements OnInit, OnDestroy {
       next: () => {
         this.messageService.add({
           severity: 'info',
-          summary: this.translocoService.translate('receipts.card.retrying'),
-          detail: this.translocoService.translate('receipts.card.retryQueued'),
+          summary: this.translocoService.translate('ocrJobs.card.retrying'),
+          detail: this.translocoService.translate('ocrJobs.card.retryQueued'),
         });
         this.fetchJobsWithPagination();
       },
@@ -291,14 +291,14 @@ export class OcrJobsPageComponent implements OnInit, OnDestroy {
   deleteJob(event: Event, job: OcrJob) {
     event.stopPropagation();
     this.confirmationService.confirm({
-      message: this.translocoService.translate('receipts.delete.confirmation'),
-      header: this.translocoService.translate('receipts.delete.title'),
+      message: this.translocoService.translate('ocrJobs.delete.confirmation'),
+      header: this.translocoService.translate('ocrJobs.delete.title'),
       accept: () => {
         this.ocrJobService.deleteJob(job.id).subscribe({
           next: () => {
             this.messageService.add({
               severity: 'success',
-              summary: this.translocoService.translate('receipts.delete.success'),
+              summary: this.translocoService.translate('ocrJobs.delete.success'),
             });
             this.fetchJobsWithPagination();
             if (this.selectedJob?.id === job.id) {

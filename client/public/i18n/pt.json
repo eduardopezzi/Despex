@@ -16,7 +16,7 @@
     "appSubtitle": "Painel de OCR Aberto",
     "menu": "Menu",
     "dashboard": "Painel",
-    "receipts": "Trabalhos OCR",
+    "ocrJobs": "Trabalhos OCR",
     "admin": "Admin",
     "selfHosted": "Auto-hospedado",
     "collapse": "Recolher",
@@ -36,7 +36,7 @@
     "processing": "A carregar e a criar trabalho...",
     "singleSelection": "Seleção Única"
   },
-  "receipts": {
+  "ocrJobs": {
     "title": "Trabalhos OCR",
     "subtitle": "Gerencie o seu pipeline de processamento de documentos",
     "addJob": "Adicionar Trabalho OCR",
@@ -44,6 +44,12 @@
     "files": "ficheiros",
     "noJobs": "Ainda sem Trabalhos OCR",
     "noJobsHint": "Carregue um ou mais documentos para criar o seu primeiro trabalho OCR.",
+    "home": {
+      "welcome": "Bem-vindo de volta!",
+      "overview": "Aqui está uma visão geral da sua atividade recente de OCR",
+      "recentReceipts": "Trabalhos OCR Recentes",
+      "viewAll": "Ver todos"
+    },
     "status": {
       "total": "Total",
       "pending": "Pendente",

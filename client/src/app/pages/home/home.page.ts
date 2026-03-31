@@ -8,12 +8,14 @@ import { TagModule } from 'primeng/tag';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { UploadDialogComponent } from '@components/upload-dialog/upload-dialog.component';
 
+import { RouterModule } from '@angular/router';
 import { TranslocoModule } from '@jsverse/transloco';
+import { FileExtension } from '@open-receipt-ocr/types';
 
 @Component({
   selector: 'app-home-page',
   standalone: true,
-  imports: [CommonModule, CardModule, ButtonModule, TagModule, ProgressSpinnerModule, UploadDialogComponent, TranslocoModule],
+  imports: [CommonModule, CardModule, ButtonModule, TagModule, ProgressSpinnerModule, UploadDialogComponent, TranslocoModule, RouterModule],
   templateUrl: './home.page.html',
 })
 export class HomePageComponent implements OnInit {
@@ -34,28 +36,28 @@ export class HomePageComponent implements OnInit {
     const all = this.ocrJobService.jobs();
     return [
       {
-        label: 'receipts.status.total',
+        label: 'ocrJobs.status.total',
         value: all.length,
         icon: 'pi pi-receipt',
         iconBg: 'bg-primary-50 dark:bg-primary-900/30',
         iconColor: 'text-primary-500',
       },
       {
-        label: 'receipts.status.completed',
+        label: 'ocrJobs.status.completed',
         value: all.filter((i: OcrJob) => i.status === OcrJobStatus.Completed).length,
         icon: 'pi pi-check-circle',
         iconBg: 'bg-emerald-50 dark:bg-emerald-900/30',
         iconColor: 'text-emerald-500',
       },
       {
-        label: 'receipts.status.processing',
+        label: 'ocrJobs.status.processing',
         value: all.filter((i: OcrJob) => i.status === OcrJobStatus.Processing || i.status === OcrJobStatus.Pending).length,
         icon: 'pi pi-spin pi-spinner',
         iconBg: 'bg-blue-50 dark:bg-blue-900/30',
         iconColor: 'text-blue-500',
       },
       {
-        label: 'receipts.status.failed',
+        label: 'ocrJobs.status.failed',
         value: all.filter((i: OcrJob) => i.status === OcrJobStatus.Failed).length,
         icon: 'pi pi-exclamation-triangle',
         iconBg: 'bg-red-50 dark:bg-red-950/30',
@@ -97,8 +99,8 @@ export class HomePageComponent implements OnInit {
 
   getFileIcon(filename: string): string {
     const ext = filename.split('.').pop()?.toLowerCase();
-    if (ext === 'pdf') return 'pi pi-file-pdf text-red-400';
-    if (ext === 'png' || ext === 'jpg' || ext === 'jpeg') return 'pi pi-image text-emerald-400';
+    if (ext === FileExtension.Pdf) return 'pi pi-file-pdf text-red-400';
+    if ([FileExtension.Png, FileExtension.Jpg, FileExtension.Jpeg].includes(ext as FileExtension)) return 'pi pi-image text-emerald-400';
     return 'pi pi-file text-surface-400';
   }
 }
