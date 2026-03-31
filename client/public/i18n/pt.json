@@ -8,7 +8,8 @@
     "copy": "Copiar",
     "delete": "Eliminar",
     "loading": "A carregar...",
-    "comingSoon": "Em Breve"
+    "comingSoon": "Em breve",
+    "of": "de"
   },
   "layout": {
     "appTitle": "ReceiptOCR",
@@ -22,64 +23,61 @@
     "expand": "Expandir"
   },
   "upload": {
-    "title": "Carregar Recibo",
+    "title": "Criar Trabalho OCR",
     "jobName": "Nome do Trabalho",
     "jobNamePlaceholder": "Dê um nome ao seu trabalho (ex: Recibos Mensais)",
-    "dropZone": "Largue o ficheiro aqui",
-    "dropZoneHint": "PDF, JPG, PNG · máx 20 MB",
+    "dropZone": "Largue os ficheiros aqui ou clique para navegar",
+    "dropZoneHint": "PDF, JPG, PNG · máx 50 MB",
     "ocrProvider": "Fornecedor OCR",
     "selectProvider": "Selecionar Fornecedor",
-    "uploadAndProcess": "Carregar e Processar",
-    "uploadSuccess": "Carregamento concluído! OCR em fila.",
+    "uploadAndProcess": "Criar Trabalho e Iniciar OCR",
+    "uploadSuccess": "Trabalho criado! As execuções OCR estão a iniciar.",
     "uploadFailed": "Falha no carregamento. Tente novamente.",
+    "processing": "A carregar e a criar trabalho...",
     "singleSelection": "Seleção Única"
   },
   "receipts": {
-    "title": "Recibos",
-    "pageTitle": "Recibos",
-    "uploadNew": "Carregar Recibo",
-    "noReceipts": "Ainda sem recibos",
-    "noReceiptsHint": "Carregue o seu primeiro recibo para começar.",
-    "uploadFirst": "Carregar o primeiro recibo",
+    "title": "Trabalhos OCR",
+    "subtitle": "Gerencie o seu pipeline de processamento de documentos",
+    "addJob": "Adicionar Trabalho OCR",
+    "file": "ficheiro",
+    "files": "ficheiros",
+    "noJobs": "Ainda sem Trabalhos OCR",
+    "noJobsHint": "Carregue um ou mais documentos para criar o seu primeiro trabalho OCR.",
     "status": {
       "total": "Total",
       "pending": "Pendente",
       "processing": "Em Processamento",
       "completed": "Concluído",
-      "failed": "Falhado"
-    },
-    "home": {
-      "welcome": "Bem-vindo de volta 👋",
-      "overview": "Aqui está uma visão geral do seu pipeline de OCR.",
-      "recentReceipts": "Recibos Recentes",
-      "noReceipts": "Ainda sem recibos. Carregue o primeiro!"
+      "failed": "Falhado",
+      "running": "A processar"
     },
     "detail": {
-      "title": "Detalhes do Recibo",
-      "fileName": "Nome do Ficheiro",
-      "status": "Estado",
-      "ocrProvider": "Fornecedor OCR",
-      "uploaded": "Carregado",
-      "fileKey": "Chave do Ficheiro",
-      "extractedData": "Dados Extraídos por OCR",
-      "exportContent": "Exportar Conteúdo",
-      "exportTitleNative": "Nativo",
-      "exportTitleExternal": "Integrações Externas",
-      "copyToClipboard": "Copiar para Área de Transferência",
-      "downloadMarkdown": "Descarregar como Markdown",
-      "sendToN8n": "Enviar para n8n",
-      "sendToGoogleDrive": "Google Drive",
+      "title": "Visão Geral do Trabalho",
+      "jobFiles": "Ficheiros do Trabalho",
+      "results": "Resultados OCR",
+      "executionHistory": "Histórico de Execuções",
+      "ocrOutput": "Conteúdo do Resultado OCR",
+      "reprocess": "Reprocessar",
+      "ocrInProgress": "OCR em execução...",
+      "noData": "Nenhum dado OCR disponível para esta execução.",
+      "selectFile": "Selecione um ficheiro na barra lateral para ver os resultados",
+      "copyToClipboard": "Copiar texto OCR",
+      "downloadMarkdown": "Descarregar Markdown",
       "copied": "Copiado",
-      "copySuccess": "Dados OCR copiados para a área de transferência",
+      "copySuccess": "Conteúdo OCR copiado para a área de transferência",
       "downloaded": "Descarregado",
-      "downloadSuccess": "Ficheiro Markdown guardado",
-      "n8nComingSoon": "Integração n8n em breve",
-      "googleDriveComingSoon": "Integração Google Drive em breve",
-      "copyFailed": "Falha ao copiar",
-      "noContent": "Ainda não há conteúdo OCR disponível.",
-      "processingMsg": "OCR em processamento, aguarde...",
-      "pendingMsg": "Recibo em fila de processamento.",
-      "failedMsg": "Falha no processamento OCR."
+      "downloadSuccess": "Markdown guardado"
+    },
+    "card": {
+      "retrying": "A Reprocessar",
+      "retryQueued": "Nova execução OCR em fila",
+      "delete": "Eliminar Trabalho"
+    },
+    "delete": {
+      "title": "Eliminar Trabalho OCR",
+      "confirmation": "Tem a certeza que deseja eliminar este trabalho e todos os ficheiros e dados associados? Esta ação não pode ser desfeita.",
+      "success": "Trabalho eliminado com sucesso"
     }
   },
   "config": {

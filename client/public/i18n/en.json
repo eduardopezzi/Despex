@@ -70,7 +70,6 @@
       "downloadSuccess": "Markdown saved"
     },
     "card": {
-      "retry": "Reprocess",
       "retrying": "Reprocessing",
       "retryQueued": "New OCR execution queued",
       "delete": "Delete Job"
