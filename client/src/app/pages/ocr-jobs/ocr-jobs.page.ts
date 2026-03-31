@@ -293,7 +293,6 @@ export class OcrJobsPageComponent implements OnInit, OnDestroy {
     this.confirmationService.confirm({
       message: this.translocoService.translate('receipts.delete.confirmation'),
       header: this.translocoService.translate('receipts.delete.title'),
-      icon: 'pi pi-exclamation-triangle',
       accept: () => {
         this.ocrJobService.deleteJob(job.id).subscribe({
           next: () => {
