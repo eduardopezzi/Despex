@@ -13,6 +13,7 @@
     "dev": "nest start --watch -e \"node -r dotenv/config\"",
     "start:debug": "nest start --debug --watch -e \"node -r dotenv/config\"",
     "start:worker": "nest start --entryFile worker -e \"node -r dotenv/config\"",
+    "start:worker:debug": "nest start --debug --entryFile worker -e \"node -r dotenv/config\"",
     "start:dev:worker": "nest start --entryFile worker --watch -e \"node -r dotenv/config\"",
     "start:prod": "node -r dotenv/config dist/main",
     "start:prod:worker": "node -r dotenv/config dist/worker",
@@ -26,6 +27,7 @@
   },
   "dependencies": {
     "@infisical/sdk": "^5.0.0",
+    "@mistralai/mistralai": "^2.1.2",
     "@nestjs/bullmq": "^11.0.4",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.3",
