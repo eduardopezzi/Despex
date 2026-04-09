@@ -14,3 +14,88 @@
 }
 
 /* You can add global styles to this file, and also import other style files */
+
+/* ── OCR Markdown Output ── */
+.ocr-markdown-output {
+  line-height: 1.75;
+}
+
+.ocr-markdown-output table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.25rem 0;
+  font-size: 0.8125rem;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  border: 1px solid theme('colors.surface-200');
+}
+
+.dark .ocr-markdown-output table {
+  border-color: theme('colors.surface-700');
+}
+
+.ocr-markdown-output table th {
+  background-color: theme('colors.surface-100');
+  padding: 0.625rem 0.875rem;
+  font-weight: 700;
+  text-align: left;
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: theme('colors.surface-500');
+  border-bottom: 1px solid theme('colors.surface-200');
+}
+
+.dark .ocr-markdown-output table th {
+  background-color: theme('colors.surface-800');
+  border-bottom-color: theme('colors.surface-700');
+  color: theme('colors.surface-400');
+}
+
+.ocr-markdown-output table td {
+  padding: 0.5rem 0.875rem;
+  border-bottom: 1px solid theme('colors.surface-100');
+  color: theme('colors.surface-700');
+}
+
+.dark .ocr-markdown-output table td {
+  border-bottom-color: theme('colors.surface-800');
+  color: theme('colors.surface-300');
+}
+
+.ocr-markdown-output table tr:last-child td {
+  border-bottom: none;
+}
+
+.ocr-markdown-output table tr:nth-child(even) td {
+  background-color: theme('colors.surface-50');
+}
+
+.dark .ocr-markdown-output table tr:nth-child(even) td {
+  background-color: rgb(theme('colors.surface-800') / 30%);
+}
+
+.ocr-markdown-output code {
+  font-size: 0.8125rem;
+  background: theme('colors.surface-100');
+  border-radius: 0.25rem;
+  padding: 0.1em 0.4em;
+}
+
+.dark .ocr-markdown-output code {
+  background: theme('colors.surface-800');
+}
+
+.ocr-markdown-output pre code {
+  background: transparent;
+  padding: 0;
+}
+
+.ocr-markdown-output hr {
+  border-color: theme('colors.surface-200');
+  margin: 1.5rem 0;
+}
+
+.dark .ocr-markdown-output hr {
+  border-color: theme('colors.surface-700');
+}
