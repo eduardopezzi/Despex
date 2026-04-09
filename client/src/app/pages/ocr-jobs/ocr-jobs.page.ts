@@ -31,6 +31,11 @@ import { PopoverModule } from 'primeng/popover';
 import { PaginatorModule } from 'primeng/paginator';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { OcrOutputPipe } from '@app/pipes/ocr-output.pipe';
+import { FormsModule } from '@angular/forms';
+import { IconFieldModule } from 'primeng/iconfield';
+import { InputIconModule } from 'primeng/inputicon';
+import { InputTextModule } from 'primeng/inputtext';
+import { SelectModule } from 'primeng/select';
 
 @Component({
   selector: 'app-ocr-jobs-page',
@@ -51,6 +56,11 @@ import { OcrOutputPipe } from '@app/pipes/ocr-output.pipe';
     PopoverModule,
     PaginatorModule,
     OcrOutputPipe,
+    FormsModule,
+    IconFieldModule,
+    InputIconModule,
+    InputTextModule,
+    SelectModule,
   ],
   templateUrl: './ocr-jobs.page.html',
 })
@@ -77,6 +87,19 @@ export class OcrJobsPageComponent implements OnInit, OnDestroy {
 
   first = 0;
   rows = 20;
+
+  searchQuery = '';
+  filterStatus: OcrJobStatus | null = null;
+
+  get statusOptions() {
+    return [
+      { label: this.translocoService.translate('ocrJobs.filters.statusAll'), value: null },
+      { label: this.translocoService.translate('ocrJobs.status.pending'), value: OcrJobStatus.Pending },
+      { label: this.translocoService.translate('ocrJobs.status.processing'), value: OcrJobStatus.Processing },
+      { label: this.translocoService.translate('ocrJobs.status.completed'), value: OcrJobStatus.Completed },
+      { label: this.translocoService.translate('ocrJobs.status.failed'), value: OcrJobStatus.Failed },
+    ];
+  }
 
   get selectedFile() {
     return this._selectedFile;
@@ -122,12 +145,22 @@ export class OcrJobsPageComponent implements OnInit, OnDestroy {
 
   fetchJobsWithPagination(showLoading = true) {
     const page = Math.floor(this.first / this.rows) + 1;
-    this.ocrJobService.fetchJobs(showLoading, page, this.rows);
+    this.ocrJobService.fetchJobs(showLoading, page, this.rows, this.filterStatus || undefined, this.searchQuery || undefined);
   }
 
   onPageChange(event: any) {
     this.first = event.first;
     this.rows = event.rows;
+    this.fetchJobsWithPagination();
+  }
+
+  onFilterChange() {
+    this.first = 0;
+    this.fetchJobsWithPagination();
+  }
+
+  onSearch() {
+    this.first = 0;
     this.fetchJobsWithPagination();
   }
 

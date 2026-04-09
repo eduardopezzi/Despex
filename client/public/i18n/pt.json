@@ -43,6 +43,11 @@
     "files": "ficheiros",
     "noJobs": "Ainda sem Trabalhos OCR",
     "noJobsHint": "Carregue um ou mais documentos para criar o seu primeiro trabalho OCR.",
+    "filters": {
+      "searchPlaceholder": "Pesquisar por nome de trabalho ou ficheiro...",
+      "statusPlaceholder": "Todos os Estados",
+      "statusAll": "Todos os Estados"
+    },
     "home": {
       "welcome": "Bem-vindo de volta!",
       "overview": "Aqui está uma visão geral da sua atividade recente de OCR",

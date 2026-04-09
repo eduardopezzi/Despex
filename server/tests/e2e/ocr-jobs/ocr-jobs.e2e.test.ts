@@ -75,6 +75,30 @@ describe('OCR Jobs Controller (e2e)', () => {
       expect(page2.data).toBeArrayOfSize(1);
       expect(page2.data[0].name).toBe('Job A');
     });
+
+    it('/ocr-jobs (GET) - filter by status and search', async () => {
+      // 1. Create a job with specific name and file
+      await TestHelpers.expectUpload<{ id: number }>(
+        app,
+        '/ocr-jobs/upload',
+        { ocrProvider_0: OcrProvider.Mistral, jobName: 'UniqueSearchableName' },
+        { name: 'file', filename: 'unique-file-name.jpg', content: fileData, contentType: MimeType.Jpeg },
+      );
+
+      // 2. Search by job name
+      const searchJob = await TestHelpers.expectOk<PaginatedResponse<OcrJobEntity>>(app, '/ocr-jobs?search=UniqueSearchableName');
+      expect(searchJob.total).toBe(1);
+      expect(searchJob.data[0].name).toBe('UniqueSearchableName');
+
+      // 3. Search by file name
+      const searchFile = await TestHelpers.expectOk<PaginatedResponse<OcrJobEntity>>(app, '/ocr-jobs?search=unique-file-name');
+      expect(searchFile.total).toBe(1);
+      expect(searchFile.data[0].name).toBe('UniqueSearchableName');
+
+      // 4. Filter by status
+      const statusResults = await TestHelpers.expectOk<PaginatedResponse<OcrJobEntity>>(app, `/ocr-jobs?status=${OcrJobStatus.Processing}`);
+      expect(statusResults.data.every((j) => j.status === OcrJobStatus.Processing)).toBe(true);
+    });
   });
 
   it('/ocr-jobs/upload (POST)', async () => {

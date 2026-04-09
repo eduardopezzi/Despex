@@ -1,6 +1,6 @@
 import { Injectable, signal, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { OcrProvider, OcrJob, OcrExecution, PaginatedResponse } from '@open-receipt-ocr/types';
+import { OcrProvider, OcrJob, OcrExecution, PaginatedResponse, OcrJobStatus } from '@open-receipt-ocr/types';
 import { Observable, tap } from 'rxjs';
 import { environment } from '@environments/environment';
 
@@ -16,14 +16,21 @@ export class OcrJobService {
   totalCount = signal<number>(0);
   loading = signal<boolean>(false);
 
-  fetchJobs(showLoading = true, page?: number, pageSize?: number) {
+  fetchJobs(showLoading = true, page?: number, pageSize?: number, status?: OcrJobStatus, search?: string) {
     if (showLoading) {
       this.loading.set(true);
     }
-
-    let params = {};
+ 
+    let params: any = {};
     if (page !== undefined && pageSize !== undefined) {
-      params = { page, pageSize };
+      params.page = page;
+      params.pageSize = pageSize;
+    }
+    if (status) {
+      params.status = status;
+    }
+    if (search) {
+      params.search = search;
     }
 
     return this.http

@@ -5,7 +5,9 @@ import { OcrJobsService } from '@biz-modules/ocr-jobs/ocr-jobs.service';
 import { RouteParam } from '@core/types/route-param.enum';
 import { OcrJobEntity } from '@core/database/entities/ocr-job.entity';
 import { OcrExecutionEntity } from '@core/database/entities/ocr-execution.entity';
-import { OcrProvider, PaginatedResponse } from '@open-receipt-ocr/types';
+import { OcrJobStatus, OcrProvider, PaginatedResponse } from '@open-receipt-ocr/types';
+import { OcrJobQueryParams } from './dto/ocr-job-query.params';
+import { ValidationPipe } from '@nestjs/common';
 
 @ApiTags('ocr-jobs')
 @Controller('ocr-jobs')
@@ -15,9 +17,13 @@ export class OcrJobsController {
   constructor(private readonly ocrJobsService: OcrJobsService) {}
 
   @Get()
-  @ApiOperation({ summary: 'List all OCR jobs sorted by date descending with pagination' })
-  async findAll(@Query('page') page?: number, @Query('pageSize') pageSize?: number): Promise<PaginatedResponse<OcrJobEntity>> {
-    const [data, total] = await this.ocrJobsService.findAllJobs(page, pageSize);
+  @ApiOperation({ summary: 'List all OCR jobs sorted by date descending with pagination and filters' })
+  async findAll(
+    @Query(new ValidationPipe({ transform: true, forbidNonWhitelisted: true }))
+    params: OcrJobQueryParams,
+  ): Promise<PaginatedResponse<OcrJobEntity>> {
+    const { page, pageSize, status, search } = params;
+    const [data, total] = await this.ocrJobsService.findAllJobs(page, pageSize, status, search);
     return { data, total };
   }
 
