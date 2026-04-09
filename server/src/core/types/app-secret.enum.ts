@@ -25,12 +25,20 @@ export enum AppSecret {
   AwsSecretAccessKey = 'AWS_SECRET_ACCESS_KEY',
   AwsRegion = 'AWS_REGION',
 
-  // ─── Storage ─────────────────────────────────────────────────────────────────
+  // ─── Storage ────────────────────────────────────────────────────────────────
   StorageProvider = 'STORAGE_PROVIDER',
-  UploadsDir = 'UPLOADS_DIR',
   MaxFileSizeBytes = 'MAX_FILE_SIZE_BYTES',
+  // ─── Storage - Local ────────────────────────────────────────────────────────
+  UploadsDir = 'UPLOADS_DIR',
+  // ─── Storage - OneDrive ─────────────────────────────────────────────────────
+  OneDriveClientId = 'ONEDRIVE_CLIENT_ID',
+  OneDriveClientSecret = 'ONEDRIVE_CLIENT_SECRET',
+  OneDriveTenantId = 'ONEDRIVE_TENANT_ID',
+  OneDriveRefreshToken = 'ONEDRIVE_REFRESH_TOKEN',
+  OneDriveDriveId = 'ONEDRIVE_DRIVE_ID',
+  OneDriveFolder = 'ONEDRIVE_FOLDER',
 
-  // ─── Infisical ───────────────────────────────────────────────────────────────
+  // ─── Infisical ─────────────────────────────────────────────────────────────
   InfisicalClientId = 'INFISICAL_CLIENT_ID',
   InfisicalClientSecret = 'INFISICAL_CLIENT_SECRET',
   InfisicalProjectId = 'INFISICAL_PROJECT_ID',

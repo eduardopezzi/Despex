@@ -12,8 +12,7 @@
     "of": "of"
   },
   "layout": {
-    "appTitle": "ReceiptOCR",
-    "appSubtitle": "Open OCR Dashboard",
+    "appTitle": "OpenOCR",
     "menu": "Menu",
     "dashboard": "Dashboard",
     "ocrJobs": "OCR Jobs",

@@ -1,6 +1,7 @@
 import { Component, effect, inject, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { OcrJobService } from '@services/ocr-job.service';
+import { OcrOutputParserService } from '@services/ocr-output-parser.service';
 import {
   OcrJob,
   OcrFile,
@@ -29,6 +30,7 @@ import { TooltipModule } from 'primeng/tooltip';
 import { PopoverModule } from 'primeng/popover';
 import { PaginatorModule } from 'primeng/paginator';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { OcrOutputPipe } from '@app/pipes/ocr-output.pipe';
 
 @Component({
   selector: 'app-ocr-jobs-page',
@@ -48,6 +50,7 @@ import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
     TooltipModule,
     PopoverModule,
     PaginatorModule,
+    OcrOutputPipe,
   ],
   templateUrl: './ocr-jobs.page.html',
 })
@@ -57,6 +60,7 @@ export class OcrJobsPageComponent implements OnInit, OnDestroy {
   private translocoService = inject(TranslocoService);
   private confirmationService = inject(ConfirmationService);
   private sanitizer = inject(DomSanitizer);
+  private ocrOutputParser = inject(OcrOutputParserService);
 
   private pollingSubscription?: Subscription;
 
@@ -187,7 +191,21 @@ export class OcrJobsPageComponent implements OnInit, OnDestroy {
 
   copyToClipboard() {
     if (!this.selectedExecution?.ocrData) return;
-    navigator.clipboard.writeText(this.selectedExecution.ocrData);
+    const ocrData = this.selectedExecution.ocrData;
+    const parsed = this.ocrOutputParser.parse(ocrData, this.selectedExecution.ocrProvider);
+    const contentToCopy = (parsed && parsed.markdown) ? parsed.markdown : ocrData;
+    
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(contentToCopy);
+    } else {
+      const el = document.createElement('textarea');
+      el.value = contentToCopy;
+      document.body.appendChild(el);
+      el.select();
+      document.execCommand('copy');
+      document.body.removeChild(el);
+    }
+
     this.messageService.add({
       severity: 'success',
       summary: this.translocoService.translate('ocrJobs.detail.copied'),
@@ -197,13 +215,20 @@ export class OcrJobsPageComponent implements OnInit, OnDestroy {
 
   downloadMarkdown() {
     if (!this.selectedExecution?.ocrData || !this.selectedFile) return;
-    const blob = new Blob([this.selectedExecution.ocrData], { type: 'text/markdown' });
+    const ocrData = this.selectedExecution.ocrData;
+    const parsed = this.ocrOutputParser.parse(ocrData, this.selectedExecution.ocrProvider);
+    const contentToDownload = (parsed && parsed.markdown) ? parsed.markdown : ocrData;
+    
+    const blob = new Blob([contentToDownload], { type: 'text/markdown' });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
     a.download = `${this.selectedFile.originalName}.md`;
+    document.body.appendChild(a);
     a.click();
     window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+
     this.messageService.add({
       severity: 'success',
       summary: this.translocoService.translate('ocrJobs.detail.downloaded'),

@@ -141,6 +141,10 @@ export class OcrJobsService {
     return this.storage.exists(key);
   }
 
+  async getFileByKey(key: string): Promise<OcrFileEntity | null> {
+    return this.ocrFilesDao.findByFilename(NoTxn, key);
+  }
+
   async deleteJob(id: number): Promise<void> {
     const job = await this.ocrJobsDao.findOneWithRelations(NoTxn, id);
     if (!job) return;

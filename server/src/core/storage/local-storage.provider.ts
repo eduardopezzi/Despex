@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, Logger, OnModuleInit } from '@nestjs/common';
 import { createWriteStream, existsSync, mkdirSync } from 'fs';
 import { join } from 'path';
 import { Readable } from 'stream';
@@ -7,16 +7,20 @@ import { extname } from 'node:path';
 import { StorageProvider, UploadResult } from '@core/storage/storage-provider.interface';
 import { StorageProviderType } from '@core/storage/storage-provider-type.enum';
 import { AppSecret } from '@core/types/app-secret.enum';
+import { SecretProvider } from '@core/secrets/secret-provider.interface';
 
 @Injectable()
-export class LocalStorageProvider extends StorageProvider {
+export class LocalStorageProvider extends StorageProvider implements OnModuleInit {
   readonly name = StorageProviderType.Local;
   private readonly logger = new Logger(LocalStorageProvider.name);
-  private readonly uploadDir: string;
+  private uploadDir!: string;
 
-  constructor() {
+  constructor(private readonly secretProvider: SecretProvider) {
     super();
-    this.uploadDir = join(process.cwd(), process.env[AppSecret.UploadsDir] || 'uploads');
+  }
+
+  async onModuleInit(): Promise<void> {
+    this.uploadDir = await this.secretProvider.getSecretOrThrow(AppSecret.UploadsDir);
     if (!existsSync(this.uploadDir)) {
       mkdirSync(this.uploadDir, { recursive: true });
     }
@@ -65,7 +69,7 @@ export class LocalStorageProvider extends StorageProvider {
     return createReadStream(filePath);
   }
 
-  async exists(key: string): Promise<boolean> {
+  exists(key: string): boolean {
     const filePath = this.getFilePath(key);
     return existsSync(filePath);
   }

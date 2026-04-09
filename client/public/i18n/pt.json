@@ -12,8 +12,7 @@
     "of": "de"
   },
   "layout": {
-    "appTitle": "ReceiptOCR",
-    "appSubtitle": "Painel de OCR Aberto",
+    "appTitle": "OpenOCR",
     "menu": "Menu",
     "dashboard": "Painel",
     "ocrJobs": "Trabalhos OCR",

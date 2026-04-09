@@ -1,22 +1,18 @@
 import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Inject, Logger } from '@nestjs/common';
 import { Job } from 'bullmq';
-import axios from 'axios';
-import { extname } from 'path';
-import { AppSecret } from '@core/types/app-secret.enum';
 import { SecretProvider } from '@core/secrets/secret-provider.interface';
 import { StorageProvider } from '@core/storage/storage-provider.interface';
 import { QueueName } from '@core/types/queue-name.enum';
 import { OcrProvider } from '@core/types/ocr-provider.enum';
-import { MimeType, FileExtension } from '@open-receipt-ocr/types';
 
 import { OcrExecutionsDao } from '@core/database/daos/ocr-executions.dao';
 import { OcrFilesDao } from '@core/database/daos/ocr-files.dao';
 import { OcrJobsDao } from '@core/database/daos/ocr-jobs.dao';
-import { OcrFileEntity } from '@core/database/entities/ocr-file.entity';
 import { OcrExecutionStatus, OcrFileStatus, OcrJobStatus } from '@open-receipt-ocr/types';
 import { NoTxn, WithTxn } from '@core/database/txn-def.interface';
 import { DbService } from '@core/database/db.service';
+import { MistralProcessor } from './mistral.processor';
 
 @Processor(QueueName.Ocr)
 export class OcrProcessor extends WorkerHost {
@@ -29,6 +25,7 @@ export class OcrProcessor extends WorkerHost {
     @Inject(SecretProvider) private readonly secretProvider: SecretProvider,
     private readonly storage: StorageProvider,
     private readonly db: DbService,
+    private readonly mistralProcessor: MistralProcessor,
   ) {
     super();
   }
@@ -66,7 +63,7 @@ export class OcrProcessor extends WorkerHost {
 
       switch (execution.ocrProvider) {
         case OcrProvider.Mistral:
-          ocrData = await this.processMistral(file, executionId);
+          ocrData = await this.mistralProcessor.process(file, executionId);
           break;
         case OcrProvider.Azure:
         case OcrProvider.Aws:
@@ -115,62 +112,6 @@ export class OcrProcessor extends WorkerHost {
       });
 
       throw error;
-    }
-  }
-
-  private async processMistral(file: OcrFileEntity, executionId: number): Promise<string> {
-    const mistralApiKey = await this.secretProvider.getSecretOrThrow(AppSecret.MistralApiKey);
-    
-    const fileStream = await this.storage.getStream(file.filename);
-    const base64Content = await this.streamToBase64(fileStream);
-    const mimeType = OcrProcessor.getMimeType(extname(file.filename).toLowerCase());
-
-    this.logger.log(`Calling Mistral OCR API for execution #${executionId}`);
-
-    const response = await axios.post(
-      'https://api.mistral.ai/v1/ocr',
-      {
-        model: 'mistral-ocr-latest',
-        document: {
-          type: 'document_content',
-          document_content: base64Content,
-          document_media_type: mimeType,
-        },
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${mistralApiKey}`,
-          'Content-Type': 'application/json',
-        },
-      },
-    );
-
-    return JSON.stringify(response.data);
-  }
-
-  private streamToBase64(stream: NodeJS.ReadableStream): Promise<string> {
-    return new Promise((resolve, reject) => {
-      const chunks: Buffer[] = [];
-      stream.on('data', (chunk) => chunks.push(chunk));
-      stream.on('end', () => {
-        const buffer = Buffer.concat(chunks);
-        resolve(buffer.toString('base64'));
-      });
-      stream.on('error', reject);
-    });
-  }
-
-  private static getMimeType(ext: string): string {
-    switch (ext) {
-      case FileExtension.Pdf:
-        return MimeType.Pdf;
-      case FileExtension.Jpg:
-      case FileExtension.Jpeg:
-        return MimeType.Jpeg;
-      case FileExtension.Png:
-        return MimeType.Png;
-      default:
-        return MimeType.OctetStream;
     }
   }
 }

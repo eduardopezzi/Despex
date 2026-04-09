@@ -115,6 +115,25 @@ describe('OCR Jobs Controller (e2e)', () => {
     });
   });
 
+  it('/ocr-jobs/uploads/:key (GET)', async () => {
+    const uploadRes = await TestHelpers.expectUpload<{ id: number }>(
+      app,
+      '/ocr-jobs/upload',
+      { ocrProvider_0: OcrProvider.Mistral, jobName: 'Preview Job' },
+      { name: 'file', filename: 'preview.jpg', content: 'dummy-image-contents', contentType: MimeType.Jpeg },
+    );
+
+    const job = await TestHelpers.expectOk<OcrJobEntity>(app, `/ocr-jobs/${uploadRes.id}`);
+    const key = job.files[0].filename;
+
+    // Valid file preview check ensures native MimeType mapping triggers properly
+    const previewBody = await TestHelpers.expectOk<Buffer>(app, `/ocr-jobs/uploads/${key}`);
+    expect(previewBody.toString()).toBe('dummy-image-contents');
+
+    // Verification of NOT FOUND isolation
+    await TestHelpers.expectNotFound(app, '/ocr-jobs/uploads/invalid-key.jpg');
+  });
+
   it('/ocr-jobs/files/:fileId/reprocess (POST)', async () => {
     // 1. Create a job
     const uploadRes = await TestHelpers.expectUpload<{ id: number }>(

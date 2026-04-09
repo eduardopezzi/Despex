@@ -50,6 +50,12 @@ export class OcrJobsController {
       throw new NotFoundException(`File ${key} not found`);
     }
 
+    const fileEntity = await this.ocrJobsService.getFileByKey(key);
+    if (fileEntity && fileEntity.originalName) {
+      const { extname } = await import('node:path');
+      res.type(extname(fileEntity.originalName));
+    }
+
     const stream = await this.ocrJobsService.getFileStream(key);
     stream.pipe(res);
   }
