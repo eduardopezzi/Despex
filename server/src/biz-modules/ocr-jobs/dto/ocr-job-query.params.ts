@@ -1,4 +1,4 @@
-import { IsEnum, IsInt, IsOptional, IsString, Min } from 'class-validator';
+import { IsEnum, IsIn, IsInt, IsOptional, IsString, Min } from 'class-validator';
 import { Type } from 'class-transformer';
 import { OcrJobStatus } from '@open-receipt-ocr/types';
 
@@ -22,4 +22,8 @@ export class OcrJobQueryParams {
   @IsOptional()
   @IsString()
   search?: string;
+
+  @IsOptional()
+  @IsIn(['latest', 'oldest'])
+  sort?: 'latest' | 'oldest';
 }

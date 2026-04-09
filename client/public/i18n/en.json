@@ -46,7 +46,10 @@
     "filters": {
       "searchPlaceholder": "Search by job or file name...",
       "statusPlaceholder": "All Statuses",
-      "statusAll": "All Statuses"
+      "statusAll": "All Statuses",
+      "sortPlaceholder": "Sort by",
+      "latest": "Latest Created",
+      "oldest": "Oldest Created"
     },
     "home": {
       "welcome": "Welcome back!",

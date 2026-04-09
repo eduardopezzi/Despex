@@ -99,6 +99,26 @@ describe('OCR Jobs Controller (e2e)', () => {
       const statusResults = await TestHelpers.expectOk<PaginatedResponse<OcrJobEntity>>(app, `/ocr-jobs?status=${OcrJobStatus.Processing}`);
       expect(statusResults.data.every((j) => j.status === OcrJobStatus.Processing)).toBe(true);
     });
+
+    it('/ocr-jobs (GET) - sort by oldest/latest', async () => {
+      // 1. Create a few jobs at different times
+      // Job A (oldest) already exists
+      // Create Job B
+      await TestHelpers.expectUpload<{ id: number }>(
+        app,
+        '/ocr-jobs/upload',
+        { ocrProvider_0: OcrProvider.Mistral, jobName: 'Job B' },
+        { name: 'file', filename: 'b.jpg', content: fileData, contentType: MimeType.Jpeg },
+      );
+
+      // 2. Test oldest sort
+      const oldestResults = await TestHelpers.expectOk<PaginatedResponse<OcrJobEntity>>(app, '/ocr-jobs?sort=oldest');
+      expect(oldestResults.data[0].name).toBe('Job A'); // Assuming Job A was first
+
+      // 3. Test latest sort
+      const latestResults = await TestHelpers.expectOk<PaginatedResponse<OcrJobEntity>>(app, '/ocr-jobs?sort=latest');
+      expect(latestResults.data[0].name).toBe('Job B'); // Job B should be latest
+    });
   });
 
   it('/ocr-jobs/upload (POST)', async () => {

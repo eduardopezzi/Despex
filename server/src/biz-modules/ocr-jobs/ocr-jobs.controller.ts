@@ -22,8 +22,8 @@ export class OcrJobsController {
     @Query(new ValidationPipe({ transform: true, forbidNonWhitelisted: true }))
     params: OcrJobQueryParams,
   ): Promise<PaginatedResponse<OcrJobEntity>> {
-    const { page, pageSize, status, search } = params;
-    const [data, total] = await this.ocrJobsService.findAllJobs(page, pageSize, status, search);
+    const { page, pageSize, status, search, sort } = params;
+    const [data, total] = await this.ocrJobsService.findAllJobs(page, pageSize, status, search, sort);
     return { data, total };
   }
 

@@ -19,16 +19,21 @@ export class OcrJobsDao extends BaseDao<OcrJobEntity> {
       take?: number;
       status?: OcrJobStatus;
       search?: string;
+      sort?: 'latest' | 'oldest';
     } = {},
   ): Promise<[OcrJobEntity[], number]> {
-    const { skip, take, status, search } = options;
+    const { skip, take, status, search, sort = 'latest' } = options;
 
     const qb = this.repositoryWithTxnDef(txnDef)
       .createQueryBuilder('job')
       .leftJoinAndSelect('job.files', 'file')
-      .leftJoinAndSelect('file.executions', 'execution')
-      .orderBy('job.createdAt', 'DESC')
-      .addOrderBy('job.id', 'DESC');
+      .leftJoinAndSelect('file.executions', 'execution');
+
+    if (sort === 'oldest') {
+      qb.orderBy('job.createdAt', 'ASC').addOrderBy('job.id', 'ASC');
+    } else {
+      qb.orderBy('job.createdAt', 'DESC').addOrderBy('job.id', 'DESC');
+    }
 
     if (status) {
       qb.andWhere('job.status = :status', { status });

@@ -90,6 +90,7 @@ export class OcrJobsPageComponent implements OnInit, OnDestroy {
 
   searchQuery = '';
   filterStatus: OcrJobStatus | null = null;
+  sortOrder: 'latest' | 'oldest' = 'latest';
 
   get statusOptions() {
     return [
@@ -98,6 +99,13 @@ export class OcrJobsPageComponent implements OnInit, OnDestroy {
       { label: this.translocoService.translate('ocrJobs.status.processing'), value: OcrJobStatus.Processing },
       { label: this.translocoService.translate('ocrJobs.status.completed'), value: OcrJobStatus.Completed },
       { label: this.translocoService.translate('ocrJobs.status.failed'), value: OcrJobStatus.Failed },
+    ];
+  }
+
+  get sortOptions() {
+    return [
+      { label: this.translocoService.translate('ocrJobs.filters.latest'), value: 'latest' },
+      { label: this.translocoService.translate('ocrJobs.filters.oldest'), value: 'oldest' },
     ];
   }
 
@@ -145,7 +153,7 @@ export class OcrJobsPageComponent implements OnInit, OnDestroy {
 
   fetchJobsWithPagination(showLoading = true) {
     const page = Math.floor(this.first / this.rows) + 1;
-    this.ocrJobService.fetchJobs(showLoading, page, this.rows, this.filterStatus || undefined, this.searchQuery || undefined);
+    this.ocrJobService.fetchJobs(showLoading, page, this.rows, this.filterStatus || undefined, this.searchQuery || undefined, this.sortOrder);
   }
 
   onPageChange(event: any) {
@@ -160,6 +168,11 @@ export class OcrJobsPageComponent implements OnInit, OnDestroy {
   }
 
   onSearch() {
+    this.first = 0;
+    this.fetchJobsWithPagination();
+  }
+
+  onSortChange() {
     this.first = 0;
     this.fetchJobsWithPagination();
   }

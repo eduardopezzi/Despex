@@ -16,7 +16,7 @@ export class OcrJobService {
   totalCount = signal<number>(0);
   loading = signal<boolean>(false);
 
-  fetchJobs(showLoading = true, page?: number, pageSize?: number, status?: OcrJobStatus, search?: string) {
+  fetchJobs(showLoading = true, page?: number, pageSize?: number, status?: OcrJobStatus, search?: string, sort?: 'latest' | 'oldest') {
     if (showLoading) {
       this.loading.set(true);
     }
@@ -31,6 +31,9 @@ export class OcrJobService {
     }
     if (search) {
       params.search = search;
+    }
+    if (sort) {
+      params.sort = sort;
     }
 
     return this.http

@@ -17,7 +17,7 @@
   <!-- Content -->
   <div class="relative">
     <!-- Filters and Search -->
-    <div class="mb-10 flex flex-col lg:flex-row lg:items-center gap-4 bg-white/40 dark:bg-surface-900/40 backdrop-blur-xl p-5 rounded-[2.5rem] border border-surface-200 dark:border-surface-800 shadow-sm animate-in fade-in slide-in-from-top-4 duration-1000">
+    <div class="mb-10 relative z-50 flex flex-col lg:flex-row lg:items-center gap-4 bg-white/40 dark:bg-surface-900/40 backdrop-blur-xl p-5 rounded-[2.5rem] border border-surface-200 dark:border-surface-800 shadow-sm animate-in fade-in slide-in-from-top-4 duration-1000">
       <div class="flex-grow">
         <p-iconField>
           <p-inputIcon styleClass="pi pi-search" />
@@ -40,11 +40,30 @@
           optionValue="value"
           (onChange)="onFilterChange()"
           [placeholder]="t('ocrJobs.filters.statusPlaceholder')"
+          appendTo="body"
           styleClass="w-auto min-w-[180px] rounded-2xl border-none bg-surface-50/50 dark:bg-surface-800/30 px-2"
         >
           <ng-template #selectedItem let-selectedOption>
             <div class="flex items-center gap-2" *ngIf="selectedOption">
               <i class="pi pi-filter text-primary-500"></i>
+              <span class="font-bold text-sm">{{ selectedOption.label }}</span>
+            </div>
+          </ng-template>
+        </p-select>
+
+        <p-select
+          [(ngModel)]="sortOrder"
+          [options]="sortOptions"
+          optionLabel="label"
+          optionValue="value"
+          (onChange)="onSortChange()"
+          [placeholder]="t('ocrJobs.filters.sortPlaceholder')"
+          appendTo="body"
+          styleClass="w-auto min-w-[180px] rounded-2xl border-none bg-surface-50/50 dark:bg-surface-800/30 px-2"
+        >
+          <ng-template #selectedItem let-selectedOption>
+            <div class="flex items-center gap-2" *ngIf="selectedOption">
+              <i class="pi pi-sort-alt text-primary-500"></i>
               <span class="font-bold text-sm">{{ selectedOption.label }}</span>
             </div>
           </ng-template>

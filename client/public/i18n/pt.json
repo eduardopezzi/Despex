@@ -46,7 +46,10 @@
     "filters": {
       "searchPlaceholder": "Pesquisar por nome de trabalho ou ficheiro...",
       "statusPlaceholder": "Todos os Estados",
-      "statusAll": "Todos os Estados"
+      "statusAll": "Todos os Estados",
+      "sortPlaceholder": "Ordenar por",
+      "latest": "Criados Mais Recentemente",
+      "oldest": "Criados Mais Antigamente"
     },
     "home": {
       "welcome": "Bem-vindo de volta!",
