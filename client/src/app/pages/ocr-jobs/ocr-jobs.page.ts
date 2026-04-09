@@ -29,6 +29,8 @@ import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { TooltipModule } from 'primeng/tooltip';
 import { PopoverModule } from 'primeng/popover';
 import { PaginatorModule } from 'primeng/paginator';
+import { TableModule } from 'primeng/table';
+import { SelectButtonModule } from 'primeng/selectbutton';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { OcrOutputPipe } from '@app/pipes/ocr-output.pipe';
 import { FormsModule } from '@angular/forms';
@@ -61,6 +63,8 @@ import { SelectModule } from 'primeng/select';
     InputIconModule,
     InputTextModule,
     SelectModule,
+    TableModule,
+    SelectButtonModule,
   ],
   templateUrl: './ocr-jobs.page.html',
 })
@@ -91,6 +95,19 @@ export class OcrJobsPageComponent implements OnInit, OnDestroy {
   searchQuery = '';
   filterStatus: OcrJobStatus | null = null;
   sortOrder: 'latest' | 'oldest' = 'latest';
+  viewMode: 'grid' | 'list' = (localStorage.getItem('ocr-jobs-view-mode') as 'grid' | 'list') || 'grid';
+
+  get viewOptions() {
+    return [
+      { label: this.translocoService.translate('ocrJobs.view.cards'), value: 'grid', icon: 'pi pi-th-large' },
+      { label: this.translocoService.translate('ocrJobs.view.table'), value: 'list', icon: 'pi pi-list' },
+    ];
+  }
+
+  onViewModeChange(mode: 'grid' | 'list') {
+    this.viewMode = mode;
+    localStorage.setItem('ocr-jobs-view-mode', mode);
+  }
 
   get statusOptions() {
     return [

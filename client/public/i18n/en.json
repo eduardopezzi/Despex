@@ -39,6 +39,18 @@
     "title": "OCR Jobs",
     "subtitle": "Manage your document processing pipeline",
     "addJob": "Add OCR Job",
+    "view": {
+      "cards": "Cards",
+      "table": "Table"
+    },
+    "table": {
+      "id": "ID",
+      "name": "Name",
+      "date": "Date",
+      "status": "Status",
+      "files": "Files",
+      "actions": "Actions"
+    },
     "file": "file",
     "files": "files",
     "noJobs": "No OCR Jobs yet",

@@ -39,6 +39,18 @@
     "title": "Trabalhos OCR",
     "subtitle": "Gerencie o seu pipeline de processamento de documentos",
     "addJob": "Adicionar Trabalho OCR",
+    "view": {
+      "cards": "Cartões",
+      "table": "Tabela"
+    },
+    "table": {
+      "id": "ID",
+      "name": "Nome",
+      "date": "Data",
+      "status": "Estado",
+      "files": "Ficheiros",
+      "actions": "Ações"
+    },
     "file": "ficheiro",
     "files": "ficheiros",
     "noJobs": "Ainda sem Trabalhos OCR",
