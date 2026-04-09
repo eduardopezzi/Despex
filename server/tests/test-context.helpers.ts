@@ -5,6 +5,8 @@ import { AppSecret } from '@core/types/app-secret.enum';
 import { QueueService } from '@core/queue/queue.service';
 import { SecretProviderType } from '@core/secrets/secret-provider-type.enum';
 import { vi } from 'vitest';
+import * as os from 'node:os';
+import * as path from 'node:path';
 
 export interface TestContext {
   app: INestApplication;
@@ -30,12 +32,14 @@ export class MockSecretProvider extends SecretProvider {
     if (key === AppSecret.DatabasePath) return this.dbPath;
     if (key === AppSecret.RedisHost) return 'localhost';
     if (key === AppSecret.RedisPort) return '6379';
+    if (key === AppSecret.UploadsDir) return path.join(os.tmpdir(), 'ocr-test-mocked-upload');
     return undefined;
   });
 
   override getSecretOrThrow = vi.fn().mockImplementation((key: AppSecret) => {
     if (key === AppSecret.DatabasePath) return this.dbPath;
     if (key === AppSecret.RedisHost) return 'localhost';
+    if (key === AppSecret.UploadsDir) return path.join(os.tmpdir(), 'ocr-test-mocked-upload');
     return 'mocked';
   });
 
