@@ -191,8 +191,21 @@ export class OcrJobsPageComponent implements OnInit, OnDestroy {
 
   copyToClipboard() {
     if (!this.selectedExecution?.ocrData) return;
-    const parsed = this.ocrOutputParser.parse(this.selectedExecution.ocrData, this.selectedExecution.ocrProvider);
-    navigator.clipboard.writeText(parsed?.markdown ?? this.selectedExecution.ocrData);
+    const ocrData = this.selectedExecution.ocrData;
+    const parsed = this.ocrOutputParser.parse(ocrData, this.selectedExecution.ocrProvider);
+    const contentToCopy = (parsed && parsed.markdown) ? parsed.markdown : ocrData;
+    
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(contentToCopy);
+    } else {
+      const el = document.createElement('textarea');
+      el.value = contentToCopy;
+      document.body.appendChild(el);
+      el.select();
+      document.execCommand('copy');
+      document.body.removeChild(el);
+    }
+
     this.messageService.add({
       severity: 'success',
       summary: this.translocoService.translate('ocrJobs.detail.copied'),
@@ -202,15 +215,20 @@ export class OcrJobsPageComponent implements OnInit, OnDestroy {
 
   downloadMarkdown() {
     if (!this.selectedExecution?.ocrData || !this.selectedFile) return;
-    const parsed = this.ocrOutputParser.parse(this.selectedExecution.ocrData, this.selectedExecution.ocrProvider);
-    const content = parsed?.markdown ?? this.selectedExecution.ocrData;
-    const blob = new Blob([content], { type: 'text/markdown' });
+    const ocrData = this.selectedExecution.ocrData;
+    const parsed = this.ocrOutputParser.parse(ocrData, this.selectedExecution.ocrProvider);
+    const contentToDownload = (parsed && parsed.markdown) ? parsed.markdown : ocrData;
+    
+    const blob = new Blob([contentToDownload], { type: 'text/markdown' });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
     a.download = `${this.selectedFile.originalName}.md`;
+    document.body.appendChild(a);
     a.click();
     window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+
     this.messageService.add({
       severity: 'success',
       summary: this.translocoService.translate('ocrJobs.detail.downloaded'),

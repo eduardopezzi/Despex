@@ -28,7 +28,7 @@ export class OcrOutputPipe implements PipeTransform {
     marked.setOptions({
       renderer,
       gfm: true, // GitHub-flavored markdown (tables, strikethrough, etc.)
-      breaks: false,
+      breaks: true,
     });
   }
 
