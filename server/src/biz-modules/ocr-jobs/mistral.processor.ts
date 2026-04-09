@@ -22,7 +22,7 @@ export class MistralProcessor {
 
     const fileStream = await this.storage.getStream(file.filename);
     const base64Content = await this.streamToBase64(fileStream);
-    const mimeType = MistralProcessor.getMimeType(extname(file.filename).toLowerCase());
+    const mimeType = MistralProcessor.getMimeType(extname(file.originalName).toLowerCase() as FileExtension);
 
     this.logger.log(`Calling Mistral OCR API (SDK) for execution #${executionId}`);
 
@@ -42,7 +42,7 @@ export class MistralProcessor {
   private streamToBase64(stream: NodeJS.ReadableStream): Promise<string> {
     return new Promise((resolve, reject) => {
       const chunks: Buffer[] = [];
-      stream.on('data', (chunk) => chunks.push(chunk));
+      stream.on('data', (chunk: Buffer) => chunks.push(chunk));
       stream.on('end', () => {
         const buffer = Buffer.concat(chunks);
         resolve(buffer.toString('base64'));

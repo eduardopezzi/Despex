@@ -23,7 +23,7 @@ export abstract class StorageProvider {
 
   abstract getStream(key: string): Promise<Readable>;
 
-  abstract exists(key: string): Promise<boolean>;
+  abstract exists(key: string): boolean | Promise<boolean>;
 
   abstract delete(key: string): Promise<void>;
 }
