@@ -8,6 +8,7 @@ import { SecretProvider } from '@core/secrets/secret-provider.interface';
 import { AppSecret } from '@core/types/app-secret.enum';
 import { ClientSecretCredential } from '@azure/identity';
 import streamWeb from 'node:stream/web';
+import { randomUUID } from 'node:crypto';
 
 @Injectable()
 export class OneDriveStorageProvider extends StorageProvider {
@@ -73,10 +74,11 @@ export class OneDriveStorageProvider extends StorageProvider {
 
   async uploadStream(stream: Readable, filename: string): Promise<UploadResult> {
     const client = await this.getGraphClient();
-    const uploadSessionResp: unknown = await client.api(`/drives/${this.driveId}/root:/${this.folder}/${filename}:/createUploadSession`).post({
+    const uniqueFilename = `${randomUUID()}-${filename}`;
+    const uploadSessionResp: unknown = await client.api(`/drives/${this.driveId}/root:/${this.folder}/${uniqueFilename}:/createUploadSession`).post({
       item: {
         '@microsoft.graph.conflictBehavior': 'replace',
-        name: filename,
+        name: uniqueFilename,
       },
     });
     if (!OneDriveStorageProvider.isUploadSessionResponse(uploadSessionResp)) {
@@ -115,7 +117,7 @@ export class OneDriveStorageProvider extends StorageProvider {
       }
       start = end + 1;
     }
-    const fileMetaResp: unknown = await client.api(`/drives/${this.driveId}/root:/${this.folder}/${filename}`).get();
+    const fileMetaResp: unknown = await client.api(`/drives/${this.driveId}/root:/${this.folder}/${uniqueFilename}`).get();
     if (!OneDriveStorageProvider.isFileMetaResponse(fileMetaResp)) {
       this.logger.error(`Invalid file metadata response: ${JSON.stringify(fileMetaResp)}`);
       throw new InternalServerErrorException('Failed to get OneDrive file metadata');

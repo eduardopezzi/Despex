@@ -72,7 +72,7 @@
                 <div class="flex -space-x-4 overflow-hidden py-4">
                   @for (file of job.files?.slice(0, 4); track file.id) {
                     <div class="inline-block h-12 w-12 rounded-xl ring-4 ring-white dark:ring-surface-900 bg-surface-50 dark:bg-surface-800 flex items-center justify-center shadow-sm">
-                      <i [class]="getFileIcon(file.filename) + ' text-xl'"></i>
+                      <i [class]="getFileIcon(file.originalName) + ' text-xl'"></i>
                     </div>
                   }
                   @if ((job.files?.length || 0) > 4) {
@@ -103,7 +103,7 @@
       </div>
 
       <!-- Pagination -->
-      <div class="mt-12 flex justify-center bg-white/50 dark:bg-surface-900/50 backdrop-blur-sm p-4 rounded-[2rem] border border-surface-200 dark:border-surface-800 shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-700">
+      <div class="mt-8 flex justify-center animate-in fade-in slide-in-from-bottom-4 duration-700">
         <p-paginator
           (onPageChange)="onPageChange($event)"
           [first]="first"
@@ -111,8 +111,9 @@
           [totalRecords]="ocrJobService.totalCount()"
           [rowsPerPageOptions]="[10, 20, 50, 100]"
           [showCurrentPageReport]="true"
+          [showJumpToPageDropdown]="true"
           [currentPageReportTemplate]="'{first} - {last} ' + t('common.of') + ' {totalRecords}'"
-          styleClass="bg-transparent border-none lg:scale-110"
+          styleClass="rounded-full shadow-sm border border-surface-200 dark:border-surface-800 bg-white/80 dark:bg-surface-900/80 backdrop-blur-md px-4 py-2"
         />
       </div>
     }
@@ -147,7 +148,7 @@
                 [class.border-primary-500]="selectedFile?.id === file.id"
               >
                 <div class="flex-none w-10 h-10 rounded-xl bg-surface-100 dark:bg-surface-800 flex items-center justify-center">
-                  <i [class]="getFileIcon(file.filename)"></i>
+                  <i [class]="getFileIcon(file.originalName)"></i>
                 </div>
                 <div class="flex-grow min-w-0">
                   <p class="text-sm font-bold truncate text-surface-900 dark:text-surface-100">{{ file.originalName }}</p>
@@ -196,9 +197,9 @@
                 </p-popover>
 
                 <div class="flex-grow bg-white dark:bg-surface-900 rounded-[2rem] overflow-hidden border border-surface-200 dark:border-surface-800 shadow-sm flex items-center justify-center p-4 relative">
-                  @if (isFileImage(selectedFile.filename)) {
-                    <img [src]="ocrJobService.getFileUrl(selectedFile.filename)" class="max-w-full max-h-full object-contain rounded-xl" alt="Preview" />
-                  } @else if (isFilePdf(selectedFile.filename)) {
+                  @if (isFileImage(selectedFile.originalName)) {
+                    <img [src]="getSafeUrl(selectedFile.filename)" class="max-w-full max-h-full object-contain rounded-xl" alt="Preview" />
+                  } @else if (isFilePdf(selectedFile.originalName)) {
                     <iframe [src]="safeUrl" class="w-full h-full border-none rounded-xl"></iframe>
                   } @else {
                     <div class="flex flex-col items-center gap-4 text-surface-400">

@@ -2,82 +2,71 @@
   <!-- ── Sidebar ──────────────────────────────────────────────────── -->
   <aside
     class="border-r border-surface-200 dark:border-surface-800 bg-surface-0 dark:bg-surface-900 flex flex-col shrink-0 shadow-[4px_0_24px_rgba(0,0,0,0.02)] z-20 transition-[width] duration-300 ease-in-out overflow-hidden"
-    [style.width]="collapsed() ? '64px' : '256px'"
-  >
+    [style.width]="collapsed() ? '64px' : '256px'">
     <!-- Logo -->
     <div class="h-16 flex items-center border-b border-surface-200 dark:border-surface-800 shrink-0 px-3 gap-3">
       @if (!collapsed()) {
-        <div class="w-9 h-9 bg-primary-500 rounded-xl flex items-center justify-center shadow-md shrink-0">
-          <i class="pi pi-receipt text-white text-lg"></i>
-        </div>
-        <span class="text-lg font-extrabold text-surface-900 dark:text-white tracking-tight whitespace-nowrap">
-          {{ t('layout.appTitle') }}<span class="text-primary-500">.</span>
-        </span>
-        <button
-          type="button"
-          class="ml-auto flex items-center justify-center w-8 h-8 rounded-lg text-surface-400 hover:bg-surface-100 dark:hover:bg-surface-800 hover:text-surface-600 transition-all shrink-0"
-          (click)="collapsed.set(true)"
-          [title]="t('layout.collapse')"
-        >
-          <i class="pi pi-chevron-left text-sm"></i>
-        </button>
+      <div class="w-9 h-9 bg-primary-500 rounded-xl flex items-center justify-center shadow-md shrink-0">
+        <i class="pi pi-receipt text-white text-lg"></i>
+      </div>
+      <span class="text-lg font-extrabold text-surface-900 dark:text-white tracking-tight whitespace-nowrap">
+        {{ t('layout.appTitle') }}<span class="text-primary-500">.</span>
+      </span>
+      <button type="button"
+        class="ml-auto flex items-center justify-center w-8 h-8 rounded-lg text-surface-400 hover:bg-surface-100 dark:hover:bg-surface-800 hover:text-surface-600 transition-all shrink-0"
+        (click)="collapsed.set(true)" [title]="t('layout.collapse')">
+        <i class="pi pi-chevron-left text-sm"></i>
+      </button>
       } @else {
-        <button
-          type="button"
-          class="mx-auto flex items-center justify-center w-9 h-9 rounded-lg text-surface-400 hover:bg-surface-100 dark:hover:bg-surface-800 hover:text-surface-600 transition-all"
-          (click)="collapsed.set(false)"
-          [title]="t('layout.expand')"
-        >
-          <i class="pi pi-chevron-right text-sm"></i>
-        </button>
+      <button type="button"
+        class="mx-auto flex items-center justify-center w-9 h-9 rounded-lg text-surface-400 hover:bg-surface-100 dark:hover:bg-surface-800 hover:text-surface-600 transition-all"
+        (click)="collapsed.set(false)" [title]="t('layout.expand')">
+        <i class="pi pi-chevron-right text-sm"></i>
+      </button>
       }
     </div>
 
     <!-- Nav -->
     <nav class="flex-1 px-2 py-6 space-y-0.5 overflow-y-auto overflow-x-hidden">
       @if (!collapsed()) {
-        <div class="text-xs font-bold text-surface-400 uppercase tracking-widest mb-3 px-3">{{ t('layout.menu') }}</div>
+      <div class="text-xs font-bold text-surface-400 uppercase tracking-widest mb-3 px-3">{{ t('layout.menu') }}</div>
       }
 
-      <a
-        routerLink="/"
+      <a routerLink="/"
         routerLinkActive="bg-primary-50 dark:bg-primary-500/10 text-primary-600 dark:text-primary-300 font-semibold"
         [routerLinkActiveOptions]="{ exact: true }"
         class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-surface-600 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-800 transition-all group"
-        [class.justify-center]="collapsed()"
-        [title]="t('layout.dashboard')"
-      >
+        [class.justify-center]="collapsed()" [title]="t('layout.dashboard')">
         <i class="pi pi-th-large text-lg group-hover:text-primary-500 transition-colors shrink-0"></i>
         @if (!collapsed()) {
-          <span class="text-sm whitespace-nowrap">{{ t('layout.dashboard') }}</span>
+        <span class="text-sm whitespace-nowrap">{{ t('layout.dashboard') }}</span>
         }
       </a>
 
-      <a
-        routerLink="/ocr-jobs"
+      <a routerLink="/ocr-jobs"
         routerLinkActive="bg-primary-50 dark:bg-primary-500/10 text-primary-600 dark:text-primary-300 font-semibold"
         class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-surface-600 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-800 transition-all group"
-        [class.justify-center]="collapsed()"
-        [title]="t('layout.ocrJobs')"
-      >
+        [class.justify-center]="collapsed()" [title]="t('layout.ocrJobs')">
         <i class="pi pi-file-pdf text-lg group-hover:text-primary-500 transition-colors shrink-0"></i>
         @if (!collapsed()) {
-          <span class="text-sm whitespace-nowrap">{{ t('layout.ocrJobs') }}</span>
+        <span class="text-sm whitespace-nowrap">{{ t('layout.ocrJobs') }}</span>
         }
       </a>
     </nav>
 
     <!-- Footer -->
     @if (!collapsed()) {
-      <div class="p-4 border-t border-surface-200 dark:border-surface-800">
-        <div class="flex items-center gap-3 px-2 py-2">
-          <div class="w-8 h-8 rounded-full bg-primary-500 flex items-center justify-center text-white text-sm font-bold shrink-0">A</div>
-          <div class="flex-1 min-w-0">
-            <p class="text-sm font-semibold text-surface-800 dark:text-surface-100 truncate">{{ t('layout.admin') }}</p>
-            <p class="text-xs text-surface-400 truncate">{{ t('layout.selfHosted') }}</p>
-          </div>
+    <div class="p-4 border-t border-surface-200 dark:border-surface-800">
+      <div class="flex items-center gap-3 px-2 py-2">
+        <div
+          class="w-8 h-8 rounded-full bg-primary-500 flex items-center justify-center text-white text-sm font-bold shrink-0">
+          A</div>
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-semibold text-surface-800 dark:text-surface-100 truncate">{{ t('layout.admin') }}</p>
+          <p class="text-xs text-surface-400 truncate">{{ t('layout.selfHosted') }}</p>
         </div>
       </div>
+    </div>
     }
   </aside>
 
@@ -85,26 +74,19 @@
   <main class="flex-1 overflow-y-auto bg-surface-50 dark:bg-surface-950 min-w-0 flex flex-col">
     <!-- Top bar -->
     <header
-      class="sticky top-0 z-10 h-16 bg-surface-0/80 dark:bg-surface-900/80 backdrop-blur-md border-b border-surface-200 dark:border-surface-800 px-6 flex items-center justify-between shadow-sm shrink-0"
-    >
-      <h2 class="text-base font-semibold text-surface-500 dark:text-surface-400">{{ t('layout.appSubtitle') }}</h2>
+      class="sticky top-0 z-10 h-16 bg-surface-0/80 dark:bg-surface-900/80 backdrop-blur-md border-b border-surface-200 dark:border-surface-800 px-6 flex items-center justify-between shadow-sm shrink-0">
+      <h2 class="text-base font-semibold text-surface-500 dark:text-surface-400"></h2>
       <div class="flex items-center gap-1">
-        <button
-          (click)="showConfig.set(true)"
-          class="w-9 h-9 rounded-xl flex items-center justify-center text-surface-500 hover:bg-surface-100 dark:hover:bg-surface-800 transition-all"
-        >
+        <button (click)="showConfig.set(true)"
+          class="w-9 h-9 rounded-xl flex items-center justify-center text-surface-500 hover:bg-surface-100 dark:hover:bg-surface-800 transition-all">
           <i class="pi pi-cog"></i>
         </button>
-        <button
-          (click)="toggleLang()"
-          class="h-9 px-2.5 rounded-xl flex items-center justify-center text-surface-500 text-xs font-bold hover:bg-surface-100 dark:hover:bg-surface-800 transition-all tracking-wide uppercase"
-        >
+        <button (click)="toggleLang()"
+          class="h-9 px-2.5 rounded-xl flex items-center justify-center text-surface-500 text-xs font-bold hover:bg-surface-100 dark:hover:bg-surface-800 transition-all tracking-wide uppercase">
           {{ currentLang() }}
         </button>
-        <button
-          (click)="toggleDark()"
-          class="w-9 h-9 rounded-xl flex items-center justify-center text-surface-500 hover:bg-surface-100 dark:hover:bg-surface-800 transition-all"
-        >
+        <button (click)="toggleDark()"
+          class="w-9 h-9 rounded-xl flex items-center justify-center text-surface-500 hover:bg-surface-100 dark:hover:bg-surface-800 transition-all">
           <i [class]="isDark() ? 'pi pi-sun' : 'pi pi-moon'"></i>
         </button>
       </div>

@@ -16,4 +16,10 @@ export class OcrFilesDao extends BaseDao<OcrFileEntity> {
       relations: ['executions'],
     });
   }
+
+  findByFilename(txnDef: TxnDef = NoTxn, filename: string): Promise<OcrFileEntity | null> {
+    return this.repositoryWithTxnDef(txnDef).findOne({
+      where: { filename },
+    });
+  }
 }
