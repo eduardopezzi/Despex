@@ -24,6 +24,10 @@ export class OcrJobQueryParams {
   search?: string;
 
   @IsOptional()
-  @IsIn(['latest', 'oldest'])
-  sort?: 'latest' | 'oldest';
+  @IsIn(['id', 'name', 'createdAt', 'status', 'filesCount'])
+  sortField?: 'id' | 'name' | 'createdAt' | 'status' | 'filesCount';
+
+  @IsOptional()
+  @IsIn(['ASC', 'DESC'])
+  sortOrder?: 'ASC' | 'DESC';
 }

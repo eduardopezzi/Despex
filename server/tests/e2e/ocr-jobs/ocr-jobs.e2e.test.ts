@@ -100,24 +100,31 @@ describe('OCR Jobs Controller (e2e)', () => {
       expect(statusResults.data.every((j) => j.status === OcrJobStatus.Processing)).toBe(true);
     });
 
-    it('/ocr-jobs (GET) - sort by oldest/latest', async () => {
-      // 1. Create a few jobs at different times
-      // Job A (oldest) already exists
-      // Create Job B
+    it('/ocr-jobs (GET) - multi-column sorting', async () => {
+      // 1. Create unique names to avoid conflicts with other tests
       await TestHelpers.expectUpload<{ id: number }>(
         app,
         '/ocr-jobs/upload',
-        { ocrProvider_0: OcrProvider.Mistral, jobName: 'Job B' },
-        { name: 'file', filename: 'b.jpg', content: fileData, contentType: MimeType.Jpeg },
+        { ocrProvider_0: OcrProvider.Mistral, jobName: 'AAA_Job' },
+        { name: 'file', filename: 'a_sort.jpg', content: fileData, contentType: MimeType.Jpeg },
+      );
+      await TestHelpers.expectUpload<{ id: number }>(
+        app,
+        '/ocr-jobs/upload',
+        { ocrProvider_0: OcrProvider.Mistral, jobName: 'ZZZ_Job' },
+        { name: 'file', filename: 'z_sort.jpg', content: fileData, contentType: MimeType.Jpeg },
       );
 
-      // 2. Test oldest sort
-      const oldestResults = await TestHelpers.expectOk<PaginatedResponse<OcrJobEntity>>(app, '/ocr-jobs?sort=oldest');
-      expect(oldestResults.data[0].name).toBe('Job A'); // Assuming Job A was first
+      // 2. Sort by name ASC
+      const nameAsc = await TestHelpers.expectOk<PaginatedResponse<OcrJobEntity>>(app, '/ocr-jobs?sortField=name&sortOrder=ASC');
+      expect(nameAsc.data[0].name).toBe('AAA_Job');
 
-      // 3. Test latest sort
-      const latestResults = await TestHelpers.expectOk<PaginatedResponse<OcrJobEntity>>(app, '/ocr-jobs?sort=latest');
-      expect(latestResults.data[0].name).toBe('Job B'); // Job B should be latest
+      // 3. Sort by name DESC
+      const nameDesc = await TestHelpers.expectOk<PaginatedResponse<OcrJobEntity>>(app, '/ocr-jobs?sortField=name&sortOrder=DESC');
+      expect(nameDesc.data[0].name).toBe('ZZZ_Job');
+
+      // 4. Sort by filesCount DESC
+      await TestHelpers.expectOk<PaginatedResponse<OcrJobEntity>>(app, '/ocr-jobs?sortField=filesCount&sortOrder=DESC');
     });
   });
 

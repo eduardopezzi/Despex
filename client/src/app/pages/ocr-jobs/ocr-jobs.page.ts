@@ -94,9 +94,27 @@ export class OcrJobsPageComponent implements OnInit, OnDestroy {
 
   searchQuery = '';
   filterStatus: OcrJobStatus | null = null;
-  sortOrder: 'latest' | 'oldest' = 'latest';
+  sortField: 'id' | 'name' | 'createdAt' | 'status' | 'filesCount' = 'createdAt';
+  sortOrderDir: 'ASC' | 'DESC' = 'DESC';
   viewMode: 'grid' | 'list' = (localStorage.getItem('ocr-jobs-view-mode') as 'grid' | 'list') || 'grid';
 
+  // For the dropdown shortcut
+  get sortOrder() {
+    if (this.sortField === 'createdAt') {
+      return this.sortOrderDir === 'DESC' ? 'latest' : 'oldest';
+    }
+    return null;
+  }
+
+  set sortOrder(value: any) {
+    if (value === 'latest') {
+      this.sortField = 'createdAt';
+      this.sortOrderDir = 'DESC';
+    } else if (value === 'oldest') {
+      this.sortField = 'createdAt';
+      this.sortOrderDir = 'ASC';
+    }
+  }
   get viewOptions() {
     return [
       { label: this.translocoService.translate('ocrJobs.view.cards'), value: 'grid', icon: 'pi pi-th-large' },
@@ -170,7 +188,15 @@ export class OcrJobsPageComponent implements OnInit, OnDestroy {
 
   fetchJobsWithPagination(showLoading = true) {
     const page = Math.floor(this.first / this.rows) + 1;
-    this.ocrJobService.fetchJobs(showLoading, page, this.rows, this.filterStatus || undefined, this.searchQuery || undefined, this.sortOrder);
+    this.ocrJobService.fetchJobs(
+      showLoading, 
+      page, 
+      this.rows, 
+      this.filterStatus || undefined, 
+      this.searchQuery || undefined, 
+      this.sortField, 
+      this.sortOrderDir
+    );
   }
 
   onPageChange(event: any) {
@@ -190,6 +216,13 @@ export class OcrJobsPageComponent implements OnInit, OnDestroy {
   }
 
   onSortChange() {
+    this.first = 0;
+    this.fetchJobsWithPagination();
+  }
+
+  onTableSort(event: any) {
+    this.sortField = event.field;
+    this.sortOrderDir = event.order === 1 ? 'ASC' : 'DESC';
     this.first = 0;
     this.fetchJobsWithPagination();
   }

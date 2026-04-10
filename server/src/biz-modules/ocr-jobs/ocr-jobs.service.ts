@@ -1,5 +1,4 @@
 import { BadRequestException, Inject, Injectable, Logger } from '@nestjs/common';
-import { EntityManager } from 'typeorm';
 import { DbService } from '@core/database/db.service';
 import { NoTxn, WithTxn } from '@core/database/txn-def.interface';
 import { Readable } from 'stream';
@@ -35,9 +34,16 @@ export class OcrJobsService {
     @Inject(StorageProvider) private readonly storage: StorageProvider,
   ) {}
 
-  findAllJobs(page?: number, pageSize?: number, status?: OcrJobStatus, search?: string, sort?: 'latest' | 'oldest'): Promise<[OcrJobEntity[], number]> {
+  findAllJobs(
+    page?: number,
+    pageSize?: number,
+    status?: OcrJobStatus,
+    search?: string,
+    sortField?: 'id' | 'name' | 'createdAt' | 'status' | 'filesCount',
+    sortOrder?: 'ASC' | 'DESC',
+  ): Promise<[OcrJobEntity[], number]> {
     const skip = page && pageSize ? (page - 1) * pageSize : undefined;
-    return this.ocrJobsDao.findAllWithRelations(NoTxn, { skip, take: pageSize, status, search, sort });
+    return this.ocrJobsDao.findAllWithRelations(NoTxn, { skip, take: pageSize, status, search, sortField, sortOrder });
   }
 
   async upload(req: Request): Promise<OcrJobEntity> {

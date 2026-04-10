@@ -19,20 +19,32 @@ export class OcrJobsDao extends BaseDao<OcrJobEntity> {
       take?: number;
       status?: OcrJobStatus;
       search?: string;
-      sort?: 'latest' | 'oldest';
+      sortField?: 'id' | 'name' | 'createdAt' | 'status' | 'filesCount';
+      sortOrder?: 'ASC' | 'DESC';
     } = {},
   ): Promise<[OcrJobEntity[], number]> {
-    const { skip, take, status, search, sort = 'latest' } = options;
+    const { skip, take, status, search, sortField = 'createdAt', sortOrder = 'DESC' } = options;
 
     const qb = this.repositoryWithTxnDef(txnDef)
       .createQueryBuilder('job')
       .leftJoinAndSelect('job.files', 'file')
       .leftJoinAndSelect('file.executions', 'execution');
 
-    if (sort === 'oldest') {
-      qb.orderBy('job.createdAt', 'ASC').addOrderBy('job.id', 'ASC');
+    // Add a subquery select for files count so we can sort by it
+    qb.addSelect((subQuery) => {
+      return subQuery.select('COUNT(f.id)', 'count').from('ocr_files', 'f').where('f.job_id = job.id');
+    }, 'filesCount');
+
+    // Apply sorting
+    if (sortField === 'filesCount') {
+      qb.orderBy('filesCount', sortOrder);
     } else {
-      qb.orderBy('job.createdAt', 'DESC').addOrderBy('job.id', 'DESC');
+      qb.orderBy(`job.${sortField}`, sortOrder);
+    }
+
+    // Always add a stable secondary sort
+    if (sortField !== 'id') {
+      qb.addOrderBy('job.id', 'DESC');
     }
 
     if (status) {
