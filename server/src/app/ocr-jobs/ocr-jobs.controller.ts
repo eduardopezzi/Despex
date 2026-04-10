@@ -1,12 +1,12 @@
 import { Body, Controller, Delete, Get, Logger, Param, ParseIntPipe, Post, Req, Res, NotFoundException, Query } from '@nestjs/common';
 import { ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
 import type { Request, Response } from 'express';
-import { OcrJobsService } from '@biz-modules/ocr-jobs/ocr-jobs.service';
+import { OcrJobsService } from '@app/ocr-jobs/ocr-jobs.service';
 import { RouteParam } from '@core/types/route-param.enum';
 import { OcrJobEntity } from '@core/database/entities/ocr-job.entity';
 import { OcrExecutionEntity } from '@core/database/entities/ocr-execution.entity';
 import { OcrProvider, PaginatedResponse } from '@open-receipt-ocr/types';
-import { OcrJobQueryParams } from './dto/ocr-job-query.params';
+import { OcrJobQueryParams } from '@app/ocr-jobs/dto/ocr-job-query.params';
 import { ValidationPipe } from '@nestjs/common';
 import { extname } from 'node:path';
 

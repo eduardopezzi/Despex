@@ -16,6 +16,9 @@ export enum AppSecret {
   // ─── Mistral OCR ─────────────────────────────────────────────────────────────
   MistralApiKey = 'MISTRAL_API_KEY',
 
+  // ─── TabScanner OCR ─────────────────────────────────────────────────────────
+  TabScannerApiKey = 'TAB_SCANNER_API_KEY',
+
   // ─── Azure OCR ──────────────────────────────────────────────────────────────
   AzureOcrApiKey = 'AZURE_OCR_API_KEY',
   AzureOcrEndpoint = 'AZURE_OCR_ENDPOINT',

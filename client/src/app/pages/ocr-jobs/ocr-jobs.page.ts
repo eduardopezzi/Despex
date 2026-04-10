@@ -200,9 +200,9 @@ export class OcrJobsPageComponent implements OnInit, OnDestroy {
     );
   }
 
-  onPageChange(event: { first: number; rows: number }) {
-    this.first = event.first;
-    this.rows = event.rows;
+  onPageChange(event: { first?: number; rows?: number }) {
+    this.first = event.first ?? 0;
+    this.rows = event.rows ?? 20;
     this.fetchJobsWithPagination();
   }
 

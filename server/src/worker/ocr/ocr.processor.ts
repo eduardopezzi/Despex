@@ -12,7 +12,8 @@ import { OcrJobsDao } from '@core/database/daos/ocr-jobs.dao';
 import { OcrExecutionStatus, OcrFileStatus, OcrJobStatus } from '@open-receipt-ocr/types';
 import { NoTxn, WithTxn } from '@core/database/txn-def.interface';
 import { DbService } from '@core/database/db.service';
-import { MistralProcessor } from './mistral.processor';
+import { MistralProcessor } from '@worker/ocr/mistral.processor';
+import { TabScannerProcessor } from '@worker/ocr/tabscanner.processor';
 
 @Processor(QueueName.Ocr)
 export class OcrProcessor extends WorkerHost {
@@ -26,6 +27,7 @@ export class OcrProcessor extends WorkerHost {
     private readonly storage: StorageProvider,
     private readonly db: DbService,
     private readonly mistralProcessor: MistralProcessor,
+    private readonly tabScannerProcessor: TabScannerProcessor,
   ) {
     super();
   }
@@ -64,6 +66,9 @@ export class OcrProcessor extends WorkerHost {
       switch (execution.ocrProvider) {
         case OcrProvider.Mistral:
           ocrData = await this.mistralProcessor.process(file, executionId);
+          break;
+        case OcrProvider.TabScanner:
+          ocrData = await this.tabScannerProcessor.process(file, executionId);
           break;
         case OcrProvider.Azure:
         case OcrProvider.Aws:

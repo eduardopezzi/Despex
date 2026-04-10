@@ -1,5 +1,5 @@
 import { NestFactory } from '@nestjs/core';
-import { WorkerModule } from './app/worker.module';
+import { WorkerModule } from '@worker/worker.module';
 import { Logger } from '@nestjs/common';
 
 async function bootstrap() {

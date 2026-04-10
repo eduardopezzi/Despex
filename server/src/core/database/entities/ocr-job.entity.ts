@@ -1,7 +1,7 @@
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { WithModificationDates } from '@core/database/entities/with-modification-dates';
 import { OcrJobStatus } from '@open-receipt-ocr/types';
-import { OcrFileEntity } from './ocr-file.entity';
+import { OcrFileEntity } from '@core/database/entities/ocr-file.entity';
 
 @Entity('ocr_jobs')
 export class OcrJobEntity extends WithModificationDates {
@@ -11,7 +11,6 @@ export class OcrJobEntity extends WithModificationDates {
   @Column({
     name: 'status',
     type: 'varchar',
-    enum: OcrJobStatus,
     default: OcrJobStatus.Pending,
   })
   status!: OcrJobStatus;

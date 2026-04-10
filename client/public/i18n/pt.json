@@ -130,7 +130,8 @@
     "providers": {
       "mistral": "Mistral OCR",
       "azure": "Azure OCR",
-      "aws": "AWS TextExtract"
+      "aws": "AWS Textract",
+      "tabscanner": "TabScanner (Rápido)"
     }
   }
 }

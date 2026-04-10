@@ -1,6 +1,6 @@
 import { INestApplication } from '@nestjs/common';
 import { DatabaseModule } from '@core/database/database.module';
-import { OcrJobsModule } from '@biz-modules/ocr-jobs/ocr-jobs.module';
+import { OcrJobsModule } from '@app/ocr-jobs/ocr-jobs.module';
 import { StorageModule } from '@core/storage/storage.module';
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
 import { TestHelpers } from '@tests/test-helpers';
