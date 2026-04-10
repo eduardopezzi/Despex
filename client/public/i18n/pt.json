@@ -66,7 +66,7 @@
     "home": {
       "welcome": "Bem-vindo de volta!",
       "overview": "Aqui está uma visão geral da sua atividade recente de OCR",
-      "recentReceipts": "Trabalhos OCR Recentes",
+      "recentOcrJobs": "Trabalhos OCR Recentes",
       "viewAll": "Ver todos"
     },
     "status": {

@@ -12,7 +12,7 @@ import FormData from 'form-data';
 @Injectable()
 export class TabScannerProcessor {
   private readonly logger = new Logger(TabScannerProcessor.name);
-  private readonly baseUrl = 'https://api.tabscanner.com/api/2';
+  private readonly baseUrl = 'https://api.tabscanner.com/api';
 
   constructor(
     @Inject(SecretProvider) private readonly secretProvider: SecretProvider,
@@ -69,23 +69,27 @@ export class TabScannerProcessor {
     while (attempts < maxAttempts) {
       this.logger.log(`Polling TabScanner result for token ${token} (attempt ${attempts + 1})`);
 
-      const resultResponse = await axios.get(`${this.baseUrl}/result/${token}`, {
-        headers: { apikey: apiKey },
-      });
+      try {
+        const resultResponse = await axios.get(`${this.baseUrl}/result/${token}`, {
+          headers: { apikey: apiKey },
+        });
 
-      const data = resultResponse.data as { status: 'done' | 'failed' };
+        const data = resultResponse.data as { status: 'done' | 'failed' };
 
-      if (data.status === 'done') {
-        return JSON.stringify(data);
+        if (data.status === 'done') {
+          return JSON.stringify(data);
+        }
+
+        if (data.status === 'failed') {
+          throw new Error(`TabScanner processing failed: ${JSON.stringify(data)}`);
+        }
+      } catch (e) {
+        console.error(e);
+      } finally {
+        // If pending, wait 1 second and retry
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        attempts++;
       }
-
-      if (data.status === 'failed') {
-        throw new Error(`TabScanner processing failed: ${JSON.stringify(data)}`);
-      }
-
-      // If pending, wait 1 second and retry
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      attempts++;
     }
 
     throw new Error(`TabScanner polling timed out after ${maxAttempts} attempts`);

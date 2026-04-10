@@ -1,5 +1,5 @@
 import { Injectable, signal } from '@angular/core';
-import { OcrProvider } from '@models/receipt.model';
+import { OcrProvider } from '@open-receipt-ocr/types';
 
 @Injectable({
   providedIn: 'root',

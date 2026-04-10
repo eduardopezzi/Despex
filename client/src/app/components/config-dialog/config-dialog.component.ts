@@ -4,9 +4,9 @@ import { FormsModule } from '@angular/forms';
 import { DialogModule } from 'primeng/dialog';
 import { ButtonModule } from 'primeng/button';
 import { SelectModule } from 'primeng/select';
-import { OcrProvider } from '@models/receipt.model';
 import { ConfigService } from '@services/config.service';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
+import { OcrProvider } from '@open-receipt-ocr/types';
 
 @Component({
   selector: 'app-config-dialog',
