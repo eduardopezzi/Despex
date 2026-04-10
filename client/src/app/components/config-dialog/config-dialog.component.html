@@ -40,16 +40,13 @@
       @for (opt of ocrOptions; track opt.value) {
         <div
           [attr.data-sel-provider]="configService.defaultOcrProvider() === opt.value ? '' : null"
-          (click)="!opt.disabled && setOcrProvider($any(opt.value))"
-          (keydown.enter)="!opt.disabled && setOcrProvider($any(opt.value))"
+          (click)="setOcrProvider($any(opt.value))"
+          (keydown.enter)="setOcrProvider($any(opt.value))"
           tabindex="0"
           [class.border-primary-500]="configService.defaultOcrProvider() === opt.value"
           [class.bg-primary-50]="configService.defaultOcrProvider() === opt.value"
           [class.dark:bg-primary-900\/30]="configService.defaultOcrProvider() === opt.value"
-          [class.opacity-40]="opt.disabled"
-          [class.cursor-not-allowed]="opt.disabled"
-          [class.cursor-pointer]="!opt.disabled"
-          class="flex items-center justify-between px-3 py-2.5 rounded-xl border border-surface-200 dark:border-surface-800 hover:border-primary-400 transition-all duration-200 select-none"
+          class="cursor-pointer flex items-center justify-between px-3 py-2.5 rounded-xl border border-surface-200 dark:border-surface-800 hover:border-primary-400 transition-all duration-200 select-none"
         >
           <div class="flex items-center gap-2 min-w-0">
             <div
@@ -71,9 +68,6 @@
               >
                 {{ opt.label }}
               </span>
-              @if (opt.disabled) {
-                <span class="text-[9px] text-surface-400">{{ t('common.comingSoon') }}</span>
-              }
             </div>
           </div>
           @if (configService.defaultOcrProvider() === opt.value) {
