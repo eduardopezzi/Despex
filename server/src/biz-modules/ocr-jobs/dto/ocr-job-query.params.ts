@@ -3,6 +3,8 @@ import { Type } from 'class-transformer';
 import { OcrJobStatus, SortOrder } from '@open-receipt-ocr/types';
 import { OcrJobEntity } from '@core/database/entities/ocr-job.entity';
 
+const ALLOWED_SORT_FIELDS: Array<keyof OcrJobEntity | 'filesCount'> = ['id', 'name', 'createdAt', 'status', 'filesCount'];
+
 export class OcrJobQueryParams {
   @IsOptional()
   @Type(() => Number)
@@ -25,8 +27,8 @@ export class OcrJobQueryParams {
   search?: string;
 
   @IsOptional()
-  @IsIn(['id', 'name', 'createdAt', 'status', 'filesCount'])
-  sortField?: keyof OcrJobEntity | 'filesCount';
+  @IsIn(ALLOWED_SORT_FIELDS)
+  sortField?: (typeof ALLOWED_SORT_FIELDS)[number];
 
   @IsOptional()
   @IsEnum(SortOrder)
