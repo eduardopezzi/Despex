@@ -107,7 +107,7 @@ export class OcrJobsPageComponent implements OnInit, OnDestroy {
     return null;
   }
 
-  set sortOrder(value: any) {
+  set sortOrder(value: string | null) {
     if (value === 'latest') {
       this.sortField = 'createdAt';
       this.sortOrderDir = SortOrder.DESC;
@@ -190,17 +190,17 @@ export class OcrJobsPageComponent implements OnInit, OnDestroy {
   fetchJobsWithPagination(showLoading = true) {
     const page = Math.floor(this.first / this.rows) + 1;
     this.ocrJobService.fetchJobs(
-      showLoading, 
-      page, 
-      this.rows, 
-      this.filterStatus || undefined, 
-      this.searchQuery || undefined, 
-      this.sortField, 
-      this.sortOrderDir
+      showLoading,
+      page,
+      this.rows,
+      this.filterStatus || undefined,
+      this.searchQuery || undefined,
+      this.sortField,
+      this.sortOrderDir,
     );
   }
 
-  onPageChange(event: any) {
+  onPageChange(event: { first: number; rows: number }) {
     this.first = event.first;
     this.rows = event.rows;
     this.fetchJobsWithPagination();
@@ -221,8 +221,8 @@ export class OcrJobsPageComponent implements OnInit, OnDestroy {
     this.fetchJobsWithPagination();
   }
 
-  onTableSort(event: any) {
-    this.sortField = event.field;
+  onTableSort(event: { field: string; order: number }) {
+    this.sortField = event.field as 'id' | 'name' | 'createdAt' | 'status' | 'filesCount';
     this.sortOrderDir = event.order === 1 ? SortOrder.ASC : SortOrder.DESC;
     this.first = 0;
     this.fetchJobsWithPagination();
@@ -290,8 +290,8 @@ export class OcrJobsPageComponent implements OnInit, OnDestroy {
     if (!this.selectedExecution?.ocrData) return;
     const ocrData = this.selectedExecution.ocrData;
     const parsed = this.ocrOutputParser.parse(ocrData, this.selectedExecution.ocrProvider);
-    const contentToCopy = (parsed && parsed.markdown) ? parsed.markdown : ocrData;
-    
+    const contentToCopy = parsed && parsed.markdown ? parsed.markdown : ocrData;
+
     if (navigator.clipboard && window.isSecureContext) {
       navigator.clipboard.writeText(contentToCopy);
     } else {
@@ -314,8 +314,8 @@ export class OcrJobsPageComponent implements OnInit, OnDestroy {
     if (!this.selectedExecution?.ocrData || !this.selectedFile) return;
     const ocrData = this.selectedExecution.ocrData;
     const parsed = this.ocrOutputParser.parse(ocrData, this.selectedExecution.ocrProvider);
-    const contentToDownload = (parsed && parsed.markdown) ? parsed.markdown : ocrData;
-    
+    const contentToDownload = parsed && parsed.markdown ? parsed.markdown : ocrData;
+
     const blob = new Blob([contentToDownload], { type: 'text/markdown' });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');

@@ -12,13 +12,13 @@
   <div class="flex flex-col gap-6">
     <div class="flex flex-col gap-2">
       <label for="jobName" class="text-sm font-medium text-surface-900 dark:text-surface-100">{{ t('upload.jobName') }}</label>
-      <input 
-        id="jobName" 
-        type="text" 
-        pInputText 
-        [ngModel]="jobName()" 
-        (ngModelChange)="jobName.set($event)" 
-        [placeholder]="t('upload.jobNamePlaceholder')" 
+      <input
+        id="jobName"
+        type="text"
+        pInputText
+        [ngModel]="jobName()"
+        (ngModelChange)="jobName.set($event)"
+        [placeholder]="t('upload.jobNamePlaceholder')"
         class="w-full"
         [disabled]="uploading()"
       />
@@ -37,7 +37,9 @@
     >
       <ng-template pTemplate="content">
         @if (filesWithProviders().length === 0) {
-          <div class="flex flex-col items-center justify-center p-8 border-2 border-dashed border-surface-200 dark:border-surface-700 rounded-xl bg-surface-50/50 dark:bg-surface-900/20">
+          <div
+            class="flex flex-col items-center justify-center p-8 border-2 border-dashed border-surface-200 dark:border-surface-700 rounded-xl bg-surface-50/50 dark:bg-surface-900/20"
+          >
             <i class="pi pi-cloud-upload text-4xl text-surface-400 mb-4"></i>
             <span class="text-surface-500">{{ t('upload.dropZone') }}</span>
           </div>
@@ -52,7 +54,7 @@
             <div class="flex-none w-10 h-10 flex items-center justify-center bg-white dark:bg-surface-800 rounded-lg shadow-sm">
               <i class="pi pi-file text-primary-500"></i>
             </div>
-            
+
             <div class="flex-grow min-w-0">
               <p class="text-sm font-semibold truncate text-surface-900 dark:text-surface-100">{{ item.file.name }}</p>
               <p class="text-xs text-surface-500">{{ formatSize(item.file.size) }}</p>
@@ -93,12 +95,12 @@
 
   <ng-template pTemplate="footer">
     <p-button [label]="t('common.cancel')" severity="secondary" [text]="true" (onClick)="close()" [disabled]="uploading()" />
-    <p-button 
-      [label]="t('upload.uploadAndProcess')" 
-      icon="pi pi-cloud-upload" 
-      [loading]="uploading()" 
-      [disabled]="filesWithProviders().length === 0" 
-      (onClick)="doUpload()" 
+    <p-button
+      [label]="t('upload.uploadAndProcess')"
+      icon="pi pi-cloud-upload"
+      [loading]="uploading()"
+      [disabled]="filesWithProviders().length === 0"
+      (onClick)="doUpload()"
     />
   </ng-template>
   <p-toast position="top-right" />

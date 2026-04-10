@@ -19,7 +19,7 @@ export class LoggingInterceptor implements NestInterceptor {
           const elapsedTime = performance.now() - startTime;
           Logger.log(`<--- ${req.method} to '${req.originalUrl}' - ${res.statusCode} after ${Math.ceil(elapsedTime)}ms`);
         },
-        error: (err: any) => {
+        error: (err: { status: string }) => {
           const elapsedTime = performance.now() - startTime;
           const statusCode = err.status ?? res.statusCode;
           Logger.log(`<--- ${req.method} to '${req.originalUrl}' - ${statusCode} after ${Math.ceil(elapsedTime)}ms`);

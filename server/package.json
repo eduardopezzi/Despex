@@ -7,7 +7,7 @@
   "license": "UNLICENSED",
   "scripts": {
     "build": "nest build",
-    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
+    "format": "prettier --write \"src/**/*.ts\" \"tests/**/*.ts\"",
     "start": "nest start -e \"node -r dotenv/config\"",
     "start:dev": "nest start --watch -e \"node -r dotenv/config\"",
     "dev": "nest start --watch -e \"node -r dotenv/config\"",

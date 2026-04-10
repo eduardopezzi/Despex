@@ -20,23 +20,23 @@ export class OcrJobService {
     if (showLoading) {
       this.loading.set(true);
     }
- 
-    let params: any = {};
+
+    const params: Record<string, string | number | boolean> = {};
     if (page !== undefined && pageSize !== undefined) {
-      params.page = page;
-      params.pageSize = pageSize;
+      params['page'] = page;
+      params['pageSize'] = pageSize;
     }
     if (status) {
-      params.status = status;
+      params['status'] = status;
     }
     if (search) {
-      params.search = search;
+      params['search'] = search;
     }
     if (sortField) {
-      params.sortField = sortField;
+      params['sortField'] = sortField;
     }
     if (sortOrder) {
-      params.sortOrder = sortOrder;
+      params['sortOrder'] = sortOrder;
     }
 
     return this.http

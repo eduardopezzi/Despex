@@ -5,7 +5,14 @@
       <h1 class="text-4xl font-black tracking-tight text-surface-900 dark:text-surface-0">{{ t('ocrJobs.home.welcome') }}</h1>
       <p class="text-surface-500 dark:text-surface-400 font-medium">{{ t('ocrJobs.home.overview') }}</p>
     </div>
-    <p-button [label]="t('ocrJobs.addJob')" icon="pi pi-plus" (onClick)="showUpload = true" severity="primary" size="large" styleClass="px-8 py-4 rounded-2xl font-bold shadow-xl shadow-primary-500/20 hover:scale-105 transition-transform" />
+    <p-button
+      [label]="t('ocrJobs.addJob')"
+      icon="pi pi-plus"
+      (onClick)="showUpload = true"
+      severity="primary"
+      size="large"
+      styleClass="px-8 py-4 rounded-2xl font-bold shadow-xl shadow-primary-500/20 hover:scale-105 transition-transform"
+    />
   </header>
 
   <!-- Stats Grid -->
@@ -14,7 +21,11 @@
       <div class="group">
         <p-card styleClass="border-none shadow-sm hover:shadow-xl transition-all duration-300 rounded-3xl overflow-hidden group-hover:-translate-y-1">
           <div class="flex items-center gap-5">
-            <div class="w-16 h-16 rounded-2xl flex items-center justify-center text-2xl transition-transform duration-500 group-hover:rotate-12 {{ stat.iconBg }} {{ stat.iconColor }}">
+            <div
+              class="w-16 h-16 rounded-2xl flex items-center justify-center text-2xl transition-transform duration-500 group-hover:rotate-12 {{
+                stat.iconBg
+              }} {{ stat.iconColor }}"
+            >
               <i [class]="stat.icon"></i>
             </div>
             <div class="flex flex-col">
@@ -42,7 +53,10 @@
     } @else if (ocrJobService.jobs().length > 0) {
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         @for (job of recentJobs; track job.id) {
-          <p-card styleClass="border-none shadow-sm hover:bg-surface-50 dark:hover:bg-surface-800/30 transition-all rounded-[2rem] cursor-pointer" routerLink="/ocr-jobs">
+          <p-card
+            styleClass="border-none shadow-sm hover:bg-surface-50 dark:hover:bg-surface-800/30 transition-all rounded-[2rem] cursor-pointer"
+            routerLink="/ocr-jobs"
+          >
             <div class="flex items-center justify-between gap-4">
               <div class="flex items-center gap-4">
                 <div class="w-12 h-12 rounded-xl bg-surface-100 dark:bg-surface-800 flex items-center justify-center">
@@ -53,13 +67,19 @@
                   <span class="text-[10px] font-bold text-surface-400 uppercase tracking-widest">{{ job.createdAt | date: 'MMM d, HH:mm' }}</span>
                 </div>
               </div>
-              <p-tag [value]="t('ocrJobs.status.' + job.status)" [severity]="getStatusSeverity(job.status)" styleClass="text-[9px] px-2 py-1 rounded-full uppercase font-black" />
+              <p-tag
+                [value]="t('ocrJobs.status.' + job.status)"
+                [severity]="getStatusSeverity(job.status)"
+                styleClass="text-[9px] px-2 py-1 rounded-full uppercase font-black"
+              />
             </div>
           </p-card>
         }
       </div>
     } @else {
-      <div class="bg-surface-50 dark:bg-surface-900/40 rounded-[2.5rem] border-2 border-dashed border-surface-200 dark:border-surface-800 p-16 text-center animate-in fade-in zoom-in duration-500">
+      <div
+        class="bg-surface-50 dark:bg-surface-900/40 rounded-[2.5rem] border-2 border-dashed border-surface-200 dark:border-surface-800 p-16 text-center animate-in fade-in zoom-in duration-500"
+      >
         <div class="w-20 h-20 bg-surface-100 dark:bg-surface-800 rounded-full flex items-center justify-center mx-auto mb-6">
           <i class="pi pi-inbox text-4xl text-surface-300 dark:text-surface-600"></i>
         </div>

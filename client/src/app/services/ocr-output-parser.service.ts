@@ -23,7 +23,7 @@ interface OcrOutputParser {
 interface MistralPage {
   index: number;
   markdown: string;
-  tables?: Array<{ id: string; content: string; format: string }>;
+  tables?: { id: string; content: string; format: string }[];
 }
 
 interface MistralOcrResponse {
