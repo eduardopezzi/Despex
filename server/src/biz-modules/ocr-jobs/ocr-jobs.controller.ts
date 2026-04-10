@@ -5,9 +5,10 @@ import { OcrJobsService } from '@biz-modules/ocr-jobs/ocr-jobs.service';
 import { RouteParam } from '@core/types/route-param.enum';
 import { OcrJobEntity } from '@core/database/entities/ocr-job.entity';
 import { OcrExecutionEntity } from '@core/database/entities/ocr-execution.entity';
-import { OcrJobStatus, OcrProvider, PaginatedResponse } from '@open-receipt-ocr/types';
+import { OcrProvider, PaginatedResponse } from '@open-receipt-ocr/types';
 import { OcrJobQueryParams } from './dto/ocr-job-query.params';
 import { ValidationPipe } from '@nestjs/common';
+import { extname } from 'node:path';
 
 @ApiTags('ocr-jobs')
 @Controller('ocr-jobs')
@@ -58,7 +59,6 @@ export class OcrJobsController {
 
     const fileEntity = await this.ocrJobsService.getFileByKey(key);
     if (fileEntity && fileEntity.originalName) {
-      const { extname } = await import('node:path');
       res.type(extname(fileEntity.originalName));
     }
 

@@ -16,9 +16,9 @@ import { OcrJobsDao } from '@core/database/daos/ocr-jobs.dao';
 import { OcrFilesDao } from '@core/database/daos/ocr-files.dao';
 import { OcrExecutionsDao } from '@core/database/daos/ocr-executions.dao';
 import { OcrJobEntity } from '@core/database/entities/ocr-job.entity';
-import { OcrFileEntity } from '@core/database/entities/ocr-file.entity';
 import { OcrExecutionEntity } from '@core/database/entities/ocr-execution.entity';
-import { OcrExecutionStatus, OcrFileStatus, OcrJobStatus } from '@open-receipt-ocr/types';
+import { OcrExecutionStatus, OcrFileStatus, OcrJobStatus, SortOrder } from '@open-receipt-ocr/types';
+import { OcrFileEntity } from '@core/database/entities/ocr-file.entity';
 
 @Injectable()
 export class OcrJobsService {
@@ -39,8 +39,8 @@ export class OcrJobsService {
     pageSize?: number,
     status?: OcrJobStatus,
     search?: string,
-    sortField?: 'id' | 'name' | 'createdAt' | 'status' | 'filesCount',
-    sortOrder?: 'ASC' | 'DESC',
+    sortField?: keyof OcrJobEntity | 'filesCount',
+    sortOrder?: SortOrder,
   ): Promise<[OcrJobEntity[], number]> {
     const skip = page && pageSize ? (page - 1) * pageSize : undefined;
     return this.ocrJobsDao.findAllWithRelations(NoTxn, { skip, take: pageSize, status, search, sortField, sortOrder });

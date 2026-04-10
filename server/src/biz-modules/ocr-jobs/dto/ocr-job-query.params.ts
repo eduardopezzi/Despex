@@ -1,6 +1,7 @@
 import { IsEnum, IsIn, IsInt, IsOptional, IsString, Min } from 'class-validator';
 import { Type } from 'class-transformer';
-import { OcrJobStatus } from '@open-receipt-ocr/types';
+import { OcrJobStatus, SortOrder } from '@open-receipt-ocr/types';
+import { OcrJobEntity } from '@core/database/entities/ocr-job.entity';
 
 export class OcrJobQueryParams {
   @IsOptional()
@@ -25,9 +26,9 @@ export class OcrJobQueryParams {
 
   @IsOptional()
   @IsIn(['id', 'name', 'createdAt', 'status', 'filesCount'])
-  sortField?: 'id' | 'name' | 'createdAt' | 'status' | 'filesCount';
+  sortField?: keyof OcrJobEntity | 'filesCount';
 
   @IsOptional()
-  @IsIn(['ASC', 'DESC'])
-  sortOrder?: 'ASC' | 'DESC';
+  @IsEnum(SortOrder)
+  sortOrder?: SortOrder;
 }

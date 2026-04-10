@@ -12,6 +12,7 @@ import {
   OcrProvider,
   FileExtension,
   ImageExtensions,
+  SortOrder,
 } from '@open-receipt-ocr/types';
 import { interval, Subscription } from 'rxjs';
 import { UploadDialogComponent } from '@components/upload-dialog/upload-dialog.component';
@@ -95,13 +96,13 @@ export class OcrJobsPageComponent implements OnInit, OnDestroy {
   searchQuery = '';
   filterStatus: OcrJobStatus | null = null;
   sortField: 'id' | 'name' | 'createdAt' | 'status' | 'filesCount' = 'createdAt';
-  sortOrderDir: 'ASC' | 'DESC' = 'DESC';
+  sortOrderDir: SortOrder = SortOrder.DESC;
   viewMode: 'grid' | 'list' = (localStorage.getItem('ocr-jobs-view-mode') as 'grid' | 'list') || 'grid';
 
   // For the dropdown shortcut
   get sortOrder() {
     if (this.sortField === 'createdAt') {
-      return this.sortOrderDir === 'DESC' ? 'latest' : 'oldest';
+      return this.sortOrderDir === SortOrder.DESC ? 'latest' : 'oldest';
     }
     return null;
   }
@@ -109,10 +110,10 @@ export class OcrJobsPageComponent implements OnInit, OnDestroy {
   set sortOrder(value: any) {
     if (value === 'latest') {
       this.sortField = 'createdAt';
-      this.sortOrderDir = 'DESC';
+      this.sortOrderDir = SortOrder.DESC;
     } else if (value === 'oldest') {
       this.sortField = 'createdAt';
-      this.sortOrderDir = 'ASC';
+      this.sortOrderDir = SortOrder.ASC;
     }
   }
   get viewOptions() {
@@ -222,7 +223,7 @@ export class OcrJobsPageComponent implements OnInit, OnDestroy {
 
   onTableSort(event: any) {
     this.sortField = event.field;
-    this.sortOrderDir = event.order === 1 ? 'ASC' : 'DESC';
+    this.sortOrderDir = event.order === 1 ? SortOrder.ASC : SortOrder.DESC;
     this.first = 0;
     this.fetchJobsWithPagination();
   }

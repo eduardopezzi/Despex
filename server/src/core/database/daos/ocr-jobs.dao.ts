@@ -4,7 +4,7 @@ import { OcrJobEntity } from '@core/database/entities/ocr-job.entity';
 import { ReposService } from '@core/database/repos.service';
 import { NoTxn, TxnDef } from '@core/database/txn-def.interface';
 import { Brackets } from 'typeorm';
-import { OcrJobStatus } from '@open-receipt-ocr/types';
+import { OcrJobStatus, SortOrder } from '@open-receipt-ocr/types';
 
 @Injectable()
 export class OcrJobsDao extends BaseDao<OcrJobEntity> {
@@ -19,11 +19,11 @@ export class OcrJobsDao extends BaseDao<OcrJobEntity> {
       take?: number;
       status?: OcrJobStatus;
       search?: string;
-      sortField?: 'id' | 'name' | 'createdAt' | 'status' | 'filesCount';
-      sortOrder?: 'ASC' | 'DESC';
+      sortField?: keyof OcrJobEntity | 'filesCount';
+      sortOrder?: SortOrder;
     } = {},
   ): Promise<[OcrJobEntity[], number]> {
-    const { skip, take, status, search, sortField = 'createdAt', sortOrder = 'DESC' } = options;
+    const { skip, take, status, search, sortField = 'createdAt', sortOrder = SortOrder.DESC } = options;
 
     const qb = this.repositoryWithTxnDef(txnDef)
       .createQueryBuilder('job')
