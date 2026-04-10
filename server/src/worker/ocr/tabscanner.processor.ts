@@ -1,5 +1,6 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import axios from 'axios';
+import { sleep } from 'radash';
 import { AppSecret } from '@core/types/app-secret.enum';
 import { SecretProvider } from '@core/secrets/secret-provider.interface';
 import { StorageProvider } from '@core/storage/storage-provider.interface';
@@ -56,15 +57,12 @@ export class TabScannerProcessor {
 
     this.logger.log(`File uploaded successfully. Token: ${token}. Waiting for results...`);
 
-    // Recommended: wait 5 seconds before polling
-    await new Promise((resolve) => setTimeout(resolve, 5000));
-
     return this.waitForResult(token, apiKey);
   }
 
   private async waitForResult(token: string, apiKey: string): Promise<string> {
     let attempts = 0;
-    const maxAttempts = 30; // 30 seconds max polling
+    const maxAttempts = 10;
 
     while (attempts < maxAttempts) {
       this.logger.log(`Polling TabScanner result for token ${token} (attempt ${attempts + 1})`);
@@ -84,10 +82,16 @@ export class TabScannerProcessor {
           throw new Error(`TabScanner processing failed: ${JSON.stringify(data)}`);
         }
       } catch (e) {
-        console.error(e);
+        if (attempts >= maxAttempts) {
+          this.logger.error(e);
+          throw e;
+        }
+        this.logger.warn(e);
       } finally {
-        // If pending, wait 1 second and retry
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+        // Exponential backoff: 1s, 2s, 4s, 8s, 16s...
+        const delay = Math.pow(2, attempts) * 1000;
+        this.logger.log(`Polling TabScanner (attempt ${attempts + 1}), next try in ${delay}ms...`);
+        await sleep(delay);
         attempts++;
       }
     }
