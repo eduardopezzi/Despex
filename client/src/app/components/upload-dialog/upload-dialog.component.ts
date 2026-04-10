@@ -71,8 +71,7 @@ export class UploadDialogComponent {
   get ocrOptions() {
     return [
       { label: this.translocoService.translate('config.providers.mistral'), value: OcrProvider.Mistral },
-      { label: this.translocoService.translate('config.providers.azure'), value: OcrProvider.Azure, disabled: true },
-      { label: this.translocoService.translate('config.providers.aws'), value: OcrProvider.Aws, disabled: true },
+      { label: this.translocoService.translate('config.providers.tabscanner'), value: OcrProvider.TabScanner },
     ];
   }
 

@@ -54,23 +54,10 @@ export class ConfigDialogComponent {
         icon: 'pi pi-sparkles',
       },
       {
-        label: this.translocoService.translate('config.providers.azure'),
-        value: OcrProvider.Azure,
-        icon: 'pi pi-cloud',
-        disabled: true,
-      },
-      {
-        label: this.translocoService.translate('config.providers.aws'),
-        value: OcrProvider.Aws,
-        icon: 'pi pi-microchip',
-        disabled: true,
-      },
-      {
         label: this.translocoService.translate('config.providers.tabscanner'),
         value: OcrProvider.TabScanner,
         icon: 'pi pi-bolt',
       },
-      { label: this.translocoService.translate('config.providers.ask'), value: 'ask', icon: 'pi pi-question-circle' },
     ];
   }
 
@@ -138,7 +125,7 @@ export class ConfigDialogComponent {
     this.arrows.set(allArrows);
   }
 
-  setOcrProvider(value: OcrProvider | 'ask') {
+  setOcrProvider(value: OcrProvider) {
     this.configService.defaultOcrProvider.set(value);
   }
 

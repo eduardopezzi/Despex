@@ -6,6 +6,7 @@ import { SecretProvider } from '@core/secrets/secret-provider.interface';
 import { StorageProvider } from '@core/storage/storage-provider.interface';
 import { MimeType, FileExtension } from '@open-receipt-ocr/types';
 import { OcrFileEntity } from '@core/database/entities/ocr-file.entity';
+import { getMimeType } from '@worker/ocr/utils/mime-type.util';
 
 @Injectable()
 export class MistralProcessor {
@@ -22,7 +23,7 @@ export class MistralProcessor {
 
     const fileStream = await this.storage.getStream(file.filename);
     const base64Content = await this.streamToBase64(fileStream);
-    const mimeType = MistralProcessor.getMimeType(extname(file.originalName).toLowerCase() as FileExtension);
+    const mimeType = getMimeType(extname(file.originalName).toLowerCase() as FileExtension);
 
     this.logger.log(`Calling Mistral OCR API (SDK) for execution #${executionId}`);
 
@@ -51,17 +52,4 @@ export class MistralProcessor {
     });
   }
 
-  private static getMimeType(ext: FileExtension): string {
-    switch (ext) {
-      case FileExtension.Pdf:
-        return MimeType.Pdf;
-      case FileExtension.Jpg:
-      case FileExtension.Jpeg:
-        return MimeType.Jpeg;
-      case FileExtension.Png:
-        return MimeType.Png;
-      default:
-        return MimeType.OctetStream;
-    }
-  }
 }

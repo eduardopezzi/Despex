@@ -115,9 +115,7 @@
     "savePreferences": "Guardar Preferências",
     "providers": {
       "mistral": "Mistral OCR",
-      "azure": "Azure OCR",
-      "aws": "AWS TextExtract",
-      "ask": "Perguntar sempre"
+      "tabscanner": "TabScanner"
     },
     "outputs": {
       "markdown": "Descarregar Markdown",
@@ -129,8 +127,6 @@
   "ocr": {
     "providers": {
       "mistral": "Mistral OCR",
-      "azure": "Azure OCR",
-      "aws": "AWS Textract",
       "tabscanner": "TabScanner (Rápido)"
     }
   }

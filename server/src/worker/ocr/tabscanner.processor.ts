@@ -4,8 +4,9 @@ import { AppSecret } from '@core/types/app-secret.enum';
 import { SecretProvider } from '@core/secrets/secret-provider.interface';
 import { StorageProvider } from '@core/storage/storage-provider.interface';
 import { OcrFileEntity } from '@core/database/entities/ocr-file.entity';
+import { getMimeType } from '@worker/ocr/utils/mime-type.util';
 import { extname } from 'path';
-import { MimeType, FileExtension } from '@open-receipt-ocr/types';
+import { FileExtension } from '@open-receipt-ocr/types';
 import FormData from 'form-data';
 
 @Injectable()
@@ -23,7 +24,7 @@ export class TabScannerProcessor {
 
     const fileStream = await this.storage.getStream(file.filename);
     const fileBuffer = await this.streamToBuffer(fileStream);
-    const mimeType = TabScannerProcessor.getMimeType(extname(file.originalName).toLowerCase() as FileExtension);
+    const mimeType = getMimeType(extname(file.originalName).toLowerCase() as FileExtension);
 
     const formData = new FormData();
     formData.append('file', fileBuffer, {
@@ -96,19 +97,5 @@ export class TabScannerProcessor {
       chunks.push(Buffer.from(chunk));
     }
     return Buffer.concat(chunks);
-  }
-
-  private static getMimeType(ext: FileExtension): string {
-    switch (ext) {
-      case FileExtension.Pdf:
-        return MimeType.Pdf;
-      case FileExtension.Jpg:
-      case FileExtension.Jpeg:
-        return MimeType.Jpeg;
-      case FileExtension.Png:
-        return MimeType.Png;
-      default:
-        return MimeType.OctetStream;
-    }
   }
 }

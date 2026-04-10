@@ -70,11 +70,8 @@ export class OcrProcessor extends WorkerHost {
         case OcrProvider.TabScanner:
           ocrData = await this.tabScannerProcessor.process(file, executionId);
           break;
-        case OcrProvider.Azure:
-        case OcrProvider.Aws:
-          throw new Error(`OCR Provider "${execution.ocrProvider}" is not yet implemented.`);
         default:
-          throw new Error(`Unknown OCR Provider: ${execution.ocrProvider}`);
+          throw new Error(`OCR Provider "${execution.ocrProvider}" is not yet implemented.`);
       }
 
       await this.db.transaction(async (em) => {
