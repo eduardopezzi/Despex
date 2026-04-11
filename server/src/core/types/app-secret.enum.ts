@@ -19,6 +19,13 @@ export enum AppSecret {
   // ─── TabScanner OCR ─────────────────────────────────────────────────────────
   TabScannerApiKey = 'TAB_SCANNER_API_KEY',
 
+  // ─── PaddleOCR (API) ────────────────────────────────────────────────────────
+  PaddleOcrApiKey = 'PADDLE_OCR_API_KEY',
+  PaddleOcrEndpoint = 'PADDLE_OCR_ENDPOINT',
+
+  // ─── PaddleOCR (Local) ──────────────────────────────────────────────────────
+  PaddleOcrLocalEnabled = 'PADDLE_OCR_LOCAL_ENABLED',
+
   // ─── Azure OCR ──────────────────────────────────────────────────────────────
   AzureOcrApiKey = 'AZURE_OCR_API_KEY',
   AzureOcrEndpoint = 'AZURE_OCR_ENDPOINT',

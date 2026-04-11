@@ -10,6 +10,8 @@ import { QueueName } from '@core/types/queue-name.enum';
 import { OcrProcessor } from '@worker/ocr/ocr.processor';
 import { MistralProcessor } from '@worker/ocr/mistral.processor';
 import { TabScannerProcessor } from '@worker/ocr/tabscanner.processor';
+import { PaddleOcrApiProcessor } from '@worker/ocr/paddle-ocr-api.processor';
+import { PaddleOcrLocalProcessor } from '@worker/ocr/paddle-ocr-local.processor';
 
 @Module({
   imports: [
@@ -29,6 +31,6 @@ import { TabScannerProcessor } from '@worker/ocr/tabscanner.processor';
     OcrJobsModule,
     BullModule.registerQueue({ name: QueueName.Ocr }),
   ],
-  providers: [OcrProcessor, MistralProcessor, TabScannerProcessor],
+  providers: [OcrProcessor, MistralProcessor, TabScannerProcessor, PaddleOcrApiProcessor, PaddleOcrLocalProcessor],
 })
 export class WorkerModule {}

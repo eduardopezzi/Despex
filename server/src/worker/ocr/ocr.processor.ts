@@ -14,6 +14,8 @@ import { NoTxn, WithTxn } from '@core/database/txn-def.interface';
 import { DbService } from '@core/database/db.service';
 import { MistralProcessor } from '@worker/ocr/mistral.processor';
 import { TabScannerProcessor } from '@worker/ocr/tabscanner.processor';
+import { PaddleOcrApiProcessor } from '@worker/ocr/paddle-ocr-api.processor';
+import { PaddleOcrLocalProcessor } from '@worker/ocr/paddle-ocr-local.processor';
 
 @Processor(QueueName.Ocr)
 export class OcrProcessor extends WorkerHost {
@@ -28,6 +30,8 @@ export class OcrProcessor extends WorkerHost {
     private readonly db: DbService,
     private readonly mistralProcessor: MistralProcessor,
     private readonly tabScannerProcessor: TabScannerProcessor,
+    private readonly paddleOcrApiProcessor: PaddleOcrApiProcessor,
+    private readonly paddleOcrLocalProcessor: PaddleOcrLocalProcessor,
   ) {
     super();
   }
@@ -70,8 +74,14 @@ export class OcrProcessor extends WorkerHost {
         case OcrProvider.TabScanner:
           ocrData = await this.tabScannerProcessor.process(file, executionId);
           break;
+        case OcrProvider.PaddleOcrApi:
+          ocrData = await this.paddleOcrApiProcessor.process(file, executionId);
+          break;
+        case OcrProvider.PaddleOcrLocal:
+          ocrData = await this.paddleOcrLocalProcessor.process(file, executionId);
+          break;
         default:
-          throw new Error(`OCR Provider "${execution.ocrProvider}" is not yet implemented.`);
+          throw new Error(`OCR Provider "${execution.ocrProvider as string}" is not yet implemented.`);
       }
 
       await this.db.transaction(async (em) => {

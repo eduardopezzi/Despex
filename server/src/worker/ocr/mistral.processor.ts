@@ -51,5 +51,4 @@ export class MistralProcessor {
       stream.on('error', reject);
     });
   }
-
 }
