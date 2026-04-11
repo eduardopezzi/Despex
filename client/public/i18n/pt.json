@@ -39,14 +39,34 @@
     "title": "Trabalhos OCR",
     "subtitle": "Gerencie o seu pipeline de processamento de documentos",
     "addJob": "Adicionar Trabalho OCR",
+    "view": {
+      "cards": "Cartões",
+      "table": "Tabela"
+    },
+    "table": {
+      "id": "ID",
+      "name": "Nome",
+      "date": "Data",
+      "status": "Estado",
+      "files": "Ficheiros",
+      "actions": "Ações"
+    },
     "file": "ficheiro",
     "files": "ficheiros",
     "noJobs": "Ainda sem Trabalhos OCR",
     "noJobsHint": "Carregue um ou mais documentos para criar o seu primeiro trabalho OCR.",
+    "filters": {
+      "searchPlaceholder": "Pesquisar por nome de trabalho ou ficheiro...",
+      "statusPlaceholder": "Todos os Estados",
+      "statusAll": "Todos os Estados",
+      "sortPlaceholder": "Ordenar por",
+      "latest": "Criados Mais Recentemente",
+      "oldest": "Criados Mais Antigamente"
+    },
     "home": {
       "welcome": "Bem-vindo de volta!",
       "overview": "Aqui está uma visão geral da sua atividade recente de OCR",
-      "recentReceipts": "Trabalhos OCR Recentes",
+      "recentOcrJobs": "Trabalhos OCR Recentes",
       "viewAll": "Ver todos"
     },
     "status": {
@@ -95,9 +115,7 @@
     "savePreferences": "Guardar Preferências",
     "providers": {
       "mistral": "Mistral OCR",
-      "azure": "Azure OCR",
-      "aws": "AWS TextExtract",
-      "ask": "Perguntar sempre"
+      "tabscanner": "TabScanner"
     },
     "outputs": {
       "markdown": "Descarregar Markdown",
@@ -109,8 +127,7 @@
   "ocr": {
     "providers": {
       "mistral": "Mistral OCR",
-      "azure": "Azure OCR",
-      "aws": "AWS TextExtract"
+      "tabscanner": "TabScanner (Rápido)"
     }
   }
 }

@@ -1,11 +1,14 @@
 import { Body, Controller, Delete, Get, Logger, Param, ParseIntPipe, Post, Req, Res, NotFoundException, Query } from '@nestjs/common';
 import { ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
 import type { Request, Response } from 'express';
-import { OcrJobsService } from '@biz-modules/ocr-jobs/ocr-jobs.service';
+import { OcrJobsService } from '@app/ocr-jobs/ocr-jobs.service';
 import { RouteParam } from '@core/types/route-param.enum';
 import { OcrJobEntity } from '@core/database/entities/ocr-job.entity';
 import { OcrExecutionEntity } from '@core/database/entities/ocr-execution.entity';
 import { OcrProvider, PaginatedResponse } from '@open-receipt-ocr/types';
+import { OcrJobQueryParams } from '@app/ocr-jobs/dto/ocr-job-query.params';
+import { ValidationPipe } from '@nestjs/common';
+import { extname } from 'node:path';
 
 @ApiTags('ocr-jobs')
 @Controller('ocr-jobs')
@@ -15,9 +18,13 @@ export class OcrJobsController {
   constructor(private readonly ocrJobsService: OcrJobsService) {}
 
   @Get()
-  @ApiOperation({ summary: 'List all OCR jobs sorted by date descending with pagination' })
-  async findAll(@Query('page') page?: number, @Query('pageSize') pageSize?: number): Promise<PaginatedResponse<OcrJobEntity>> {
-    const [data, total] = await this.ocrJobsService.findAllJobs(page, pageSize);
+  @ApiOperation({ summary: 'List all OCR jobs sorted by date descending with pagination and filters' })
+  async findAll(
+    @Query(new ValidationPipe({ transform: true, forbidNonWhitelisted: true }))
+    params: OcrJobQueryParams,
+  ): Promise<PaginatedResponse<OcrJobEntity>> {
+    const { page, pageSize, status, search, sortField, sortOrder } = params;
+    const [data, total] = await this.ocrJobsService.findAllJobs(page, pageSize, status, search, sortField, sortOrder);
     return { data, total };
   }
 
@@ -52,7 +59,6 @@ export class OcrJobsController {
 
     const fileEntity = await this.ocrJobsService.getFileByKey(key);
     if (fileEntity && fileEntity.originalName) {
-      const { extname } = await import('node:path');
       res.type(extname(fileEntity.originalName));
     }
 

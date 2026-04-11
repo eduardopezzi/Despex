@@ -12,26 +12,103 @@
         {{ t('ocrJobs.subtitle') }}
       </p>
     </div>
-
-    <p-button
-      [label]="t('ocrJobs.addJob')"
-      icon="pi pi-plus"
-      (onClick)="showUploadDialog = true"
-      severity="primary"
-      size="large"
-      styleClass="px-8 py-4 rounded-2xl font-bold shadow-xl shadow-primary-500/20 hover:scale-105 transition-transform"
-    />
   </header>
 
   <!-- Content -->
   <div class="relative">
+    <!-- Filters and Search -->
+    <div
+      class="mb-10 relative z-50 flex flex-col lg:flex-row lg:items-center gap-4 bg-white/40 dark:bg-surface-900/40 backdrop-blur-xl p-5 rounded-[2.5rem] border border-surface-200 dark:border-surface-800 shadow-sm animate-in fade-in slide-in-from-top-4 duration-1000"
+    >
+      <div class="flex-grow flex items-center gap-4">
+        <p-iconField class="flex-grow">
+          <p-inputIcon styleClass="pi pi-search" />
+          <input
+            type="text"
+            pInputText
+            [(ngModel)]="searchQuery"
+            (ngModelChange)="onSearch()"
+            [placeholder]="t('ocrJobs.filters.searchPlaceholder')"
+            class="w-full rounded-2xl border-none bg-surface-50/50 dark:bg-surface-800/30 py-4"
+          />
+        </p-iconField>
+
+        <p-selectButton
+          [options]="viewOptions"
+          [(ngModel)]="viewMode"
+          (ngModelChange)="onViewModeChange($event)"
+          optionLabel="icon"
+          optionValue="value"
+          styleClass="hidden md:flex border-none"
+        >
+          <ng-template #item let-item>
+            <div class="px-4 py-2 flex items-center gap-2" [pTooltip]="item.label">
+              <i [class]="item.icon"></i>
+            </div>
+          </ng-template>
+        </p-selectButton>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <p-select
+          [(ngModel)]="filterStatus"
+          [options]="statusOptions"
+          optionLabel="label"
+          optionValue="value"
+          (onChange)="onFilterChange()"
+          [placeholder]="t('ocrJobs.filters.statusPlaceholder')"
+          appendTo="body"
+          styleClass="w-auto min-w-[180px] rounded-2xl border-none bg-surface-50/50 dark:bg-surface-800/30 px-2"
+        >
+          <ng-template #selectedItem let-selectedOption>
+            @if (selectedOption) {
+              <div class="flex items-center gap-2">
+                <i class="pi pi-filter text-primary-500"></i>
+                <span class="font-bold text-sm">{{ selectedOption.label }}</span>
+              </div>
+            }
+          </ng-template>
+        </p-select>
+
+        <p-select
+          [(ngModel)]="sortOrder"
+          [options]="sortOptions"
+          optionLabel="label"
+          optionValue="value"
+          (onChange)="onSortChange()"
+          [placeholder]="t('ocrJobs.filters.sortPlaceholder')"
+          appendTo="body"
+          styleClass="w-auto min-w-[180px] rounded-2xl border-none bg-surface-50/50 dark:bg-surface-800/30 px-2"
+        >
+          <ng-template #selectedItem let-selectedOption>
+            @if (selectedOption) {
+              <div class="flex items-center gap-2">
+                <i class="pi pi-sort-alt text-primary-500"></i>
+                <span class="font-bold text-sm">{{ selectedOption.label }}</span>
+              </div>
+            }
+          </ng-template>
+        </p-select>
+
+        <p-button
+          [label]="t('ocrJobs.addJob')"
+          icon="pi pi-plus"
+          (onClick)="showUploadDialog = true"
+          rounded="true"
+          styleClass="px-8 py-4 shadow-xl shadow-primary-500/10 font-bold"
+        />
+      </div>
+    </div>
+
     @if (ocrJobService.loading() && ocrJobService.jobs().length === 0) {
       <div class="flex flex-col items-center justify-center py-32 gap-6 animate-pulse">
         <p-progressSpinner styleClass="w-16 h-16" strokeWidth="4" />
         <p class="text-surface-400 font-bold uppercase tracking-widest text-sm">{{ t('common.loading') }}</p>
       </div>
     } @else if (ocrJobService.jobs().length === 0) {
-      <div class="flex flex-col items-center justify-center py-32 text-center bg-surface-50 dark:bg-surface-900/40 rounded-[3rem] border-2 border-dashed border-surface-200 dark:border-surface-800 animate-in fade-in zoom-in duration-700">
+      <div
+        class="flex flex-col items-center justify-center py-32 text-center bg-surface-50 dark:bg-surface-900/40 rounded-[3rem] border-2 border-dashed border-surface-200 dark:border-surface-800 animate-in fade-in zoom-in duration-700"
+      >
         <div class="w-24 h-24 bg-surface-100 dark:bg-surface-800 rounded-full flex items-center justify-center mb-8">
           <i class="pi pi-inbox text-5xl text-surface-300 dark:text-surface-600"></i>
         </div>
@@ -40,67 +117,184 @@
         <p-button [label]="t('ocrJobs.addJob')" icon="pi pi-plus" (onClick)="showUploadDialog = true" severity="secondary" [outlined]="true" />
       </div>
     } @else {
-      <!-- Job Grid -->
-      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
-        @for (job of ocrJobService.jobs(); track job.id) {
-          <div
-            class="group cursor-pointer transition-all duration-300 hover:scale-[1.02]"
-            (click)="viewDetail(job)"
-          >
-            <p-card styleClass="h-full border-none shadow-sm hover:shadow-2xl transition-all duration-300 overflow-hidden relative rounded-3xl">
-              <div class="flex flex-col h-full gap-4">
-                <!-- Card Header -->
-                <div class="flex items-center justify-between">
-                  <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-surface-100 dark:bg-surface-800 flex items-center justify-center group-hover:bg-primary-500 group-hover:text-white transition-colors duration-300">
-                      <span class="text-xs font-black">#{{ job.id }}</span>
-                    </div>
-                    <div class="flex flex-col min-w-0">
-                      @if (job.name) {
-                        <span class="text-sm font-bold truncate text-surface-900 dark:text-surface-100" [title]="job.name">{{ job.name }}</span>
-                      }
-                      <div class="flex items-center gap-2">
-                        <span class="text-[10px] font-bold text-surface-400 uppercase tracking-widest">{{ job.createdAt | date: 'MMM d, y' }}</span>
-                        <span class="text-[10px] font-semibold text-surface-500">{{ job.createdAt | date: 'HH:mm' }}</span>
+      @if (viewMode === 'grid') {
+        <!-- Job Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
+          @for (job of ocrJobService.jobs(); track job.id) {
+            <div
+              class="group cursor-pointer transition-all duration-300 hover:scale-[1.02]"
+              (click)="viewDetail(job)"
+              (keydown.enter)="viewDetail(job)"
+              tabindex="0"
+              role="button"
+            >
+              <p-card styleClass="h-full border-none shadow-sm hover:shadow-2xl transition-all duration-300 overflow-hidden relative rounded-3xl">
+                <div class="flex flex-col h-full gap-4">
+                  <!-- Card Header -->
+                  <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                      <div
+                        class="w-10 h-10 rounded-xl bg-surface-100 dark:bg-surface-800 flex items-center justify-center group-hover:bg-primary-500 group-hover:text-white transition-colors duration-300"
+                      >
+                        <span class="text-xs font-black">#{{ job.id }}</span>
+                      </div>
+                      <div class="flex flex-col min-w-0">
+                        @if (job.name) {
+                          <span class="text-sm font-bold truncate text-surface-900 dark:text-surface-100" [title]="job.name">{{ job.name }}</span>
+                        }
+                        <div class="flex items-center gap-2">
+                          <span class="text-[10px] font-bold text-surface-400 uppercase tracking-widest">{{ job.createdAt | date: 'MMM d, y' }}</span>
+                          <span class="text-[10px] font-semibold text-surface-500">{{ job.createdAt | date: 'HH:mm' }}</span>
+                        </div>
                       </div>
                     </div>
+                    <p-tag
+                      [value]="t('ocrJobs.status.' + job.status)"
+                      [severity]="getJobStatusSeverity(job.status)"
+                      styleClass="font-bold px-3 py-1 rounded-full uppercase text-[10px]"
+                    />
                   </div>
-                  <p-tag [value]="t('ocrJobs.status.' + job.status)" [severity]="getJobStatusSeverity(job.status)" styleClass="font-bold px-3 py-1 rounded-full uppercase text-[10px]" />
-                </div>
 
-                <!-- Files Preview -->
-                <div class="flex -space-x-4 overflow-hidden py-4">
-                  @for (file of job.files?.slice(0, 4); track file.id) {
-                    <div class="inline-block h-12 w-12 rounded-xl ring-4 ring-white dark:ring-surface-900 bg-surface-50 dark:bg-surface-800 flex items-center justify-center shadow-sm">
-                      <i [class]="getFileIcon(file.originalName) + ' text-xl'"></i>
-                    </div>
-                  }
-                  @if ((job.files?.length || 0) > 4) {
-                    <div class="inline-block h-12 w-12 rounded-xl ring-4 ring-white dark:ring-surface-900 bg-surface-100 dark:bg-surface-800 flex items-center justify-center shadow-sm text-xs font-bold text-surface-500">
-                      +{{ (job.files?.length || 0) - 4 }}
-                    </div>
-                  }
-                </div>
+                  <!-- Files Preview -->
+                  <div class="flex -space-x-4 overflow-hidden py-4">
+                    @for (file of job.files?.slice(0, 4); track file.id) {
+                      <div
+                        class="inline-block h-12 w-12 rounded-xl ring-4 ring-white dark:ring-surface-900 bg-surface-50 dark:bg-surface-800 flex items-center justify-center shadow-sm"
+                      >
+                        <i [class]="getFileIcon(file.originalName) + ' text-xl'"></i>
+                      </div>
+                    }
+                    @if ((job.files?.length || 0) > 4) {
+                      <div
+                        class="inline-block h-12 w-12 rounded-xl ring-4 ring-white dark:ring-surface-900 bg-surface-100 dark:bg-surface-800 flex items-center justify-center shadow-sm text-xs font-bold text-surface-500"
+                      >
+                        +{{ (job.files?.length || 0) - 4 }}
+                      </div>
+                    }
+                  </div>
 
-                <div class="flex items-center justify-between mt-auto">
+                  <div class="flex items-center justify-between mt-auto">
                     <span class="text-sm font-semibold text-surface-600 dark:text-surface-400">
-                        {{ job.files?.length }} {{ job.files?.length === 1 ? t('ocrJobs.file') : t('ocrJobs.files') }}
+                      {{ job.files?.length }} {{ job.files?.length === 1 ? t('ocrJobs.file') : t('ocrJobs.files') }}
                     </span>
                     <p-button
-                        icon="pi pi-trash"
-                        [text]="true"
-                        severity="danger"
-                        size="small"
-                        (onClick)="deleteJob($event, job)"
-                        pTooltip="{{ t('common.delete') }}"
-                        tooltipPosition="top"
+                      icon="pi pi-trash"
+                      [text]="true"
+                      severity="danger"
+                      size="small"
+                      (onClick)="deleteJob($event, job)"
+                      pTooltip="{{ t('common.delete') }}"
+                      tooltipPosition="top"
                     />
+                  </div>
                 </div>
-              </div>
-            </p-card>
-          </div>
-        }
-      </div>
+              </p-card>
+            </div>
+          }
+        </div>
+      } @else {
+        <!-- Job Table -->
+        <div
+          class="bg-white/40 dark:bg-surface-900/40 backdrop-blur-xl rounded-[2.5rem] border border-surface-200 dark:border-surface-800 shadow-sm overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-700"
+        >
+          <p-table
+            [value]="ocrJobService.jobs()"
+            [rowHover]="true"
+            styleClass="p-datatable-lg border-none"
+            [lazy]="true"
+            (onSort)="onTableSort($event)"
+            [sortField]="sortField"
+            [sortOrder]="sortOrderDir === 'ASC' ? 1 : -1"
+          >
+            <ng-template #header>
+              <tr class="!bg-transparent">
+                <th
+                  pSortableColumn="id"
+                  class="!bg-transparent text-[10px] font-black uppercase tracking-widest text-surface-400 border-none px-8 py-6"
+                >
+                  {{ t('ocrJobs.table.id') }} <p-sortIcon field="id" />
+                </th>
+                <th pSortableColumn="name" class="!bg-transparent text-[10px] font-black uppercase tracking-widest text-surface-400 border-none py-6">
+                  {{ t('ocrJobs.table.name') }} <p-sortIcon field="name" />
+                </th>
+                <th
+                  pSortableColumn="createdAt"
+                  class="!bg-transparent text-[10px] font-black uppercase tracking-widest text-surface-400 border-none py-6"
+                >
+                  {{ t('ocrJobs.table.date') }} <p-sortIcon field="createdAt" />
+                </th>
+                <th
+                  pSortableColumn="status"
+                  class="!bg-transparent text-[10px] font-black uppercase tracking-widest text-surface-400 border-none py-6 text-center"
+                >
+                  {{ t('ocrJobs.table.status') }} <p-sortIcon field="status" />
+                </th>
+                <th
+                  pSortableColumn="filesCount"
+                  class="!bg-transparent text-[10px] font-black uppercase tracking-widest text-surface-400 border-none py-6 text-center"
+                >
+                  {{ t('ocrJobs.table.files') }} <p-sortIcon field="filesCount" />
+                </th>
+                <th class="!bg-transparent text-[10px] font-black uppercase tracking-widest text-surface-400 border-none px-8 py-6"></th>
+              </tr>
+            </ng-template>
+            <ng-template #body let-job>
+              <tr class="group cursor-pointer !bg-transparent hover:!bg-primary-500/5 transition-colors" (click)="viewDetail(job)">
+                <td class="border-none px-8 py-6">
+                  <span class="text-xs font-black text-surface-400 group-hover:text-primary-500 transition-colors">#{{ job.id }}</span>
+                </td>
+                <td class="border-none py-6">
+                  <span class="font-bold text-surface-900 dark:text-surface-100 truncate block max-w-[200px]" [title]="job.name">{{
+                    job.name || '-'
+                  }}</span>
+                </td>
+                <td class="border-none py-6">
+                  <div class="flex flex-col">
+                    <span class="text-sm font-bold text-surface-700 dark:text-surface-300">{{ job.createdAt | date: 'MMM d, y' }}</span>
+                    <span class="text-[10px] font-semibold text-surface-400 tracking-wide uppercase">{{ job.createdAt | date: 'HH:mm' }}</span>
+                  </div>
+                </td>
+                <td class="border-none py-6 text-center">
+                  <p-tag
+                    [value]="t('ocrJobs.status.' + job.status)"
+                    [severity]="getJobStatusSeverity(job.status)"
+                    styleClass="font-bold px-3 py-1 rounded-full uppercase text-[10px]"
+                  />
+                </td>
+                <td class="border-none py-6">
+                  <div class="flex items-center justify-center gap-2">
+                    <div class="flex -space-x-2">
+                      @for (file of job.files?.slice(0, 3); track file.id) {
+                        <div
+                          class="w-6 h-6 rounded-md bg-surface-100 dark:bg-surface-800 flex items-center justify-center ring-2 ring-white dark:ring-surface-900"
+                        >
+                          <i [class]="getFileIcon(file.originalName) + ' text-[10px]'"></i>
+                        </div>
+                      }
+                    </div>
+                    @if ((job.files?.length || 0) > 0) {
+                      <span class="text-xs font-bold text-surface-500">{{ job.files?.length }}</span>
+                    }
+                  </div>
+                </td>
+                <td class="border-none px-8 py-6 text-right">
+                  <div class="flex items-center justify-end gap-2">
+                    <p-button icon="pi pi-chevron-right" [rounded]="true" [text]="true" (onClick)="viewDetail(job)" styleClass="w-8 h-8" />
+                    <p-button
+                      icon="pi pi-trash"
+                      [rounded]="true"
+                      [text]="true"
+                      severity="danger"
+                      (onClick)="deleteJob($event, job)"
+                      styleClass="w-8 h-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                    />
+                  </div>
+                </td>
+              </tr>
+            </ng-template>
+          </p-table>
+        </div>
+      }
 
       <!-- Pagination -->
       <div class="mt-8 flex justify-center animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -152,7 +346,11 @@
                 </div>
                 <div class="flex-grow min-w-0">
                   <p class="text-sm font-bold truncate text-surface-900 dark:text-surface-100">{{ file.originalName }}</p>
-                  <p-tag [value]="t('ocrJobs.status.' + file.status)" [severity]="getFileStatusSeverity(file.status)" styleClass="text-[9px] px-2 py-0.5 rounded-full" />
+                  <p-tag
+                    [value]="t('ocrJobs.status.' + file.status)"
+                    [severity]="getFileStatusSeverity(file.status)"
+                    styleClass="text-[9px] px-2 py-0.5 rounded-full"
+                  />
                 </div>
               </button>
             }
@@ -166,13 +364,20 @@
               <!-- Left: Image Preview & Actions -->
               <div class="flex flex-col gap-6 h-full min-h-[400px]">
                 <div class="flex items-center justify-between bg-white dark:bg-surface-900 p-4 rounded-2xl shadow-sm">
-                   <h3 class="font-bold text-surface-800 dark:text-surface-100 truncate flex items-center gap-2">
-                       <i class="pi pi-file"></i>
-                       {{ selectedFile.originalName }}
-                   </h3>
-                   <div class="flex items-center gap-2">
-                     <p-button [label]="t('ocrJobs.detail.reprocess')" icon="pi pi-refresh" severity="secondary" size="small" [outlined]="true" (onClick)="op.toggle($event)" />
-                   </div>
+                  <h3 class="font-bold text-surface-800 dark:text-surface-100 truncate flex items-center gap-2">
+                    <i class="pi pi-file"></i>
+                    {{ selectedFile.originalName }}
+                  </h3>
+                  <div class="flex items-center gap-2">
+                    <p-button
+                      [label]="t('ocrJobs.detail.reprocess')"
+                      icon="pi pi-refresh"
+                      severity="secondary"
+                      size="small"
+                      [outlined]="true"
+                      (onClick)="op.toggle($event)"
+                    />
+                  </div>
                 </div>
 
                 <p-popover #op styleClass="shadow-2xl border border-surface-200 dark:border-surface-800 rounded-2xl overflow-hidden p-0">
@@ -180,23 +385,21 @@
                     <div class="p-3 bg-surface-50 dark:bg-surface-900 border-b border-surface-100 dark:border-surface-800">
                       <span class="text-[10px] font-black uppercase text-surface-400">{{ t('upload.ocrProvider') }}</span>
                     </div>
-                    @for (provider of [OcrProvider.Mistral, OcrProvider.Azure, OcrProvider.Aws]; track provider) {
+                    @for (provider of [OcrProvider.Mistral, OcrProvider.TabScanner]; track provider) {
                       <button
                         (click)="reprocess(selectedFile, provider); op.hide()"
                         class="flex items-center gap-3 p-3 text-sm hover:bg-surface-50 dark:hover:bg-surface-800 transition-colors"
-                        [disabled]="provider !== OcrProvider.Mistral"
                       >
                         <i class="pi pi-sparkles text-primary-500"></i>
                         <span>{{ provider | titlecase }}</span>
-                        @if (provider !== OcrProvider.Mistral) {
-                          <span class="ml-auto text-[9px] text-surface-400">{{ t('common.comingSoon') }}</span>
-                        }
                       </button>
                     }
                   </div>
                 </p-popover>
 
-                <div class="flex-grow bg-white dark:bg-surface-900 rounded-[2rem] overflow-hidden border border-surface-200 dark:border-surface-800 shadow-sm flex items-center justify-center p-4 relative">
+                <div
+                  class="flex-grow bg-white dark:bg-surface-900 rounded-[2rem] overflow-hidden border border-surface-200 dark:border-surface-800 shadow-sm flex items-center justify-center p-4 relative"
+                >
                   @if (isFileImage(selectedFile.originalName)) {
                     <img [src]="getSafeUrl(selectedFile.filename)" class="max-w-full max-h-full object-contain rounded-xl" alt="Preview" />
                   } @else if (isFilePdf(selectedFile.originalName)) {
@@ -214,73 +417,102 @@
               <div class="flex flex-col gap-6">
                 <!-- Results Header -->
                 <div class="flex items-center justify-between">
-                     <h3 class="text-xl font-bold text-surface-900 dark:text-surface-0">{{ t('ocrJobs.detail.results') }}</h3>
+                  <h3 class="text-xl font-bold text-surface-900 dark:text-surface-0">{{ t('ocrJobs.detail.results') }}</h3>
                 </div>
 
                 <!-- Executions List -->
-                <div class="bg-white dark:bg-surface-900 rounded-3xl p-6 shadow-sm border border-surface-200 dark:border-surface-800 overflow-hidden flex flex-col gap-4">
+                <div
+                  class="bg-white dark:bg-surface-900 rounded-3xl p-6 shadow-sm border border-surface-200 dark:border-surface-800 overflow-hidden flex flex-col gap-4"
+                >
                   <h4 class="text-xs font-black text-surface-400 uppercase tracking-widest mb-2">{{ t('ocrJobs.detail.executionHistory') }}</h4>
                   <div class="flex flex-col gap-3 max-h-[200px] overflow-y-auto pr-2">
                     @for (exec of selectedFile.executions?.slice()?.reverse(); track exec.id) {
-                        <div
-                          class="flex items-center justify-between p-3 rounded-2xl border transition-all cursor-pointer hover:bg-surface-50/80"
-                          [class.border-surface-200]="selectedExecution?.id !== exec.id"
-                          [class.border-primary-500]="selectedExecution?.id === exec.id"
-                          [class.bg-surface-50\/50]="selectedExecution?.id !== exec.id"
-                          (click)="selectedExecution = exec"
-                        >
-                            <div class="flex items-center gap-3">
-                                <div class="w-8 h-8 rounded-lg bg-white dark:bg-surface-800 flex items-center justify-center">
-                                    <i class="pi pi-sparkles text-primary-500 text-xs"></i>
-                                </div>
-                                <div class="flex flex-col">
-                                    <span class="text-sm font-bold text-surface-800 dark:text-surface-100">{{ exec.ocrProvider | titlecase }}</span>
-                                    <span class="text-[10px] text-surface-500">{{ exec.createdAt | date:'short' }}</span>
-                                </div>
-                            </div>
-                            <p-tag [value]="t('ocrJobs.status.' + exec.status)" [severity]="getExecutionStatusSeverity(exec.status)" styleClass="text-[9px]" />
+                      <div
+                        class="flex items-center justify-between p-3 rounded-2xl border transition-all cursor-pointer hover:bg-surface-50/80"
+                        [class.border-surface-200]="selectedExecution?.id !== exec.id"
+                        [class.border-primary-500]="selectedExecution?.id === exec.id"
+                        [class.bg-surface-50\/50]="selectedExecution?.id !== exec.id"
+                        (click)="selectedExecution = exec"
+                        (keydown.enter)="selectedExecution = exec"
+                        tabindex="0"
+                        role="button"
+                      >
+                        <div class="flex items-center gap-3">
+                          <div class="w-8 h-8 rounded-lg bg-white dark:bg-surface-800 flex items-center justify-center">
+                            <i class="pi pi-sparkles text-primary-500 text-xs"></i>
+                          </div>
+                          <div class="flex flex-col">
+                            <span class="text-sm font-bold text-surface-800 dark:text-surface-100">{{ exec.ocrProvider | titlecase }}</span>
+                            <span class="text-[10px] text-surface-500">{{ exec.createdAt | date: 'short' }}</span>
+                          </div>
                         </div>
+                        <p-tag
+                          [value]="t('ocrJobs.status.' + exec.status)"
+                          [severity]="getExecutionStatusSeverity(exec.status)"
+                          styleClass="text-[9px]"
+                        />
+                      </div>
                     }
                   </div>
                 </div>
 
                 <!-- Latest Result Content -->
-                <div class="flex-grow flex flex-col bg-white dark:bg-surface-900 rounded-3xl shadow-sm border border-surface-200 dark:border-surface-800 overflow-hidden">
-                    <div class="p-4 border-b border-surface-100 dark:border-surface-800 bg-surface-50/50 dark:bg-surface-800/20 flex items-center justify-between">
-                        <span class="text-xs font-black text-surface-400 uppercase tracking-widest">{{ t('ocrJobs.detail.ocrOutput') }}</span>
-                        <div class="flex gap-2">
-                           <p-button icon="pi pi-copy" [text]="true" severity="secondary" size="small" (onClick)="copyToClipboard()" pTooltip="{{ t('ocrJobs.detail.copyToClipboard') }}" />
-                           <p-button icon="pi pi-file-export" [text]="true" severity="secondary" size="small" (onClick)="downloadMarkdown()" pTooltip="{{ t('ocrJobs.detail.downloadMarkdown') }}" />
+                <div
+                  class="flex-grow flex flex-col bg-white dark:bg-surface-900 rounded-3xl shadow-sm border border-surface-200 dark:border-surface-800 overflow-hidden"
+                >
+                  <div
+                    class="p-4 border-b border-surface-100 dark:border-surface-800 bg-surface-50/50 dark:bg-surface-800/20 flex items-center justify-between"
+                  >
+                    <span class="text-xs font-black text-surface-400 uppercase tracking-widest">{{ t('ocrJobs.detail.ocrOutput') }}</span>
+                    <div class="flex gap-2">
+                      <p-button
+                        icon="pi pi-copy"
+                        [text]="true"
+                        severity="secondary"
+                        size="small"
+                        (onClick)="copyToClipboard()"
+                        pTooltip="{{ t('ocrJobs.detail.copyToClipboard') }}"
+                      />
+                      <p-button
+                        icon="pi pi-file-export"
+                        [text]="true"
+                        severity="secondary"
+                        size="small"
+                        (onClick)="downloadMarkdown()"
+                        pTooltip="{{ t('ocrJobs.detail.downloadMarkdown') }}"
+                      />
+                    </div>
+                  </div>
+                  <div class="flex-grow p-6 overflow-y-auto">
+                    @if (selectedExecution; as current) {
+                      @if (current.status === OcrExecutionStatus.Running) {
+                        <div class="flex flex-col items-center justify-center py-20 gap-4">
+                          <p-progressSpinner styleClass="w-12 h-12" strokeWidth="4" />
+                          <p class="text-surface-400 font-bold animate-pulse">{{ t('ocrJobs.detail.ocrInProgress') }}</p>
                         </div>
-                    </div>
-                    <div class="flex-grow p-6 overflow-y-auto">
-                        @if (selectedExecution; as current) {
-                            @if (current.status === OcrExecutionStatus.Running) {
-                                <div class="flex flex-col items-center justify-center py-20 gap-4">
-                                    <p-progressSpinner styleClass="w-12 h-12" strokeWidth="4" />
-                                    <p class="text-surface-400 font-bold animate-pulse">{{ t('ocrJobs.detail.ocrInProgress') }}</p>
-                                </div>
-                            } @else if (current.status === OcrExecutionStatus.Completed) {
-                                <div
-                                  class="ocr-markdown-output prose dark:prose-invert max-w-none text-sm font-mono"
-                                  [innerHTML]="current.ocrData | ocrOutput: current.ocrProvider"
-                                ></div>
-                            } @else if (current.status === OcrExecutionStatus.Failed) {
-                                <div class="p-6 rounded-2xl bg-red-50 dark:bg-red-950/20 border border-red-100 dark:border-red-900 text-red-600 dark:text-red-400">
-                                    <p class="font-bold flex items-center gap-2 mb-2">
-                                        <i class="pi pi-exclamation-circle text-xl"></i>
-                                        {{ t('ocrJobs.status.failed') }}
-                                    </p>
-                                    <p class="text-xs opacity-80">{{ current.errorMessage }}</p>
-                                </div>
-                            }
-                        } @else {
-                            <div class="flex flex-col items-center justify-center py-20 text-surface-300">
-                                <i class="pi pi-code text-5xl mb-4 opacity-10"></i>
-                                <p class="text-xs italic">{{ t('ocrJobs.detail.noData') }}</p>
-                            </div>
-                        }
-                    </div>
+                      } @else if (current.status === OcrExecutionStatus.Completed) {
+                        <div
+                          class="ocr-markdown-output prose dark:prose-invert max-w-none text-sm font-mono"
+                          [innerHTML]="current.ocrData | ocrOutput: current.ocrProvider"
+                        ></div>
+                      } @else if (current.status === OcrExecutionStatus.Failed) {
+                        <div
+                          class="p-6 rounded-2xl bg-red-50 dark:bg-red-950/20 border border-red-100 dark:border-red-900 text-red-600 dark:text-red-400"
+                        >
+                          <p class="font-bold flex items-center gap-2 mb-2">
+                            <i class="pi pi-exclamation-circle text-xl"></i>
+                            {{ t('ocrJobs.status.failed') }}
+                          </p>
+                          <p class="text-xs opacity-80">{{ current.errorMessage }}</p>
+                        </div>
+                      }
+                    } @else {
+                      <div class="flex flex-col items-center justify-center py-20 text-surface-300">
+                        <i class="pi pi-code text-5xl mb-4 opacity-10"></i>
+                        <p class="text-xs italic">{{ t('ocrJobs.detail.noData') }}</p>
+                      </div>
+                    }
+                  </div>
                 </div>
               </div>
             </div>
@@ -301,34 +533,36 @@
   <!-- Global Confirmations / Toast -->
   <p-confirmDialog #cd [style]="{ width: '450px' }" styleClass="rounded-[2.5rem] overflow-hidden shadow-2xl border-none backdrop-blur-md">
     <ng-template #header>
-        <div class="flex flex-col items-center justify-center pt-10 pb-4 w-full">
-            <div class="w-20 h-20 rounded-[2rem] bg-red-50 dark:bg-red-500/10 flex items-center justify-center transform rotate-12 transition-transform hover:rotate-0 duration-500">
-                <i class="pi pi-trash text-4xl text-red-500"></i>
-            </div>
+      <div class="flex flex-col items-center justify-center pt-10 pb-4 w-full">
+        <div
+          class="w-20 h-20 rounded-[2rem] bg-red-50 dark:bg-red-500/10 flex items-center justify-center transform rotate-12 transition-transform hover:rotate-0 duration-500"
+        >
+          <i class="pi pi-trash text-4xl text-red-500"></i>
         </div>
+      </div>
     </ng-template>
     <ng-template #message let-msg>
-        <div class="flex flex-col items-center text-center px-8 pb-8 gap-3">
-            <h3 class="text-2xl font-black text-surface-900 dark:text-surface-0 tracking-tight">{{ msg.header }}</h3>
-            <p class="text-surface-500 dark:text-surface-400 font-semibold leading-relaxed">{{ msg.message }}</p>
-        </div>
+      <div class="flex flex-col items-center text-center px-8 pb-8 gap-3">
+        <h3 class="text-2xl font-black text-surface-900 dark:text-surface-0 tracking-tight">{{ msg.header }}</h3>
+        <p class="text-surface-500 dark:text-surface-400 font-semibold leading-relaxed">{{ msg.message }}</p>
+      </div>
     </ng-template>
     <ng-template #footer>
-        <div class="flex items-center justify-center gap-4 pb-10 px-8 w-full">
-            <p-button
-                [label]="t('common.cancel')"
-                (onClick)="cd.onReject()"
-                [outlined]="true"
-                severity="secondary"
-                styleClass="flex-grow py-4 rounded-2xl font-bold border-2"
-            />
-            <p-button
-                [label]="t('common.delete')"
-                (onClick)="cd.onAccept()"
-                severity="danger"
-                styleClass="flex-grow py-4 rounded-2xl font-bold border-none shadow-xl shadow-red-500/20 hover:scale-105 transition-transform"
-            />
-        </div>
+      <div class="flex items-center justify-center gap-4 pb-10 px-8 w-full">
+        <p-button
+          [label]="t('common.cancel')"
+          (onClick)="cd.onReject()"
+          [outlined]="true"
+          severity="secondary"
+          styleClass="flex-grow py-4 rounded-2xl font-bold border-2"
+        />
+        <p-button
+          [label]="t('common.delete')"
+          (onClick)="cd.onAccept()"
+          severity="danger"
+          styleClass="flex-grow py-4 rounded-2xl font-bold border-none shadow-xl shadow-red-500/20 hover:scale-105 transition-transform"
+        />
+      </div>
     </ng-template>
   </p-confirmDialog>
   <p-toast position="top-right" />

@@ -39,14 +39,34 @@
     "title": "OCR Jobs",
     "subtitle": "Manage your document processing pipeline",
     "addJob": "Add OCR Job",
+    "view": {
+      "cards": "Cards",
+      "table": "Table"
+    },
+    "table": {
+      "id": "ID",
+      "name": "Name",
+      "date": "Date",
+      "status": "Status",
+      "files": "Files",
+      "actions": "Actions"
+    },
     "file": "file",
     "files": "files",
     "noJobs": "No OCR Jobs yet",
     "noJobsHint": "Upload one or more documents to create your first OCR job.",
+    "filters": {
+      "searchPlaceholder": "Search by job or file name...",
+      "statusPlaceholder": "All Statuses",
+      "statusAll": "All Statuses",
+      "sortPlaceholder": "Sort by",
+      "latest": "Latest Created",
+      "oldest": "Oldest Created"
+    },
     "home": {
       "welcome": "Welcome back!",
       "overview": "Here is an overview of your recent OCR activity",
-      "recentReceipts": "Recent OCR Jobs",
+      "recentOcrJobs": "Recent OCR Jobs",
       "viewAll": "View all"
     },
     "status": {
@@ -95,9 +115,7 @@
     "savePreferences": "Save Preferences",
     "providers": {
       "mistral": "Mistral OCR",
-      "azure": "Azure OCR",
-      "aws": "AWS TextExtract",
-      "ask": "Ask each time"
+      "tabscanner": "TabScanner"
     },
     "outputs": {
       "markdown": "Download Markdown",
@@ -109,8 +127,7 @@
   "ocr": {
     "providers": {
       "mistral": "Mistral OCR",
-      "azure": "Azure OCR",
-      "aws": "AWS TextExtract"
+      "tabscanner": "TabScanner (Fast)"
     }
   }
 }

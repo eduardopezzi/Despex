@@ -1,5 +1,4 @@
 import { BadRequestException, Inject, Injectable, Logger } from '@nestjs/common';
-import { EntityManager } from 'typeorm';
 import { DbService } from '@core/database/db.service';
 import { NoTxn, WithTxn } from '@core/database/txn-def.interface';
 import { Readable } from 'stream';
@@ -17,9 +16,9 @@ import { OcrJobsDao } from '@core/database/daos/ocr-jobs.dao';
 import { OcrFilesDao } from '@core/database/daos/ocr-files.dao';
 import { OcrExecutionsDao } from '@core/database/daos/ocr-executions.dao';
 import { OcrJobEntity } from '@core/database/entities/ocr-job.entity';
-import { OcrFileEntity } from '@core/database/entities/ocr-file.entity';
 import { OcrExecutionEntity } from '@core/database/entities/ocr-execution.entity';
-import { OcrExecutionStatus, OcrFileStatus, OcrJobStatus } from '@open-receipt-ocr/types';
+import { OcrExecutionStatus, OcrFileStatus, OcrJobStatus, SortOrder } from '@open-receipt-ocr/types';
+import { OcrFileEntity } from '@core/database/entities/ocr-file.entity';
 
 @Injectable()
 export class OcrJobsService {
@@ -35,10 +34,16 @@ export class OcrJobsService {
     @Inject(StorageProvider) private readonly storage: StorageProvider,
   ) {}
 
-  findAllJobs(page?: number, pageSize?: number): Promise<[OcrJobEntity[], number]> {
+  findAllJobs(
+    page?: number,
+    pageSize?: number,
+    status?: OcrJobStatus,
+    search?: string,
+    sortField?: keyof OcrJobEntity | 'filesCount',
+    sortOrder?: SortOrder,
+  ): Promise<[OcrJobEntity[], number]> {
     const skip = page && pageSize ? (page - 1) * pageSize : undefined;
-    const take = pageSize;
-    return this.ocrJobsDao.findAllWithRelations(NoTxn, skip, take);
+    return this.ocrJobsDao.findAllWithRelations(NoTxn, { skip, take: pageSize, status, search, sortField, sortOrder });
   }
 
   async upload(req: Request): Promise<OcrJobEntity> {

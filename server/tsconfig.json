@@ -29,8 +29,11 @@
       "@core/*": [
         "src/core/*"
       ],
-      "@biz-modules/*": [
-        "src/biz-modules/*"
+      "@app/*": [
+        "src/app/*"
+      ],
+      "@worker/*": [
+        "src/worker/*"
       ],
       "@tests/*": [
         "tests/*"

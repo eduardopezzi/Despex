@@ -1,7 +1,7 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { OcrJobService } from '@services/ocr-job.service';
-import { OcrJobStatus, OcrJob, ImageExtensions } from '@open-receipt-ocr/types';
+import { OcrJobStatus, OcrJob } from '@open-receipt-ocr/types';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { TagModule } from 'primeng/tag';
@@ -10,7 +10,6 @@ import { UploadDialogComponent } from '@components/upload-dialog/upload-dialog.c
 
 import { RouterModule } from '@angular/router';
 import { TranslocoModule } from '@jsverse/transloco';
-import { FileExtension } from '@open-receipt-ocr/types';
 
 @Component({
   selector: 'app-home-page',

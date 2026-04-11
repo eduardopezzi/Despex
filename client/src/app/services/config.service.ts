@@ -1,11 +1,11 @@
 import { Injectable, signal } from '@angular/core';
-import { OcrProvider } from '@models/receipt.model';
+import { OcrProvider } from '@open-receipt-ocr/types';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ConfigService {
-  defaultOcrProvider = signal<OcrProvider | 'ask'>(OcrProvider.Mistral);
+  defaultOcrProvider = signal<OcrProvider>(OcrProvider.Mistral);
   defaultOutputs = signal<string[]>(['markdown']);
 
   private storageKey = 'open-receipt-ocr-config';
@@ -18,7 +18,7 @@ export class ConfigService {
     const data = localStorage.getItem(this.storageKey);
     if (data) {
       try {
-        const config = JSON.parse(data) as { defaultOcrProvider?: OcrProvider | 'ask'; defaultOutputs?: string[] };
+        const config = JSON.parse(data) as { defaultOcrProvider?: OcrProvider; defaultOutputs?: string[] };
         if (config.defaultOcrProvider) this.defaultOcrProvider.set(config.defaultOcrProvider);
         if (config.defaultOutputs) this.defaultOutputs.set(config.defaultOutputs);
       } catch (err) {

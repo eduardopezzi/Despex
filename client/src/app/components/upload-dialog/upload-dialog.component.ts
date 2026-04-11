@@ -10,7 +10,7 @@ import { ProgressBarModule } from 'primeng/progressbar';
 import { OcrProvider } from '@open-receipt-ocr/types';
 import { SelectModule } from 'primeng/select';
 import { FormsModule } from '@angular/forms';
-import { FileUploadModule, FileUploadHandlerEvent } from 'primeng/fileupload';
+import { FileUploadModule } from 'primeng/fileupload';
 import { InputTextModule } from 'primeng/inputtext';
 
 import { ConfigService } from '@services/config.service';
@@ -71,8 +71,7 @@ export class UploadDialogComponent {
   get ocrOptions() {
     return [
       { label: this.translocoService.translate('config.providers.mistral'), value: OcrProvider.Mistral },
-      { label: this.translocoService.translate('config.providers.azure'), value: OcrProvider.Azure, disabled: true },
-      { label: this.translocoService.translate('config.providers.aws'), value: OcrProvider.Aws, disabled: true },
+      { label: this.translocoService.translate('config.providers.tabscanner'), value: OcrProvider.TabScanner },
     ];
   }
 
@@ -90,9 +89,9 @@ export class UploadDialogComponent {
     return this.ALLOWED_TYPES.join(',');
   }
 
-  onSelect(event: any) {
+  onSelect(event: { currentFiles: File[] }) {
     const newFiles: File[] = event.currentFiles;
-    const defaultProvider = this.configService.defaultOcrProvider() as OcrProvider;
+    const defaultProvider = this.configService.defaultOcrProvider();
 
     const current = this.filesWithProviders();
     const updated = [...current];
@@ -107,7 +106,7 @@ export class UploadDialogComponent {
       if (!updated.some((item) => item.file.name === f.name && item.file.size === f.size)) {
         updated.push({
           file: f,
-          ocrProvider: defaultProvider === ('ask' as any) ? OcrProvider.Mistral : defaultProvider,
+          ocrProvider: (defaultProvider as string) === 'ask' ? OcrProvider.Mistral : (defaultProvider as OcrProvider),
         });
       }
     });

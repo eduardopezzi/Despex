@@ -6,3 +6,4 @@ export * from './ocr.interface';
 export * from './mime-type.enum';
 export * from './file-extension.enum';
 export * from './pagination.interface';
+export * from './sort-order.enum';

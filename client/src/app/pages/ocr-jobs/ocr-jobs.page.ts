@@ -12,6 +12,7 @@ import {
   OcrProvider,
   FileExtension,
   ImageExtensions,
+  SortOrder,
 } from '@open-receipt-ocr/types';
 import { interval, Subscription } from 'rxjs';
 import { UploadDialogComponent } from '@components/upload-dialog/upload-dialog.component';
@@ -29,8 +30,15 @@ import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { TooltipModule } from 'primeng/tooltip';
 import { PopoverModule } from 'primeng/popover';
 import { PaginatorModule } from 'primeng/paginator';
+import { TableModule } from 'primeng/table';
+import { SelectButtonModule } from 'primeng/selectbutton';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { OcrOutputPipe } from '@app/pipes/ocr-output.pipe';
+import { FormsModule } from '@angular/forms';
+import { IconFieldModule } from 'primeng/iconfield';
+import { InputIconModule } from 'primeng/inputicon';
+import { InputTextModule } from 'primeng/inputtext';
+import { SelectModule } from 'primeng/select';
 
 @Component({
   selector: 'app-ocr-jobs-page',
@@ -51,6 +59,13 @@ import { OcrOutputPipe } from '@app/pipes/ocr-output.pipe';
     PopoverModule,
     PaginatorModule,
     OcrOutputPipe,
+    FormsModule,
+    IconFieldModule,
+    InputIconModule,
+    InputTextModule,
+    SelectModule,
+    TableModule,
+    SelectButtonModule,
   ],
   templateUrl: './ocr-jobs.page.html',
 })
@@ -77,6 +92,58 @@ export class OcrJobsPageComponent implements OnInit, OnDestroy {
 
   first = 0;
   rows = 20;
+
+  searchQuery = '';
+  filterStatus: OcrJobStatus | null = null;
+  sortField: 'id' | 'name' | 'createdAt' | 'status' | 'filesCount' = 'createdAt';
+  sortOrderDir: SortOrder = SortOrder.DESC;
+  viewMode: 'grid' | 'list' = (localStorage.getItem('ocr-jobs-view-mode') as 'grid' | 'list') || 'grid';
+
+  // For the dropdown shortcut
+  get sortOrder() {
+    if (this.sortField === 'createdAt') {
+      return this.sortOrderDir === SortOrder.DESC ? 'latest' : 'oldest';
+    }
+    return null;
+  }
+
+  set sortOrder(value: string | null) {
+    if (value === 'latest') {
+      this.sortField = 'createdAt';
+      this.sortOrderDir = SortOrder.DESC;
+    } else if (value === 'oldest') {
+      this.sortField = 'createdAt';
+      this.sortOrderDir = SortOrder.ASC;
+    }
+  }
+  get viewOptions() {
+    return [
+      { label: this.translocoService.translate('ocrJobs.view.cards'), value: 'grid', icon: 'pi pi-th-large' },
+      { label: this.translocoService.translate('ocrJobs.view.table'), value: 'list', icon: 'pi pi-list' },
+    ];
+  }
+
+  onViewModeChange(mode: 'grid' | 'list') {
+    this.viewMode = mode;
+    localStorage.setItem('ocr-jobs-view-mode', mode);
+  }
+
+  get statusOptions() {
+    return [
+      { label: this.translocoService.translate('ocrJobs.filters.statusAll'), value: null },
+      { label: this.translocoService.translate('ocrJobs.status.pending'), value: OcrJobStatus.Pending },
+      { label: this.translocoService.translate('ocrJobs.status.processing'), value: OcrJobStatus.Processing },
+      { label: this.translocoService.translate('ocrJobs.status.completed'), value: OcrJobStatus.Completed },
+      { label: this.translocoService.translate('ocrJobs.status.failed'), value: OcrJobStatus.Failed },
+    ];
+  }
+
+  get sortOptions() {
+    return [
+      { label: this.translocoService.translate('ocrJobs.filters.latest'), value: 'latest' },
+      { label: this.translocoService.translate('ocrJobs.filters.oldest'), value: 'oldest' },
+    ];
+  }
 
   get selectedFile() {
     return this._selectedFile;
@@ -122,12 +189,42 @@ export class OcrJobsPageComponent implements OnInit, OnDestroy {
 
   fetchJobsWithPagination(showLoading = true) {
     const page = Math.floor(this.first / this.rows) + 1;
-    this.ocrJobService.fetchJobs(showLoading, page, this.rows);
+    this.ocrJobService.fetchJobs(
+      showLoading,
+      page,
+      this.rows,
+      this.filterStatus || undefined,
+      this.searchQuery || undefined,
+      this.sortField,
+      this.sortOrderDir,
+    );
   }
 
-  onPageChange(event: any) {
-    this.first = event.first;
-    this.rows = event.rows;
+  onPageChange(event: { first?: number; rows?: number }) {
+    this.first = event.first ?? 0;
+    this.rows = event.rows ?? 20;
+    this.fetchJobsWithPagination();
+  }
+
+  onFilterChange() {
+    this.first = 0;
+    this.fetchJobsWithPagination();
+  }
+
+  onSearch() {
+    this.first = 0;
+    this.fetchJobsWithPagination();
+  }
+
+  onSortChange() {
+    this.first = 0;
+    this.fetchJobsWithPagination();
+  }
+
+  onTableSort(event: { field: string; order: number }) {
+    this.sortField = event.field as 'id' | 'name' | 'createdAt' | 'status' | 'filesCount';
+    this.sortOrderDir = event.order === 1 ? SortOrder.ASC : SortOrder.DESC;
+    this.first = 0;
     this.fetchJobsWithPagination();
   }
 
@@ -193,8 +290,8 @@ export class OcrJobsPageComponent implements OnInit, OnDestroy {
     if (!this.selectedExecution?.ocrData) return;
     const ocrData = this.selectedExecution.ocrData;
     const parsed = this.ocrOutputParser.parse(ocrData, this.selectedExecution.ocrProvider);
-    const contentToCopy = (parsed && parsed.markdown) ? parsed.markdown : ocrData;
-    
+    const contentToCopy = parsed && parsed.markdown ? parsed.markdown : ocrData;
+
     if (navigator.clipboard && window.isSecureContext) {
       navigator.clipboard.writeText(contentToCopy);
     } else {
@@ -217,8 +314,8 @@ export class OcrJobsPageComponent implements OnInit, OnDestroy {
     if (!this.selectedExecution?.ocrData || !this.selectedFile) return;
     const ocrData = this.selectedExecution.ocrData;
     const parsed = this.ocrOutputParser.parse(ocrData, this.selectedExecution.ocrProvider);
-    const contentToDownload = (parsed && parsed.markdown) ? parsed.markdown : ocrData;
-    
+    const contentToDownload = parsed && parsed.markdown ? parsed.markdown : ocrData;
+
     const blob = new Blob([contentToDownload], { type: 'text/markdown' });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');

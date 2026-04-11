@@ -1,92 +1,18 @@
 import { Injectable } from '@angular/core';
 import { OcrProvider } from '@open-receipt-ocr/types';
+import { MistralOcrParser } from './parsers/mistral-ocr.parser';
+import { TabScannerOcrParser } from './parsers/tabscanner-ocr.parser';
+import { RawJsonParser } from './parsers/raw-json.parser';
+import type { ParsedOcrOutput, OcrOutputParser } from './parsers/ocr-output-parser.interface';
 
 /**
- * Parsed OCR result with extracted markdown content.
- * Tables are inlined as HTML within the markdown body.
+ * Service to parse OCR output from different providers and extract markdown content.
  */
-export interface ParsedOcrOutput {
-  markdown: string;
-  /** Metadata extracted from the provider response (e.g. model used, pages processed) */
-  meta?: Record<string, unknown>;
-}
-
-/** Strategy interface for per-provider data extraction */
-interface OcrOutputParser {
-  parse(rawJson: unknown): ParsedOcrOutput;
-}
-
-// ---------------------------------------------------------------------------
-// Mistral parser
-// ---------------------------------------------------------------------------
-
-interface MistralPage {
-  index: number;
-  markdown: string;
-  tables?: Array<{ id: string; content: string; format: string }>;
-}
-
-interface MistralOcrResponse {
-  pages: MistralPage[];
-  model: string;
-  usageInfo?: { pagesProcessed: number; docSizeBytes: number };
-}
-
-class MistralOcrParser implements OcrOutputParser {
-  parse(rawJson: unknown): ParsedOcrOutput {
-    const data = rawJson as MistralOcrResponse;
-
-    if (!data?.pages?.length) {
-      return { markdown: '' };
-    }
-
-    const pageMarkdowns = data.pages.map((page) => {
-      let md = page.markdown ?? '';
-
-      // Replace table references with the actual HTML content
-      if (page.tables?.length) {
-        for (const table of page.tables) {
-          const ref = `[${table.id}](${table.id})`;
-          md = md.replace(ref, '\n\n' + table.content + '\n\n');
-        }
-      }
-
-      return md;
-    });
-
-    const markdown = pageMarkdowns.join('\n\n---\n\n');
-
-    return {
-      markdown,
-      meta: {
-        model: data.model,
-        pagesProcessed: data.usageInfo?.pagesProcessed,
-        docSizeBytes: data.usageInfo?.docSizeBytes,
-      },
-    };
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Fallback / unknown-provider parser — renders raw JSON in a code block
-// ---------------------------------------------------------------------------
-
-class RawJsonParser implements OcrOutputParser {
-  parse(rawJson: unknown): ParsedOcrOutput {
-    return {
-      markdown: '```json\n' + JSON.stringify(rawJson, null, 2) + '\n```',
-    };
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Service
-// ---------------------------------------------------------------------------
-
 @Injectable({ providedIn: 'root' })
 export class OcrOutputParserService {
   private readonly parsers: Partial<Record<OcrProvider, OcrOutputParser>> = {
     [OcrProvider.Mistral]: new MistralOcrParser(),
+    [OcrProvider.TabScanner]: new TabScannerOcrParser(),
   };
 
   private readonly fallbackParser = new RawJsonParser();

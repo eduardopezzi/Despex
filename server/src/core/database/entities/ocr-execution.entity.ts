@@ -1,15 +1,19 @@
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { WithModificationDates } from '@core/database/entities/with-modification-dates';
 import { OcrExecutionStatus, OcrProvider } from '@open-receipt-ocr/types';
-import { OcrFileEntity } from './ocr-file.entity';
+import { OcrFileEntity } from '@core/database/entities/ocr-file.entity';
 
 @Entity('ocr_executions')
 export class OcrExecutionEntity extends WithModificationDates {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @Column({ name: 'file_id', type: 'integer' })
+  @Column({
+    name: 'file_id',
+    type: 'integer',
+  })
   fileId!: number;
+
   @ManyToOne(() => OcrFileEntity, (file) => file.executions, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'file_id' })
   file!: OcrFileEntity;
@@ -17,7 +21,6 @@ export class OcrExecutionEntity extends WithModificationDates {
   @Column({
     name: 'status',
     type: 'varchar',
-    enum: OcrExecutionStatus,
     default: OcrExecutionStatus.Pending,
   })
   status!: OcrExecutionStatus;
@@ -25,7 +28,6 @@ export class OcrExecutionEntity extends WithModificationDates {
   @Column({
     name: 'ocr_provider',
     type: 'varchar',
-    enum: OcrProvider,
   })
   ocrProvider!: OcrProvider;
 

@@ -8,7 +8,7 @@ import { NoTxn, TxnDef } from '@core/database/txn-def.interface';
  * Extend this class in a concrete DAO and pass the TypeORM repository:
  *
  *   @Injectable()
- *   export class ReceiptsDao extends BaseDao<ReceiptEntity> {
+ *   export class SomeDao extends BaseDao<SomeEntity> {
  *     constructor(repos: ReposService) {
  *       super(repos.receipt);
  *     }

@@ -1,6 +1,6 @@
 import { INestApplication } from '@nestjs/common';
 import { DatabaseModule } from '@core/database/database.module';
-import { OcrJobsModule } from '@biz-modules/ocr-jobs/ocr-jobs.module';
+import { OcrJobsModule } from '@app/ocr-jobs/ocr-jobs.module';
 import { StorageModule } from '@core/storage/storage.module';
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
 import { TestHelpers } from '@tests/test-helpers';
@@ -74,6 +74,57 @@ describe('OCR Jobs Controller (e2e)', () => {
       expect(page2.total).toBe(3);
       expect(page2.data).toBeArrayOfSize(1);
       expect(page2.data[0].name).toBe('Job A');
+    });
+
+    it('/ocr-jobs (GET) - filter by status and search', async () => {
+      // 1. Create a job with specific name and file
+      await TestHelpers.expectUpload<{ id: number }>(
+        app,
+        '/ocr-jobs/upload',
+        { ocrProvider_0: OcrProvider.Mistral, jobName: 'UniqueSearchableName' },
+        { name: 'file', filename: 'unique-file-name.jpg', content: fileData, contentType: MimeType.Jpeg },
+      );
+
+      // 2. Search by job name
+      const searchJob = await TestHelpers.expectOk<PaginatedResponse<OcrJobEntity>>(app, '/ocr-jobs?search=UniqueSearchableName');
+      expect(searchJob.total).toBe(1);
+      expect(searchJob.data[0].name).toBe('UniqueSearchableName');
+
+      // 3. Search by file name
+      const searchFile = await TestHelpers.expectOk<PaginatedResponse<OcrJobEntity>>(app, '/ocr-jobs?search=unique-file-name');
+      expect(searchFile.total).toBe(1);
+      expect(searchFile.data[0].name).toBe('UniqueSearchableName');
+
+      // 4. Filter by status
+      const statusResults = await TestHelpers.expectOk<PaginatedResponse<OcrJobEntity>>(app, `/ocr-jobs?status=${OcrJobStatus.Processing}`);
+      expect(statusResults.data.every((j) => j.status === OcrJobStatus.Processing)).toBe(true);
+    });
+
+    it('/ocr-jobs (GET) - multi-column sorting', async () => {
+      // 1. Create unique names to avoid conflicts with other tests
+      await TestHelpers.expectUpload<{ id: number }>(
+        app,
+        '/ocr-jobs/upload',
+        { ocrProvider_0: OcrProvider.Mistral, jobName: 'AAA_Job' },
+        { name: 'file', filename: 'a_sort.jpg', content: fileData, contentType: MimeType.Jpeg },
+      );
+      await TestHelpers.expectUpload<{ id: number }>(
+        app,
+        '/ocr-jobs/upload',
+        { ocrProvider_0: OcrProvider.Mistral, jobName: 'ZZZ_Job' },
+        { name: 'file', filename: 'z_sort.jpg', content: fileData, contentType: MimeType.Jpeg },
+      );
+
+      // 2. Sort by name ASC
+      const nameAsc = await TestHelpers.expectOk<PaginatedResponse<OcrJobEntity>>(app, '/ocr-jobs?sortField=name&sortOrder=ASC');
+      expect(nameAsc.data[0].name).toBe('AAA_Job');
+
+      // 3. Sort by name DESC
+      const nameDesc = await TestHelpers.expectOk<PaginatedResponse<OcrJobEntity>>(app, '/ocr-jobs?sortField=name&sortOrder=DESC');
+      expect(nameDesc.data[0].name).toBe('ZZZ_Job');
+
+      // 4. Sort by filesCount DESC
+      await TestHelpers.expectOk<PaginatedResponse<OcrJobEntity>>(app, '/ocr-jobs?sortField=filesCount&sortOrder=DESC');
     });
   });
 

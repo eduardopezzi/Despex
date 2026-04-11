@@ -1,8 +1,8 @@
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { WithModificationDates } from '@core/database/entities/with-modification-dates';
 import { OcrFileStatus } from '@open-receipt-ocr/types';
-import { OcrJobEntity } from './ocr-job.entity';
-import { OcrExecutionEntity } from './ocr-execution.entity';
+import { OcrJobEntity } from '@core/database/entities/ocr-job.entity';
+import { OcrExecutionEntity } from '@core/database/entities/ocr-execution.entity';
 
 @Entity('ocr_files')
 export class OcrFileEntity extends WithModificationDates {
@@ -24,7 +24,6 @@ export class OcrFileEntity extends WithModificationDates {
   @Column({
     name: 'status',
     type: 'varchar',
-    enum: OcrFileStatus,
     default: OcrFileStatus.Pending,
   })
   status!: OcrFileStatus;

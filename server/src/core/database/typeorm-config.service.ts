@@ -1,8 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { TypeOrmModuleOptions, TypeOrmOptionsFactory } from '@nestjs/typeorm';
-import { ReceiptEntity } from '@core/database/entities/receipt.entity';
 import { SecretProvider } from '@core/secrets/secret-provider.interface';
 import { AppSecret } from '@core/types/app-secret.enum';
+import { OcrExecutionEntity } from '@core/database/entities/ocr-execution.entity';
+import { OcrFileEntity } from '@core/database/entities/ocr-file.entity';
+import { OcrJobEntity } from '@core/database/entities/ocr-job.entity';
 
 @Injectable()
 export class TypeOrmConfigService implements TypeOrmOptionsFactory {
@@ -15,7 +17,7 @@ export class TypeOrmConfigService implements TypeOrmOptionsFactory {
     return {
       type: 'sqlite',
       database: databasePath,
-      entities: [ReceiptEntity],
+      entities: [OcrExecutionEntity, OcrFileEntity, OcrJobEntity],
       synchronize: nodeEnv !== 'production',
       autoLoadEntities: true,
     };

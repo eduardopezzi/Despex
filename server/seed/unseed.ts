@@ -3,7 +3,6 @@ import { AppModule } from '../src/app/app.module';
 import { OcrFilesDao } from '@core/database/daos/ocr-files.dao';
 import { OcrExecutionsDao } from '@core/database/daos/ocr-executions.dao';
 import { OcrJobsDao } from '@core/database/daos/ocr-jobs.dao';
-import { ReceiptsDao } from '@core/database/daos/receipts.dao';
 import { StorageProvider } from '@core/storage/storage-provider.interface';
 import { NoTxn, WithTxn } from '@core/database/txn-def.interface';
 import { DbService } from '@core/database/db.service';
@@ -17,7 +16,6 @@ async function unseed() {
   const ocrExecutionsDao = app.get(OcrExecutionsDao);
   const ocrFilesDao = app.get(OcrFilesDao);
   const ocrJobsDao = app.get(OcrJobsDao);
-  const receiptsDao = app.get(ReceiptsDao);
   const dbService = app.get(DbService);
   const storage = app.get<StorageProvider>(StorageProvider);
 
@@ -45,13 +43,6 @@ async function unseed() {
     await ocrExecutionsDao.truncate(txn);
     await ocrFilesDao.truncate(txn);
     await ocrJobsDao.truncate(txn);
-
-    try {
-      await receiptsDao.truncate(txn);
-      logger.log('  Cleared receipts table');
-    } catch {
-      // Table might not exist or entity not registered
-    }
   });
 
   logger.log('✅ Unseeding completed successfully!');
