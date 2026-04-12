@@ -15,8 +15,8 @@ interface PaddleOcrPage {
 
 interface PaddleOcrApiResponse {
   pages: PaddleOcrPage[];
-  model: string;
-  provider: string;
+  model?: string;
+  provider?: string;
 }
 
 export class PaddleOcrApiParser implements OcrOutputParser {

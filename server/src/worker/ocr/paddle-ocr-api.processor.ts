@@ -1,9 +1,29 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import axios from 'axios';
+import * as path from 'node:path';
 import { AppSecret } from '@core/types/app-secret.enum';
 import { SecretProvider } from '@core/secrets/secret-provider.interface';
 import { StorageProvider } from '@core/storage/storage-provider.interface';
 import { OcrFileEntity } from '@core/database/entities/ocr-file.entity';
+
+interface PaddleOcrApiResponse {
+  errorCode: number;
+  errorMsg: string;
+  result: {
+    layoutParsingResults?: Array<{
+      markdown: {
+        text: string;
+      };
+    }>;
+    ocrResults?: Array<{
+      prunedResult: {
+        rec_texts: string[];
+        rec_scores: number[];
+        rec_boxes: unknown[];
+      };
+    }>;
+  };
+}
 
 @Injectable()
 export class PaddleOcrApiProcessor {
@@ -22,39 +42,77 @@ export class PaddleOcrApiProcessor {
     const fileBuffer = await this.streamToBuffer(fileStream);
     const base64Content = fileBuffer.toString('base64');
 
-    this.logger.log(`Calling PaddleOCR API for execution #${executionId}`);
+    const extension = path.extname(file.filename).toLowerCase();
+    const fileType = extension === '.pdf' ? 0 : 1;
+
+    this.logger.log(`Calling PaddleOCR API for execution #${executionId} (type: ${fileType})`);
 
     try {
       const response = await axios.post(
         endpoint,
         {
-          images: [base64Content],
-          parameters: {
-            language: 'auto',
-          },
+          file: base64Content,
+          fileType,
+          useDocOrientationClassify: false,
+          useDocUnwarping: false,
+          useChartRecognition: false,
         },
         {
           headers: {
-            Authorization: `Bearer ${apiKey}`,
+            Authorization: `token ${apiKey}`,
             'Content-Type': 'application/json',
           },
           timeout: 60000, // 60 second timeout
         },
       );
 
-      const data = response.data as Record<string, unknown>;
+      const data = response.data as PaddleOcrApiResponse;
 
-      if (!data || data.error) {
-        throw new Error(`PaddleOCR API returned an error: ${JSON.stringify(data.error || data)}`);
+      if (!data || data.errorCode !== 0) {
+        throw new Error(`PaddleOCR API returned an error: ${data?.errorMsg || JSON.stringify(data)} (code: ${data?.errorCode})`);
       }
 
-      return JSON.stringify(data);
+      const ocrResults = data.result?.ocrResults;
+      const layoutParsingResults = data.result?.layoutParsingResults;
+
+      let pages: unknown[] = [];
+
+      if (ocrResults && Array.isArray(ocrResults) && ocrResults.length > 0) {
+        pages = ocrResults.map((res) => ({
+          blocks: res.prunedResult.rec_texts
+            .map((text, i) => ({
+              text: text || '',
+              confidence: res.prunedResult.rec_scores[i] || 0,
+              bbox: res.prunedResult.rec_boxes[i] || null,
+            }))
+            .filter((block) => block.text.trim().length > 0),
+        }));
+      } else if (layoutParsingResults && Array.isArray(layoutParsingResults) && layoutParsingResults.length > 0) {
+        pages = layoutParsingResults.map((res) => ({
+          blocks: [
+            {
+              text: res.markdown?.text || '',
+              confidence: 1,
+              bbox: null,
+            },
+          ],
+        }));
+      } else {
+        throw new Error('PaddleOCR API returned success but missing recognized content');
+      }
+
+      // Map to the format expected by the client parser (PaddleOcrApiParser)
+      const formatted = { pages };
+
+      return JSON.stringify(formatted);
     } catch (error) {
       if (axios.isAxiosError(error)) {
         const responseData = error.response?.data as Record<string, unknown> | undefined;
-        const errorMessage = (responseData?.error as string) || error.message;
-        throw new Error(`PaddleOCR API error: ${errorMessage}`);
+        const errorMessage = (responseData?.errorMsg as string) || (responseData?.error as string) || error.message;
+        const errorCode = responseData?.errorCode;
+        throw new Error(`PaddleOCR API error: ${errorMessage}${errorCode ? ` (code: ${errorCode as string})` : ''}`);
       }
+      this.logger.error(error);
       throw error;
     }
   }
