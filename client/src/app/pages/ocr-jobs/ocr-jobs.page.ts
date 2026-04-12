@@ -146,16 +146,8 @@ export class OcrJobsPageComponent implements OnInit, OnDestroy {
   }
 
   getProviderTranslationKey(provider: OcrProvider | string): string {
-    const p = provider as OcrProvider;
-    const mapping: Record<OcrProvider, string> = {
-      [OcrProvider.Mistral]: 'mistral',
-      [OcrProvider.TabScanner]: 'tabscanner',
-      [OcrProvider.PaddleOcrLocal]: 'paddleOcrLocal',
-      [OcrProvider.PaddleOcrApi]: 'paddleOcrApi',
-    };
-    return mapping[p] || (provider as string);
+    return (provider as string);
   }
-
 
   get selectedFile() {
     return this._selectedFile;

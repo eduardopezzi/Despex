@@ -47,28 +47,19 @@ export class ConfigDialogComponent {
   }
 
   get ocrOptions() {
-    return [
-      {
-        label: this.translocoService.translate('config.providers.mistral'),
-        value: OcrProvider.Mistral,
-        icon: 'pi pi-sparkles',
-      },
-      {
-        label: this.translocoService.translate('config.providers.tabscanner'),
-        value: OcrProvider.TabScanner,
-        icon: 'pi pi-bolt',
-      },
-      {
-        label: this.translocoService.translate('config.providers.paddleOcrLocal'),
-        value: OcrProvider.PaddleOcrLocal,
-        icon: 'pi pi-desktop',
-      },
-      {
-        label: this.translocoService.translate('config.providers.paddleOcrApi'),
-        value: OcrProvider.PaddleOcrApi,
-        icon: 'pi pi-cloud',
-      },
-    ];
+    const ocrProvidersToIconMap: Record<OcrProvider, string> = {
+      [OcrProvider.Mistral]: 'pi pi-sparkles',
+      [OcrProvider.TabScanner]: 'pi pi-bolt',
+      [OcrProvider.PaddleOcrLocal]: 'pi pi-desktop',
+      [OcrProvider.PaddleOcrApi]: 'pi pi-cloud',
+    };
+
+    const ocrProviders = Object.values(OcrProvider);
+    return ocrProviders.map((ocrProvider) => ({
+      label: this.translocoService.translate(`config.providers.${ocrProvider}`),
+      value: ocrProvider,
+      icon: ocrProvidersToIconMap[ocrProvider],
+    }));
   }
 
   get outputOptions() {

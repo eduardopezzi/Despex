@@ -1,4 +1,4 @@
-import { Component, EventEmitter, inject, Input, Output, signal } from '@angular/core';
+import { Component, EventEmitter, inject, Input, Output, signal, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { OcrJobService } from '@services/ocr-job.service';
 
@@ -10,7 +10,7 @@ import { ProgressBarModule } from 'primeng/progressbar';
 import { OcrProvider } from '@open-receipt-ocr/types';
 import { SelectModule } from 'primeng/select';
 import { FormsModule } from '@angular/forms';
-import { FileUploadModule } from 'primeng/fileupload';
+import { FileUpload, FileUploadModule } from 'primeng/fileupload';
 import { InputTextModule } from 'primeng/inputtext';
 
 import { ConfigService } from '@services/config.service';
@@ -43,6 +43,8 @@ interface FileWithProvider {
   templateUrl: './upload-dialog.component.html',
 })
 export class UploadDialogComponent {
+  @ViewChild('fileUpload') fileUpload!: FileUpload;
+
   private ocrJobService = inject(OcrJobService);
   private configService = inject(ConfigService);
   private translocoService = inject(TranslocoService);
@@ -83,6 +85,7 @@ export class UploadDialogComponent {
     this.message.set(null);
     this.isError.set(false);
     this.uploading.set(false);
+    this.fileUpload?.clear();
   }
 
   readonly ALLOWED_TYPES = [MimeType.Pdf, MimeType.Jpeg, MimeType.Png];

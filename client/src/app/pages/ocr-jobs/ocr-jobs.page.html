@@ -398,7 +398,7 @@
                 </p-popover>
 
                 <div
-                  class="flex-grow bg-white dark:bg-surface-900 rounded-[2rem] overflow-hidden border border-surface-200 dark:border-surface-800 shadow-sm flex items-center justify-center p-4 relative"
+                  class="flex-grow max-h-[65vh] bg-white dark:bg-surface-900 rounded-[2rem] overflow-hidden border border-surface-200 dark:border-surface-800 shadow-sm flex items-center justify-center p-4 relative"
                 >
                   @if (isFileImage(selectedFile.originalName)) {
                     <img [src]="getSafeUrl(selectedFile.filename)" class="max-w-full max-h-full object-contain rounded-xl" alt="Preview" />
