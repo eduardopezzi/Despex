@@ -58,6 +58,16 @@ export class ConfigDialogComponent {
         value: OcrProvider.TabScanner,
         icon: 'pi pi-bolt',
       },
+      {
+        label: this.translocoService.translate('config.providers.paddleOcrLocal'),
+        value: OcrProvider.PaddleOcrLocal,
+        icon: 'pi pi-desktop',
+      },
+      {
+        label: this.translocoService.translate('config.providers.paddleOcrApi'),
+        value: OcrProvider.PaddleOcrApi,
+        icon: 'pi pi-cloud',
+      },
     ];
   }
 

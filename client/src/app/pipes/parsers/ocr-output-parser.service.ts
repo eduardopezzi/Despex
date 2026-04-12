@@ -1,9 +1,11 @@
 import { Injectable } from '@angular/core';
 import { OcrProvider } from '@open-receipt-ocr/types';
-import { MistralOcrParser } from './mistral-ocr.parser';
-import { TabScannerOcrParser } from './tabscanner-ocr.parser';
-import { RawJsonParser } from './raw-json.parser';
-import type { ParsedOcrOutput, OcrOutputParser } from './ocr-output-parser.interface';
+import { MistralOcrParser } from '@app/pipes/parsers/mistral-ocr.parser';
+import { TabScannerOcrParser } from '@app/pipes/parsers/tabscanner-ocr.parser';
+import { PaddleOcrApiParser } from '@app/pipes/parsers/paddle-ocr-api.parser';
+import { PaddleOcrLocalParser } from '@app/pipes/parsers/paddle-ocr-local.parser';
+import { RawJsonParser } from '@app/pipes/parsers/raw-json.parser';
+import type { ParsedOcrOutput, OcrOutputParser } from '@app/pipes/parsers/ocr-output-parser.interface';
 
 /**
  * Service to parse OCR output from different providers and extract markdown content.
@@ -13,6 +15,8 @@ export class OcrOutputParserService {
   private readonly parsers: Partial<Record<OcrProvider, OcrOutputParser>> = {
     [OcrProvider.Mistral]: new MistralOcrParser(),
     [OcrProvider.TabScanner]: new TabScannerOcrParser(),
+    [OcrProvider.PaddleOcrApi]: new PaddleOcrApiParser(),
+    [OcrProvider.PaddleOcrLocal]: new PaddleOcrLocalParser(),
   };
 
   private readonly fallbackParser = new RawJsonParser();

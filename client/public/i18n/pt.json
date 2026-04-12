@@ -115,7 +115,9 @@
     "savePreferences": "Guardar Preferências",
     "providers": {
       "mistral": "Mistral OCR",
-      "tabscanner": "TabScanner"
+      "tabscanner": "TabScanner",
+      "paddleOcrLocal": "Paddle OCR Local",
+      "paddleOcrApi": "Paddle OCR API"
     },
     "outputs": {
       "markdown": "Descarregar Markdown",
@@ -127,7 +129,9 @@
   "ocr": {
     "providers": {
       "mistral": "Mistral OCR",
-      "tabscanner": "TabScanner (Rápido)"
+      "tabscanner": "TabScanner (Rápido)",
+      "paddleOcrLocal": "Paddle OCR Local (Auto-hospedado)",
+      "paddleOcrApi": "Paddle OCR API"
     }
   }
 }

@@ -1,7 +1,6 @@
 import { Processor, WorkerHost } from '@nestjs/bullmq';
-import { Inject, Logger } from '@nestjs/common';
+import { Logger } from '@nestjs/common';
 import { Job } from 'bullmq';
-import { SecretProvider } from '@core/secrets/secret-provider.interface';
 import { StorageProvider } from '@core/storage/storage-provider.interface';
 import { QueueName } from '@core/types/queue-name.enum';
 import { OcrProvider } from '@core/types/ocr-provider.enum';
@@ -25,7 +24,6 @@ export class OcrProcessor extends WorkerHost {
     private readonly ocrExecutionsDao: OcrExecutionsDao,
     private readonly ocrFilesDao: OcrFilesDao,
     private readonly ocrJobsDao: OcrJobsDao,
-    @Inject(SecretProvider) private readonly secretProvider: SecretProvider,
     private readonly storage: StorageProvider,
     private readonly db: DbService,
     private readonly mistralProcessor: MistralProcessor,

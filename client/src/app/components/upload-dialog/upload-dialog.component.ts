@@ -72,6 +72,8 @@ export class UploadDialogComponent {
     return [
       { label: this.translocoService.translate('config.providers.mistral'), value: OcrProvider.Mistral },
       { label: this.translocoService.translate('config.providers.tabscanner'), value: OcrProvider.TabScanner },
+      { label: this.translocoService.translate('config.providers.paddleOcrLocal'), value: OcrProvider.PaddleOcrLocal },
+      { label: this.translocoService.translate('config.providers.paddleOcrApi'), value: OcrProvider.PaddleOcrApi },
     ];
   }
 
