@@ -71,12 +71,10 @@ export class UploadDialogComponent {
   isError = signal(false);
 
   get ocrOptions() {
-    return [
-      { label: this.translocoService.translate('config.providers.mistral'), value: OcrProvider.Mistral },
-      { label: this.translocoService.translate('config.providers.tabscanner'), value: OcrProvider.TabScanner },
-      { label: this.translocoService.translate('config.providers.paddleOcrLocal'), value: OcrProvider.PaddleOcrLocal },
-      { label: this.translocoService.translate('config.providers.paddleOcrApi'), value: OcrProvider.PaddleOcrApi },
-    ];
+    return Object.values(OcrProvider).map((ocrProvider) => ({
+      label: this.translocoService.translate(`config.providers.${ocrProvider}`),
+      value: ocrProvider,
+    }));
   }
 
   reset() {

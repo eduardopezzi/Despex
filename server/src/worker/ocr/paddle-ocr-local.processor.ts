@@ -15,9 +15,7 @@ export class PaddleOcrLocalProcessor implements OnModuleInit, OnModuleDestroy {
   constructor(
     @Inject(SecretProvider) private readonly secretProvider: SecretProvider,
     private readonly storage: StorageProvider,
-  ) {
-    this.logger.log('PaddleOCR local module instantiated');
-  }
+  ) {}
 
   async onModuleInit() {
     await this.ensureInitialized(undefined, true);
@@ -38,7 +36,17 @@ export class PaddleOcrLocalProcessor implements OnModuleInit, OnModuleDestroy {
     }
 
     if (!this.paddleOcr) {
-      this.paddleOcr = new PaddleOcrService();
+      this.paddleOcr = new PaddleOcrService({
+        session: {
+          executionProviders: ['cpu'], // Use CPU-only for consistent performance
+          graphOptimizationLevel: 'all', // Enable all optimizations
+          enableCpuMemArena: true, // Better memory management
+          enableMemPattern: true, // Memory pattern optimization
+          executionMode: 'sequential', // Better for single-threaded performance
+          interOpNumThreads: 0, // Let ONNX decide optimal thread count
+          intraOpNumThreads: 0, // Let ONNX decide optimal thread count
+        },
+      });
     }
 
     if (!this.paddleOcr.isInitialized()) {

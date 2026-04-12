@@ -80,7 +80,6 @@ export class OcrJobsPageComponent implements OnInit, OnDestroy {
   private pollingSubscription?: Subscription;
 
   OcrJobStatus = OcrJobStatus;
-  OcrFileStatus = OcrFileStatus;
   OcrExecutionStatus = OcrExecutionStatus;
   OcrProvider = OcrProvider;
 
@@ -145,8 +144,22 @@ export class OcrJobsPageComponent implements OnInit, OnDestroy {
     ];
   }
 
+  get providers() {
+    return Object.values(OcrProvider);
+  }
+
+  getProviderIcon(provider: OcrProvider): string {
+    const icons: Record<OcrProvider, string> = {
+      [OcrProvider.Mistral]: 'pi pi-sparkles',
+      [OcrProvider.TabScanner]: 'pi pi-bolt',
+      [OcrProvider.PaddleOcrLocal]: 'pi pi-desktop',
+      [OcrProvider.PaddleOcrApi]: 'pi pi-cloud',
+    };
+    return icons[provider] || 'pi pi-sparkles';
+  }
+
   getProviderTranslationKey(provider: OcrProvider | string): string {
-    return (provider as string);
+    return provider as string;
   }
 
   get selectedFile() {
@@ -161,26 +174,6 @@ export class OcrJobsPageComponent implements OnInit, OnDestroy {
     }
   }
   selectedExecution: OcrExecution | null = null;
-
-  get exportItems(): MenuItem[] {
-    return [
-      {
-        label: this.translocoService.translate('ocrJobs.detail.exportTitleNative'),
-        items: [
-          {
-            label: this.translocoService.translate('ocrJobs.detail.copyToClipboard'),
-            icon: 'pi pi-copy',
-            command: () => this.copyToClipboard(),
-          },
-          {
-            label: this.translocoService.translate('ocrJobs.detail.downloadMarkdown'),
-            icon: 'pi pi-file-export',
-            command: () => this.downloadMarkdown(),
-          },
-        ],
-      },
-    ];
-  }
 
   ngOnInit() {
     this.fetchJobsWithPagination();
