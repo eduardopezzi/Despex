@@ -12,7 +12,7 @@ import type { ParsedOcrOutput, OcrOutputParser } from '@app/pipes/parsers/ocr-ou
  */
 @Injectable({ providedIn: 'root' })
 export class OcrOutputParserService {
-  private readonly parsers: Partial<Record<OcrProvider, OcrOutputParser>> = {
+  private readonly parsers: Record<OcrProvider, OcrOutputParser> = {
     [OcrProvider.Mistral]: new MistralOcrParser(),
     [OcrProvider.TabScanner]: new TabScannerOcrParser(),
     [OcrProvider.PaddleOcrApi]: new PaddleOcrApiParser(),

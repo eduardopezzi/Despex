@@ -109,7 +109,7 @@ export class UploadDialogComponent {
       if (!updated.some((item) => item.file.name === f.name && item.file.size === f.size)) {
         updated.push({
           file: f,
-          ocrProvider: (defaultProvider as string) === 'ask' ? OcrProvider.Mistral : (defaultProvider as OcrProvider),
+          ocrProvider: defaultProvider ?? OcrProvider.Mistral,
         });
       }
     });
