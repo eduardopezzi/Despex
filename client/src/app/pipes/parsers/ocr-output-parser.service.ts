@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
 import { OcrProvider } from '@open-receipt-ocr/types';
-import { MistralOcrParser } from './parsers/mistral-ocr.parser';
-import { TabScannerOcrParser } from './parsers/tabscanner-ocr.parser';
-import { RawJsonParser } from './parsers/raw-json.parser';
-import type { ParsedOcrOutput, OcrOutputParser } from './parsers/ocr-output-parser.interface';
+import { MistralOcrParser } from './mistral-ocr.parser';
+import { TabScannerOcrParser } from './tabscanner-ocr.parser';
+import { RawJsonParser } from './raw-json.parser';
+import type { ParsedOcrOutput, OcrOutputParser } from './ocr-output-parser.interface';
 
 /**
  * Service to parse OCR output from different providers and extract markdown content.

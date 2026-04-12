@@ -1,7 +1,7 @@
 import { Component, effect, inject, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { OcrJobService } from '@services/ocr-job.service';
-import { OcrOutputParserService } from '@services/ocr-output-parser.service';
+import { OcrOutputParserService } from '@app/pipes/parsers/ocr-output-parser.service';
 import {
   OcrJob,
   OcrFile,
