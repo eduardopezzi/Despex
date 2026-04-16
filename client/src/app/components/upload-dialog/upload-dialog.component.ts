@@ -21,7 +21,7 @@ import { MimeType } from '@open-receipt-ocr/types';
 
 interface FileWithProvider {
   file: File;
-  ocrProvider: OcrProvider;
+  ocrProvider?: OcrProvider;
 }
 
 @Component({
@@ -109,7 +109,7 @@ export class UploadDialogComponent {
       if (!updated.some((item) => item.file.name === f.name && item.file.size === f.size)) {
         updated.push({
           file: f,
-          ocrProvider: defaultProvider ?? OcrProvider.Mistral,
+          ocrProvider: defaultProvider ?? undefined,
         });
       }
     });
@@ -125,19 +125,30 @@ export class UploadDialogComponent {
     this.filesWithProviders.set(updated);
   }
 
+  setProvider(item: FileWithProvider, provider: OcrProvider) {
+    this.filesWithProviders.update((items) => items.map((i) => (i === item ? { ...i, ocrProvider: provider } : i)));
+  }
+
   removeFile(item: FileWithProvider) {
     this.filesWithProviders.set(this.filesWithProviders().filter((f) => f !== item));
+    this.fileUpload.files = this.fileUpload.files.filter((f) => f !== item.file);
+  }
+
+  allProvidersSelected(): boolean {
+    const items = this.filesWithProviders();
+    console.log(items);
+    return items.length > 0 && items.every((i) => !!i.ocrProvider);
   }
 
   doUpload() {
     const items = this.filesWithProviders();
-    if (items.length === 0) return;
+    if (items.length === 0 || items.some((i) => !i.ocrProvider)) return;
 
     this.uploading.set(true);
     this.message.set(null);
 
     const files = items.map((i) => i.file);
-    const providers = items.map((i) => i.ocrProvider);
+    const providers = items.map((i) => i.ocrProvider as OcrProvider);
 
     this.ocrJobService.uploadJob(files, providers, this.jobName()).subscribe({
       next: () => {

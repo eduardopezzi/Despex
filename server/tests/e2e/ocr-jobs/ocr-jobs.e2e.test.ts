@@ -128,19 +128,37 @@ describe('OCR Jobs Controller (e2e)', () => {
     });
   });
 
-  it('/ocr-jobs/upload (POST)', async () => {
-    const body = await TestHelpers.expectUpload<{ id: number }>(
-      app,
-      '/ocr-jobs/upload',
-      { ocrProvider_0: OcrProvider.Mistral, jobName: 'Test Job' },
-      { name: 'file', filename: 'test.jpg', content: fileData, contentType: MimeType.Jpeg },
-    );
+  describe('/ocr-jobs/upload (POST)', () => {
+    it('returns job id and queues the execution', async () => {
+      const body = await TestHelpers.expectUpload<{ id: number }>(
+        app,
+        '/ocr-jobs/upload',
+        { ocrProvider_0: OcrProvider.Mistral, jobName: 'Test Job' },
+        { name: 'file', filename: 'test.jpg', content: fileData, contentType: MimeType.Jpeg },
+      );
 
-    expect(body).toHaveProperty('id');
-    expect(queueServiceMock.addToOcrQueue).toHaveBeenCalledOnce();
-    // We can't easily check the execution ID here because it's auto-generated in DB
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    expect(queueServiceMock.addToOcrQueue).toHaveBeenCalledWith(expect.objectContaining({ executionId: expect.any(Number) }));
+      expect(body).toHaveProperty('id');
+      expect(queueServiceMock.addToOcrQueue).toHaveBeenCalledOnce();
+      expect(queueServiceMock.addToOcrQueue).toHaveBeenCalledWith(expect.objectContaining({ executionId: expect.any(Number) }));
+    });
+
+    it('creates an execution for the file and queues it with the correct id', async () => {
+      const body = await TestHelpers.expectUpload<{ id: number }>(
+        app,
+        '/ocr-jobs/upload',
+        { ocrProvider_0: OcrProvider.Mistral, jobName: 'Execution Verify Job' },
+        { name: 'file', filename: 'exec-verify.jpg', content: fileData, contentType: MimeType.Jpeg },
+      );
+
+      const job = await TestHelpers.expectOk<OcrJobEntity>(app, `/ocr-jobs/${body.id}`);
+      const execution = job.files[0].executions[0];
+
+      expect(execution).toMatchObject({
+        status: OcrExecutionStatus.Pending,
+        ocrProvider: OcrProvider.Mistral,
+      });
+      expect(queueServiceMock.addToOcrQueue).toHaveBeenCalledWith({ executionId: execution.id });
+    });
   });
 
   it('/ocr-jobs/:id (GET)', async () => {

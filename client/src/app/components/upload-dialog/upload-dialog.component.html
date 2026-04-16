@@ -64,7 +64,8 @@
             <div class="flex-none w-48">
               <p-select
                 [options]="ocrOptions"
-                [(ngModel)]="item.ocrProvider"
+                [ngModel]="item.ocrProvider"
+                (ngModelChange)="setProvider(item, $event)"
                 optionLabel="label"
                 optionValue="value"
                 styleClass="w-full"
@@ -92,17 +93,18 @@
     @if (message()) {
       <p-message [severity]="isError() ? 'error' : 'success'" [text]="t(message() || '')" class="w-full" />
     }
-  </div>
 
-  <ng-template pTemplate="footer">
-    <p-button [label]="t('common.cancel')" severity="secondary" [text]="true" (onClick)="close()" [disabled]="uploading()" />
-    <p-button
-      [label]="t('upload.uploadAndProcess')"
-      icon="pi pi-cloud-upload"
-      [loading]="uploading()"
-      [disabled]="filesWithProviders().length === 0"
-      (onClick)="doUpload()"
-    />
-  </ng-template>
+    <!-- Footer -->
+    <div class="flex justify-end gap-2 pt-4 border-t border-surface-200 dark:border-surface-700">
+      <p-button [label]="t('common.cancel')" severity="secondary" [text]="true" (onClick)="close()" [disabled]="uploading()" />
+      <p-button
+        [label]="t('upload.uploadAndProcess')"
+        icon="pi pi-cloud-upload"
+        [loading]="uploading()"
+        [disabled]="uploading() || !allProvidersSelected()"
+        (onClick)="doUpload()"
+      />
+    </div>
+  </div>
   <p-toast position="top-right" />
 </p-dialog>
