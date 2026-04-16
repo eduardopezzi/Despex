@@ -242,6 +242,15 @@ describe('OCR Jobs Controller (e2e)', () => {
       await TestHelpers.expectBadRequestGet(app, '/ocr-jobs/999999');
     });
 
+    it('/ocr-jobs/upload (POST) - invalid ocr provider returns 400', async () => {
+      await TestHelpers.expectBadRequestUpload(
+        app,
+        '/ocr-jobs/upload',
+        { ocrProvider_0: 'invalid-provider', jobName: 'Bad Provider Job' },
+        { name: 'file', filename: 'bad-provider.jpg', content: fileData, contentType: MimeType.Jpeg },
+      );
+    });
+
     it('/ocr-jobs/upload (POST) - multiple files', async () => {
       const body = await TestHelpers.expectMultiFileUpload<{ id: number }>(
         app,

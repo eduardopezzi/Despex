@@ -81,7 +81,16 @@ export class OcrJobsService {
         this.logger.warn(
           `The given ocr provider for the file named ${file.originalName}, does not exist. Given: ${parseResult.fields[providerField]}. List of allowed OCR Providers is: ${Object.values(OcrProvider).join(', ')}`,
         );
+        try {
+          await this.storage.delete(file.key);
+        } catch (err) {
+          this.logger.error(`Failed to delete orphaned file ${file.key} from storage: ${(err as Error).message}`);
+        }
       }
+    }
+
+    if (files.length === 0) {
+      throw new BadRequestException('No valid files provided. Each file must have a valid ocrProvider_<index> field.');
     }
 
     const { ocrJob, executionsToQueue } = await this.dbService.transaction(async (em) => {
