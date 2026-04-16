@@ -241,7 +241,9 @@ describe('OCR Jobs Controller (e2e)', () => {
     it('/ocr-jobs/:id (GET) - not found', async () => {
       await TestHelpers.expectBadRequestGet(app, '/ocr-jobs/999999');
     });
+  });
 
+  describe('/ocr-jobs/upload (POST)', () => {
     it('/ocr-jobs/upload (POST) - invalid ocr provider returns 400', async () => {
       await TestHelpers.expectBadRequestUpload(
         app,
