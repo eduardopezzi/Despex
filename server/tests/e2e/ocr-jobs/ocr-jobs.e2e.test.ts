@@ -223,40 +223,42 @@ describe('OCR Jobs Controller (e2e)', () => {
     expect(updatedJob.files[0].status).toBe(OcrFileStatus.Processing);
   });
 
-  it('/ocr-jobs/:id (DELETE)', async () => {
-    const uploadRes = await TestHelpers.expectUpload<{ id: number }>(
-      app,
-      '/ocr-jobs/upload',
-      { ocrProvider_0: OcrProvider.Mistral, jobName: 'Delete Job' },
-      { name: 'file', filename: 'delete-test.jpg', content: fileData, contentType: MimeType.Jpeg },
-    );
-    const id = uploadRes.id;
+  describe('/ocr-jobs/:id (DELETE)', () => {
+    it('/ocr-jobs/:id (DELETE)', async () => {
+      const uploadRes = await TestHelpers.expectUpload<{ id: number }>(
+        app,
+        '/ocr-jobs/upload',
+        { ocrProvider_0: OcrProvider.Mistral, jobName: 'Delete Job' },
+        { name: 'file', filename: 'delete-test.jpg', content: fileData, contentType: MimeType.Jpeg },
+      );
+      const id = uploadRes.id;
 
-    await TestHelpers.expectOk(app, `/ocr-jobs/${id}`);
-    await TestHelpers.expectDelete(app, `/ocr-jobs/${id}`);
-    await TestHelpers.expectBadRequestGet(app, `/ocr-jobs/${id}`);
-  });
+      await TestHelpers.expectOk(app, `/ocr-jobs/${id}`);
+      await TestHelpers.expectDelete(app, `/ocr-jobs/${id}`);
+      await TestHelpers.expectBadRequestGet(app, `/ocr-jobs/${id}`);
+    });
 
-  it('/ocr-jobs/:id (GET) - not found', async () => {
-    await TestHelpers.expectBadRequestGet(app, '/ocr-jobs/999999');
-  });
+    it('/ocr-jobs/:id (GET) - not found', async () => {
+      await TestHelpers.expectBadRequestGet(app, '/ocr-jobs/999999');
+    });
 
-  it('/ocr-jobs/upload (POST) - multiple files', async () => {
-    const body = await TestHelpers.expectMultiFileUpload<{ id: number }>(
-      app,
-      '/ocr-jobs/upload',
-      { ocrProvider_0: OcrProvider.Mistral, ocrProvider_1: OcrProvider.Mistral, jobName: 'Multi File Job' },
-      [
-        { name: 'file', filename: 'multi-file-1.jpg', content: fileData, contentType: MimeType.Jpeg },
-        { name: 'file', filename: 'multi-file-2.jpg', content: fileData, contentType: MimeType.Jpeg },
-      ],
-    );
+    it('/ocr-jobs/upload (POST) - multiple files', async () => {
+      const body = await TestHelpers.expectMultiFileUpload<{ id: number }>(
+        app,
+        '/ocr-jobs/upload',
+        { ocrProvider_0: OcrProvider.Mistral, ocrProvider_1: OcrProvider.Mistral, jobName: 'Multi File Job' },
+        [
+          { name: 'file', filename: 'multi-file-1.jpg', content: fileData, contentType: MimeType.Jpeg },
+          { name: 'file', filename: 'multi-file-2.jpg', content: fileData, contentType: MimeType.Jpeg },
+        ],
+      );
 
-    expect(body).toHaveProperty('id');
-    expect(queueServiceMock.addToOcrQueue).toHaveBeenCalledTimes(2);
+      expect(body).toHaveProperty('id');
+      expect(queueServiceMock.addToOcrQueue).toHaveBeenCalledTimes(2);
 
-    const job = await TestHelpers.expectOk<OcrJobEntity>(app, `/ocr-jobs/${body.id}`);
-    expect(job.files).toHaveLength(2);
-    expect(job.files.map((f) => f.originalName)).toEqual(expect.arrayContaining(['multi-file-1.jpg', 'multi-file-2.jpg']));
+      const job = await TestHelpers.expectOk<OcrJobEntity>(app, `/ocr-jobs/${body.id}`);
+      expect(job.files).toHaveLength(2);
+      expect(job.files.map((f) => f.originalName)).toEqual(expect.arrayContaining(['multi-file-1.jpg', 'multi-file-2.jpg']));
+    });
   });
 });
