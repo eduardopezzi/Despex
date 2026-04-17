@@ -338,7 +338,10 @@
                 class="flex items-center gap-4 p-4 text-left transition-all hover:bg-surface-50 dark:hover:bg-surface-800/50"
                 [class.file-item-selected]="selectedFile?.id === file.id"
               >
-                <div class="flex-none w-10 h-10 rounded-xl bg-surface-100 dark:bg-surface-800 flex items-center justify-center">
+                <div
+                  class="file-icon-container flex-none w-10 h-10 rounded-xl flex items-center justify-center transition-colors"
+                  [class.file-icon-selected]="selectedFile?.id === file.id"
+                >
                   <i [class]="getFileIcon(file.originalName)"></i>
                 </div>
                 <div class="flex-grow min-w-0">
