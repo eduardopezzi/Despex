@@ -1,10 +1,11 @@
-import { Component, ElementRef, EventEmitter, Input, Output, ViewChild, effect, inject, signal } from '@angular/core';
+import { Component, ElementRef, EventEmitter, Input, OnChanges, Output, SimpleChanges, ViewChild, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DialogModule } from 'primeng/dialog';
 import { ButtonModule } from 'primeng/button';
 import { SelectModule } from 'primeng/select';
 import { ConfigService } from '@services/config.service';
+import { OCR_PROVIDER_ICONS } from '@services/ocr-job.service';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { OcrProvider } from '@open-receipt-ocr/types';
 
@@ -14,51 +15,28 @@ import { OcrProvider } from '@open-receipt-ocr/types';
   imports: [CommonModule, DialogModule, ButtonModule, SelectModule, FormsModule, TranslocoModule],
   templateUrl: './config-dialog.component.html',
 })
-export class ConfigDialogComponent {
+export class ConfigDialogComponent implements OnChanges {
   configService: ConfigService = inject(ConfigService);
   private translocoService = inject(TranslocoService);
 
-  // Expose visible as a signal so effect() can watch it
-  visibleSig = signal(false);
-
-  @Input() set visible(v: boolean) {
-    this.visibleSig.set(v);
-  }
-
-  get visible() {
-    return this.visibleSig();
-  }
-
+  @Input() visible = false;
   @Output() visibleChange = new EventEmitter<boolean>();
 
   @ViewChild('arrowContainer') containerEl!: ElementRef<HTMLElement>;
 
   arrows = signal<{ d: string; key: string }[]>([]);
 
-  constructor() {
-    effect(() => {
-      // Subscribe to signals that affect arrow positions
-      this.visibleSig();
-      this.configService.defaultOcrProvider();
-      this.configService.defaultOutputs();
-      // Schedule after DOM update
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['visible']?.currentValue) {
       setTimeout(() => this.updateArrows(), 60);
-    });
+    }
   }
 
   get ocrOptions() {
-    const ocrProvidersToIconMap: Record<OcrProvider, string> = {
-      [OcrProvider.Mistral]: 'pi pi-sparkles',
-      [OcrProvider.TabScanner]: 'pi pi-bolt',
-      [OcrProvider.PaddleOcrLocal]: 'pi pi-desktop',
-      [OcrProvider.PaddleOcrApi]: 'pi pi-cloud',
-    };
-
-    const ocrProviders = Object.values(OcrProvider);
-    return ocrProviders.map((ocrProvider) => ({
+    return Object.values(OcrProvider).map((ocrProvider) => ({
       label: this.translocoService.translate(`config.providers.${ocrProvider}`),
       value: ocrProvider,
-      icon: ocrProvidersToIconMap[ocrProvider],
+      icon: OCR_PROVIDER_ICONS[ocrProvider],
     }));
   }
 
@@ -128,6 +106,7 @@ export class ConfigDialogComponent {
 
   setOcrProvider(value: OcrProvider) {
     this.configService.defaultOcrProvider.set(value);
+    setTimeout(() => this.updateArrows(), 60);
   }
 
   toggleOutput(value: string) {
@@ -137,6 +116,7 @@ export class ConfigDialogComponent {
     } else {
       this.configService.defaultOutputs.set([...current, value]);
     }
+    setTimeout(() => this.updateArrows(), 60);
   }
 
   isOutputSelected(value: string): boolean {

@@ -1,13 +1,12 @@
 import { Component, effect, inject, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { OcrJobService } from '@services/ocr-job.service';
+import { OcrJobService, OCR_PROVIDER_ICONS } from '@services/ocr-job.service';
 import { OcrOutputParserService } from '@app/pipes/parsers/ocr-output-parser.service';
 import {
   OcrJob,
   OcrFile,
   OcrExecution,
   OcrJobStatus,
-  OcrFileStatus,
   OcrExecutionStatus,
   OcrProvider,
   FileExtension,
@@ -22,9 +21,8 @@ import { ButtonModule } from 'primeng/button';
 import { TagModule } from 'primeng/tag';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { DialogModule } from 'primeng/dialog';
-import { MenuModule } from 'primeng/menu';
 import { ToastModule } from 'primeng/toast';
-import { MenuItem, MessageService, ConfirmationService } from 'primeng/api';
+import { MessageService, ConfirmationService } from 'primeng/api';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { TooltipModule } from 'primeng/tooltip';
@@ -51,7 +49,6 @@ import { SelectModule } from 'primeng/select';
     ProgressSpinnerModule,
     DialogModule,
     UploadDialogComponent,
-    MenuModule,
     ToastModule,
     TranslocoModule,
     ConfirmDialogModule,
@@ -149,29 +146,16 @@ export class OcrJobsPageComponent implements OnInit, OnDestroy {
   }
 
   getProviderIcon(provider: OcrProvider): string {
-    const icons: Record<OcrProvider, string> = {
-      [OcrProvider.Mistral]: 'pi pi-sparkles',
-      [OcrProvider.TabScanner]: 'pi pi-bolt',
-      [OcrProvider.PaddleOcrLocal]: 'pi pi-desktop',
-      [OcrProvider.PaddleOcrApi]: 'pi pi-cloud',
-    };
-    return icons[provider] || 'pi pi-sparkles';
-  }
-
-  getProviderTranslationKey(provider: OcrProvider | string): string {
-    return provider as string;
+    return OCR_PROVIDER_ICONS[provider] || 'pi pi-sparkles';
   }
 
   get selectedFile() {
     return this._selectedFile;
   }
   set selectedFile(file: OcrFile | null) {
-    const hasFilenameChanged = this._selectedFile?.filename !== file?.filename;
     this._selectedFile = file;
     this.selectedExecution = this.getLatestExecution(file) || null;
-    if (hasFilenameChanged || (file && !this.safeUrl)) {
-      this.safeUrl = file ? this.getSafeUrl(file.filename) : null;
-    }
+    this.safeUrl = file ? this.getSafeUrl(file.filename) : null;
   }
   selectedExecution: OcrExecution | null = null;
 
@@ -335,60 +319,34 @@ export class OcrJobsPageComponent implements OnInit, OnDestroy {
     this.fetchJobsWithPagination();
   }
 
-  getJobStatusSeverity(status: OcrJobStatus): 'success' | 'info' | 'warn' | 'danger' | 'secondary' {
-    switch (status) {
-      case OcrJobStatus.Pending:
-        return 'secondary';
-      case OcrJobStatus.Processing:
-        return 'info';
-      case OcrJobStatus.Completed:
-        return 'success';
-      case OcrJobStatus.Failed:
-        return 'danger';
-    }
+  private readonly statusSeverity: Record<string, 'success' | 'info' | 'warn' | 'danger' | 'secondary'> = {
+    pending: 'secondary',
+    processing: 'info',
+    running: 'info',
+    completed: 'success',
+    failed: 'danger',
+  };
+
+  getStatusSeverity(status: string) {
+    return this.statusSeverity[status] ?? 'secondary';
   }
 
-  getFileStatusSeverity(status: OcrFileStatus): 'success' | 'info' | 'warn' | 'danger' | 'secondary' {
-    switch (status) {
-      case OcrFileStatus.Pending:
-        return 'secondary';
-      case OcrFileStatus.Processing:
-        return 'info';
-      case OcrFileStatus.Completed:
-        return 'success';
-      case OcrFileStatus.Failed:
-        return 'danger';
-    }
-  }
-
-  getExecutionStatusSeverity(status: OcrExecutionStatus): 'success' | 'info' | 'warn' | 'danger' | 'secondary' {
-    switch (status) {
-      case OcrExecutionStatus.Pending:
-        return 'secondary';
-      case OcrExecutionStatus.Running:
-        return 'info';
-      case OcrExecutionStatus.Completed:
-        return 'success';
-      case OcrExecutionStatus.Failed:
-        return 'danger';
-    }
-  }
-
-  getFileIcon(filename: string): string {
-    const ext = '.' + (filename.split('.').pop()?.toLowerCase() || '');
-    if (ext === FileExtension.Pdf) return 'pi pi-file-pdf text-red-400';
-    if (ImageExtensions.includes(ext as FileExtension)) return 'pi pi-image text-emerald-400';
-    return 'pi pi-file text-surface-400';
-  }
-
-  isFileImage(filename: string): boolean {
-    const ext = '.' + (filename.split('.').pop()?.toLowerCase() || '');
-    return ImageExtensions.includes(ext as FileExtension);
+  private ext(filename: string): string {
+    return '.' + (filename.split('.').pop()?.toLowerCase() || '');
   }
 
   isFilePdf(filename: string): boolean {
-    const ext = '.' + (filename.split('.').pop()?.toLowerCase() || '');
-    return ext === FileExtension.Pdf;
+    return this.ext(filename) === FileExtension.Pdf;
+  }
+
+  isFileImage(filename: string): boolean {
+    return ImageExtensions.includes(this.ext(filename) as FileExtension);
+  }
+
+  getFileIcon(filename: string): string {
+    if (this.isFilePdf(filename)) return 'pi pi-file-pdf text-red-400';
+    if (this.isFileImage(filename)) return 'pi pi-image text-emerald-400';
+    return 'pi pi-file text-surface-400';
   }
 
   getSafeUrl(filename: string): SafeResourceUrl {

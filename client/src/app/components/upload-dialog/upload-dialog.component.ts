@@ -136,7 +136,6 @@ export class UploadDialogComponent {
 
   allProvidersSelected(): boolean {
     const items = this.filesWithProviders();
-    console.log(items);
     return items.length > 0 && items.every((i) => !!i.ocrProvider);
   }
 
