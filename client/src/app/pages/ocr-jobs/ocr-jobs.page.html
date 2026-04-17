@@ -336,10 +336,7 @@
               <button
                 (click)="selectedFile = file"
                 class="flex items-center gap-4 p-4 text-left transition-all hover:bg-surface-50 dark:hover:bg-surface-800/50"
-                [class.bg-primary-50]="selectedFile?.id === file.id"
-                [class.dark:bg-primary-950\/20]="selectedFile?.id === file.id"
-                [class.border-l-4]="selectedFile?.id === file.id"
-                [class.border-primary-500]="selectedFile?.id === file.id"
+                [class.file-item-selected]="selectedFile?.id === file.id"
               >
                 <div class="flex-none w-10 h-10 rounded-xl bg-surface-100 dark:bg-surface-800 flex items-center justify-center">
                   <i [class]="getFileIcon(file.originalName)"></i>
@@ -492,7 +489,7 @@
                         </div>
                       } @else if (current.status === OcrExecutionStatus.Completed) {
                         <div
-                          class="ocr-markdown-output prose dark:prose-invert max-w-none text-sm font-mono"
+                          class="ocr-markdown-output max-w-none text-sm font-mono"
                           [innerHTML]="current.ocrData | ocrOutput: current.ocrProvider"
                         ></div>
                       } @else if (current.status === OcrExecutionStatus.Failed) {
