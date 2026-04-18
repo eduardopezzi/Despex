@@ -89,6 +89,7 @@
       "selectFile": "Selecione um ficheiro na barra lateral para ver os resultados",
       "copyToClipboard": "Copiar texto OCR",
       "downloadMarkdown": "Descarregar Markdown",
+      "refresh": "Atualizar",
       "copied": "Copiado",
       "copySuccess": "Conteúdo OCR copiado para a área de transferência",
       "downloaded": "Descarregado",

@@ -89,6 +89,7 @@
       "selectFile": "Select a file from the sidebar to view results",
       "copyToClipboard": "Copy OCR text",
       "downloadMarkdown": "Download Markdown",
+      "refresh": "Refresh",
       "copied": "Copied",
       "copySuccess": "OCR content copied to clipboard",
       "downloaded": "Downloaded",

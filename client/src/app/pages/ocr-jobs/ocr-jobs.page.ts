@@ -319,6 +319,10 @@ export class OcrJobsPageComponent implements OnInit, OnDestroy {
     this.fetchJobsWithPagination();
   }
 
+  refreshSelectedJob() {
+    this.fetchJobsWithPagination(false);
+  }
+
   private readonly statusSeverity: Record<string, 'success' | 'info' | 'warn' | 'danger' | 'secondary'> = {
     pending: 'secondary',
     processing: 'info',
@@ -380,6 +384,11 @@ export class OcrJobsPageComponent implements OnInit, OnDestroy {
     this.confirmationService.confirm({
       message: this.translocoService.translate('ocrJobs.delete.confirmation'),
       header: this.translocoService.translate('ocrJobs.delete.title'),
+      icon: 'pi pi-exclamation-triangle',
+      acceptLabel: this.translocoService.translate('common.delete'),
+      rejectLabel: this.translocoService.translate('common.cancel'),
+      acceptButtonStyleClass: 'p-button-danger',
+      rejectButtonStyleClass: 'p-button-text p-button-secondary',
       accept: () => {
         this.ocrJobService.deleteJob(job.id).subscribe({
           next: () => {
