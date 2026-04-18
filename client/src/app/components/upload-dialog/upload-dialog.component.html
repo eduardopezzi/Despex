@@ -73,6 +73,18 @@
                 appendTo="body"
                 size="small"
               >
+                <ng-template #selectedItem let-opt>
+                  <div class="flex items-center gap-2">
+                    <i [class]="opt.icon"></i>
+                    <span>{{ opt.label }}</span>
+                  </div>
+                </ng-template>
+                <ng-template #item let-opt>
+                  <div class="flex items-center gap-2">
+                    <i [class]="opt.icon"></i>
+                    <span>{{ opt.label }}</span>
+                  </div>
+                </ng-template>
               </p-select>
               <p-button icon="pi pi-times" [text]="true" severity="danger" (onClick)="removeFile(item)" />
             </div>

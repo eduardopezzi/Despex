@@ -1,6 +1,6 @@
 import { Component, EventEmitter, inject, Input, Output, signal, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { OcrJobService } from '@services/ocr-job.service';
+import { OcrJobService, OCR_PROVIDER_ICONS } from '@services/ocr-job.service';
 
 import { DialogModule } from 'primeng/dialog';
 import { ButtonModule } from 'primeng/button';
@@ -74,6 +74,7 @@ export class UploadDialogComponent {
     return Object.values(OcrProvider).map((ocrProvider) => ({
       label: this.translocoService.translate(`config.providers.${ocrProvider}`),
       value: ocrProvider,
+      icon: OCR_PROVIDER_ICONS[ocrProvider],
     }));
   }
 
