@@ -75,13 +75,19 @@ export class OcrJobsPageComponent implements OnInit, OnDestroy {
   private ocrOutputParser = inject(OcrOutputParserService);
 
   private pollingSubscription?: Subscription;
+  private detailPollingSubscription?: Subscription;
 
   OcrJobStatus = OcrJobStatus;
   OcrExecutionStatus = OcrExecutionStatus;
   OcrProvider = OcrProvider;
 
   showUploadDialog = false;
-  showDetail = false;
+  private _showDetail = false;
+  get showDetail() { return this._showDetail; }
+  set showDetail(value: boolean) {
+    this._showDetail = value;
+    if (!value) this.stopDetailPolling();
+  }
   selectedJob: OcrJob | null = null;
   private _selectedFile: OcrFile | null = null;
   safeUrl: SafeResourceUrl | null = null;
@@ -166,6 +172,7 @@ export class OcrJobsPageComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.stopPolling();
+    this.stopDetailPolling();
   }
 
   fetchJobsWithPagination(showLoading = true) {
@@ -257,6 +264,27 @@ export class OcrJobsPageComponent implements OnInit, OnDestroy {
   private stopPolling() {
     this.pollingSubscription?.unsubscribe();
     this.pollingSubscription = undefined;
+  }
+
+  private startDetailPolling() {
+    this.stopDetailPolling();
+    this.detailPollingSubscription = interval(5000).subscribe(() => {
+      if (!this._showDetail) {
+        this.stopDetailPolling();
+        return;
+      }
+      const latest = this.getLatestExecution(this._selectedFile);
+      if (latest?.status === OcrExecutionStatus.Completed || latest?.status === OcrExecutionStatus.Failed) {
+        this.stopDetailPolling();
+        return;
+      }
+      this.fetchJobsWithPagination(false);
+    });
+  }
+
+  private stopDetailPolling() {
+    this.detailPollingSubscription?.unsubscribe();
+    this.detailPollingSubscription = undefined;
   }
 
   viewDetail(job: OcrJob) {
@@ -371,6 +399,7 @@ export class OcrJobsPageComponent implements OnInit, OnDestroy {
           detail: this.translocoService.translate('ocrJobs.card.retryQueued'),
         });
         this.fetchJobsWithPagination();
+        this.startDetailPolling();
       },
       error: (err) => {
         this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to re-queue OCR job.' });
