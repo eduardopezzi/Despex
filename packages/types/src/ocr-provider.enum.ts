@@ -6,4 +6,5 @@ export enum OcrProvider {
   Gemini = 'gemini',
   AwsTextract = 'awsTextract',
   Grok = 'grok',
+  Tesseract = 'tesseract',
 }

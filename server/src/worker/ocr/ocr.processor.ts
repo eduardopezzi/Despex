@@ -18,6 +18,7 @@ import { PaddleOcrLocalProcessor } from '@worker/ocr/paddle-ocr-local.processor'
 import { GeminiProcessor } from '@worker/ocr/gemini.processor';
 import { TextractProcessor } from '@worker/ocr/textract.processor';
 import { GrokProcessor } from '@worker/ocr/grok.processor';
+import { TesseractProcessor } from '@worker/ocr/tesseract.processor';
 
 @Processor(QueueName.Ocr)
 export class OcrProcessor extends WorkerHost {
@@ -36,6 +37,7 @@ export class OcrProcessor extends WorkerHost {
     private readonly geminiProcessor: GeminiProcessor,
     private readonly textractProcessor: TextractProcessor,
     private readonly grokProcessor: GrokProcessor,
+    private readonly tesseractProcessor: TesseractProcessor,
   ) {
     super();
   }
@@ -92,6 +94,9 @@ export class OcrProcessor extends WorkerHost {
           break;
         case OcrProvider.Grok:
           ocrData = await this.grokProcessor.process(file, executionId);
+          break;
+        case OcrProvider.Tesseract:
+          ocrData = await this.tesseractProcessor.process(file, executionId);
           break;
         default:
           throw new Error(`OCR Provider "${execution.ocrProvider as string}" is not yet implemented.`);

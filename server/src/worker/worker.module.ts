@@ -15,6 +15,7 @@ import { PaddleOcrLocalProcessor } from '@worker/ocr/paddle-ocr-local.processor'
 import { GeminiProcessor } from '@worker/ocr/gemini.processor';
 import { TextractProcessor } from '@worker/ocr/textract.processor';
 import { GrokProcessor } from '@worker/ocr/grok.processor';
+import { TesseractProcessor } from '@worker/ocr/tesseract.processor';
 
 @Module({
   imports: [
@@ -43,6 +44,7 @@ import { GrokProcessor } from '@worker/ocr/grok.processor';
     GeminiProcessor,
     TextractProcessor,
     GrokProcessor,
+    TesseractProcessor,
   ],
 })
 export class WorkerModule {}

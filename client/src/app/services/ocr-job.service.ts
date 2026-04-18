@@ -12,6 +12,7 @@ export const OCR_PROVIDER_ICONS: Record<OcrProvider, string> = {
   [OcrProvider.Gemini]: 'pi pi-google',
   [OcrProvider.AwsTextract]: 'pi pi-amazon',
   [OcrProvider.Grok]: 'pi pi-twitter',
+  [OcrProvider.Tesseract]: 'pi pi-eye',
 };
 
 @Injectable({

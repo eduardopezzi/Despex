@@ -32,6 +32,9 @@ export enum AppSecret {
   // ─── xAI / Grok ─────────────────────────────────────────────────────────────
   XaiApiKey = 'XAI_API_KEY',
 
+  // ─── Tesseract.js ────────────────────────────────────────────────────────────
+  TesseractLanguage = 'TESSERACT_LANGUAGE',
+
   // ─── Azure OCR ──────────────────────────────────────────────────────────────
   AzureOcrApiKey = 'AZURE_OCR_API_KEY',
   AzureOcrEndpoint = 'AZURE_OCR_ENDPOINT',
