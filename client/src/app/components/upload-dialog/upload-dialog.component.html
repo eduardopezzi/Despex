@@ -6,8 +6,8 @@
   [closable]="true"
   [dismissableMask]="true"
   [header]="t('upload.title')"
-  [style]="{ width: '700px' }"
-  [contentStyle]="{ overflow: 'visible' }"
+  [style]="{ width: 'min(700px, 95vw)' }"
+  [contentStyle]="{ overflow: 'auto', maxHeight: '80vh' }"
 >
   <div class="flex flex-col gap-6">
     <div class="flex flex-col gap-2">
@@ -49,33 +49,33 @@
     </p-fileUpload>
 
     @if (filesWithProviders().length > 0) {
-      <div class="flex flex-col gap-3 max-h-[400px] overflow-y-auto pr-2">
+      <div class="flex flex-col gap-3">
         @for (item of filesWithProviders(); track item.file.name) {
-          <div class="flex items-center gap-4 p-3 bg-surface-50 dark:bg-surface-900/40 border border-surface-200 dark:border-surface-800 rounded-xl">
-            <div class="flex-none w-10 h-10 flex items-center justify-center bg-white dark:bg-surface-800 rounded-lg shadow-sm">
-              <i class="pi pi-file text-primary-500"></i>
+          <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 p-3 bg-surface-50 dark:bg-surface-900/40 border border-surface-200 dark:border-surface-800 rounded-xl">
+            <div class="flex items-center gap-3 min-w-0 flex-grow">
+              <div class="flex-none w-10 h-10 flex items-center justify-center bg-white dark:bg-surface-800 rounded-lg shadow-sm">
+                <i class="pi pi-file text-primary-500"></i>
+              </div>
+              <div class="min-w-0">
+                <p class="text-sm font-semibold truncate text-surface-900 dark:text-surface-100">{{ item.file.name }}</p>
+                <p class="text-xs text-surface-500">{{ formatSize(item.file.size) }}</p>
+              </div>
             </div>
 
-            <div class="flex-grow min-w-0">
-              <p class="text-sm font-semibold truncate text-surface-900 dark:text-surface-100">{{ item.file.name }}</p>
-              <p class="text-xs text-surface-500">{{ formatSize(item.file.size) }}</p>
-            </div>
-
-            <div class="flex-none w-48">
+            <div class="flex items-center gap-2">
               <p-select
                 [options]="ocrOptions"
                 [ngModel]="item.ocrProvider"
                 (ngModelChange)="setProvider(item, $event)"
                 optionLabel="label"
                 optionValue="value"
-                styleClass="w-full"
+                styleClass="flex-1 sm:w-48"
                 appendTo="body"
                 size="small"
               >
               </p-select>
+              <p-button icon="pi pi-times" [text]="true" severity="danger" (onClick)="removeFile(item)" />
             </div>
-
-            <p-button icon="pi pi-times" [text]="true" severity="danger" (onClick)="removeFile(item)" />
           </div>
         }
       </div>
