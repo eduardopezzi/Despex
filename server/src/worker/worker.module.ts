@@ -16,6 +16,7 @@ import { GeminiProcessor } from '@worker/ocr/gemini.processor';
 import { TextractProcessor } from '@worker/ocr/textract.processor';
 import { GrokProcessor } from '@worker/ocr/grok.processor';
 import { TesseractProcessor } from '@worker/ocr/tesseract.processor';
+import { OpenAiProcessor } from '@worker/ocr/openai.processor';
 
 @Module({
   imports: [
@@ -45,6 +46,7 @@ import { TesseractProcessor } from '@worker/ocr/tesseract.processor';
     TextractProcessor,
     GrokProcessor,
     TesseractProcessor,
+    OpenAiProcessor,
   ],
 })
 export class WorkerModule {}

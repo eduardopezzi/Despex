@@ -8,6 +8,7 @@ import { GeminiParser } from '@app/pipes/parsers/gemini.parser';
 import { AwsTextractParser } from '@app/pipes/parsers/aws-textract.parser';
 import { GrokParser } from '@app/pipes/parsers/grok.parser';
 import { TesseractParser } from '@app/pipes/parsers/tesseract.parser';
+import { OpenAiParser } from '@app/pipes/parsers/openai.parser';
 import { RawJsonParser } from '@app/pipes/parsers/raw-json.parser';
 import type { ParsedOcrOutput, OcrOutputParser } from '@app/pipes/parsers/ocr-output-parser.interface';
 
@@ -25,6 +26,7 @@ export class OcrOutputParserService {
     [OcrProvider.AwsTextract]: new AwsTextractParser(),
     [OcrProvider.Grok]: new GrokParser(),
     [OcrProvider.Tesseract]: new TesseractParser(),
+    [OcrProvider.OpenAi]: new OpenAiParser(),
   };
 
   private readonly fallbackParser = new RawJsonParser();

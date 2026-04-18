@@ -19,6 +19,7 @@ import { GeminiProcessor } from '@worker/ocr/gemini.processor';
 import { TextractProcessor } from '@worker/ocr/textract.processor';
 import { GrokProcessor } from '@worker/ocr/grok.processor';
 import { TesseractProcessor } from '@worker/ocr/tesseract.processor';
+import { OpenAiProcessor } from '@worker/ocr/openai.processor';
 
 @Processor(QueueName.Ocr)
 export class OcrProcessor extends WorkerHost {
@@ -38,6 +39,7 @@ export class OcrProcessor extends WorkerHost {
     private readonly textractProcessor: TextractProcessor,
     private readonly grokProcessor: GrokProcessor,
     private readonly tesseractProcessor: TesseractProcessor,
+    private readonly openAiProcessor: OpenAiProcessor,
   ) {
     super();
   }
@@ -97,6 +99,9 @@ export class OcrProcessor extends WorkerHost {
           break;
         case OcrProvider.Tesseract:
           ocrData = await this.tesseractProcessor.process(file, executionId);
+          break;
+        case OcrProvider.OpenAi:
+          ocrData = await this.openAiProcessor.process(file, executionId);
           break;
         default:
           throw new Error(`OCR Provider "${execution.ocrProvider as string}" is not yet implemented.`);

@@ -7,4 +7,5 @@ export enum OcrProvider {
   AwsTextract = 'awsTextract',
   Grok = 'grok',
   Tesseract = 'tesseract',
+  OpenAi = 'openAi',
 }

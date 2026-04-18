@@ -122,7 +122,8 @@
       "gemini": "Google Gemini",
       "awsTextract": "AWS Textract",
       "grok": "Grok (xAI)",
-      "tesseract": "Tesseract.js"
+      "tesseract": "Tesseract.js",
+      "openAi": "OpenAI"
     },
     "outputs": {
       "markdown": "Download Markdown",
@@ -140,7 +141,8 @@
       "gemini": "Google Gemini",
       "awsTextract": "AWS Textract",
       "grok": "Grok (xAI)",
-      "tesseract": "Tesseract.js (Local)"
+      "tesseract": "Tesseract.js (Local)",
+      "openAi": "OpenAI"
     }
   }
 }
