@@ -17,6 +17,7 @@ import { PaddleOcrApiProcessor } from '@worker/ocr/paddle-ocr-api.processor';
 import { PaddleOcrLocalProcessor } from '@worker/ocr/paddle-ocr-local.processor';
 import { GeminiProcessor } from '@worker/ocr/gemini.processor';
 import { TextractProcessor } from '@worker/ocr/textract.processor';
+import { GrokProcessor } from '@worker/ocr/grok.processor';
 
 @Processor(QueueName.Ocr)
 export class OcrProcessor extends WorkerHost {
@@ -34,6 +35,7 @@ export class OcrProcessor extends WorkerHost {
     private readonly paddleOcrLocalProcessor: PaddleOcrLocalProcessor,
     private readonly geminiProcessor: GeminiProcessor,
     private readonly textractProcessor: TextractProcessor,
+    private readonly grokProcessor: GrokProcessor,
   ) {
     super();
   }
@@ -87,6 +89,9 @@ export class OcrProcessor extends WorkerHost {
           break;
         case OcrProvider.AwsTextract:
           ocrData = await this.textractProcessor.process(file, executionId);
+          break;
+        case OcrProvider.Grok:
+          ocrData = await this.grokProcessor.process(file, executionId);
           break;
         default:
           throw new Error(`OCR Provider "${execution.ocrProvider as string}" is not yet implemented.`);

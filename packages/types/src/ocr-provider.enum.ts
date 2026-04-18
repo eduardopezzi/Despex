@@ -5,4 +5,5 @@ export enum OcrProvider {
   PaddleOcrLocal = 'paddleOcrLocal',
   Gemini = 'gemini',
   AwsTextract = 'awsTextract',
+  Grok = 'grok',
 }

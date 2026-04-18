@@ -6,6 +6,7 @@ import { PaddleOcrApiParser } from '@app/pipes/parsers/paddle-ocr-api.parser';
 import { PaddleOcrLocalParser } from '@app/pipes/parsers/paddle-ocr-local.parser';
 import { GeminiParser } from '@app/pipes/parsers/gemini.parser';
 import { AwsTextractParser } from '@app/pipes/parsers/aws-textract.parser';
+import { GrokParser } from '@app/pipes/parsers/grok.parser';
 import { RawJsonParser } from '@app/pipes/parsers/raw-json.parser';
 import type { ParsedOcrOutput, OcrOutputParser } from '@app/pipes/parsers/ocr-output-parser.interface';
 
@@ -21,6 +22,7 @@ export class OcrOutputParserService {
     [OcrProvider.PaddleOcrLocal]: new PaddleOcrLocalParser(),
     [OcrProvider.Gemini]: new GeminiParser(),
     [OcrProvider.AwsTextract]: new AwsTextractParser(),
+    [OcrProvider.Grok]: new GrokParser(),
   };
 
   private readonly fallbackParser = new RawJsonParser();

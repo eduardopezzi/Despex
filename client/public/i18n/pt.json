@@ -120,7 +120,8 @@
       "paddleOcrLocal": "Paddle OCR Local",
       "paddleOcrApi": "Paddle OCR API",
       "gemini": "Google Gemini",
-      "awsTextract": "AWS Textract"
+      "awsTextract": "AWS Textract",
+      "grok": "Grok (xAI)"
     },
     "outputs": {
       "markdown": "Descarregar Markdown",
@@ -136,7 +137,8 @@
       "paddleOcrLocal": "Paddle OCR Local (Auto-hospedado)",
       "paddleOcrApi": "Paddle OCR API",
       "gemini": "Google Gemini",
-      "awsTextract": "AWS Textract"
+      "awsTextract": "AWS Textract",
+      "grok": "Grok (xAI)"
     }
   }
 }

@@ -29,6 +29,9 @@ export enum AppSecret {
   // ─── Gemini ─────────────────────────────────────────────────────────────────
   GeminiApiKey = 'GEMINI_API_KEY',
 
+  // ─── xAI / Grok ─────────────────────────────────────────────────────────────
+  XaiApiKey = 'XAI_API_KEY',
+
   // ─── Azure OCR ──────────────────────────────────────────────────────────────
   AzureOcrApiKey = 'AZURE_OCR_API_KEY',
   AzureOcrEndpoint = 'AZURE_OCR_ENDPOINT',
