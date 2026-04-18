@@ -9,6 +9,8 @@ export const OCR_PROVIDER_ICONS: Record<OcrProvider, string> = {
   [OcrProvider.TabScanner]: 'pi pi-bolt',
   [OcrProvider.PaddleOcrLocal]: 'pi pi-desktop',
   [OcrProvider.PaddleOcrApi]: 'pi pi-cloud',
+  [OcrProvider.Gemini]: 'pi pi-google',
+  [OcrProvider.AwsTextract]: 'pi pi-amazon',
 };
 
 @Injectable({

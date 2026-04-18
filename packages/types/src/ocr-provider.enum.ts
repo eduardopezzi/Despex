@@ -3,4 +3,6 @@ export enum OcrProvider {
   TabScanner = 'tabscanner',
   PaddleOcrApi = 'paddleOcrApi',
   PaddleOcrLocal = 'paddleOcrLocal',
+  Gemini = 'gemini',
+  AwsTextract = 'awsTextract',
 }

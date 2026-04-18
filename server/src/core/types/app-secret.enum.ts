@@ -26,11 +26,14 @@ export enum AppSecret {
   // ─── PaddleOCR (Local) ──────────────────────────────────────────────────────
   PaddleOcrLocalEnabled = 'PADDLE_OCR_LOCAL_ENABLED',
 
+  // ─── Gemini ─────────────────────────────────────────────────────────────────
+  GeminiApiKey = 'GEMINI_API_KEY',
+
   // ─── Azure OCR ──────────────────────────────────────────────────────────────
   AzureOcrApiKey = 'AZURE_OCR_API_KEY',
   AzureOcrEndpoint = 'AZURE_OCR_ENDPOINT',
 
-  // ─── AWS TextExtract ───────────────────────────────────────────────────────
+  // ─── AWS Textract ───────────────────────────────────────────────────────────
   AwsAccessKeyId = 'AWS_ACCESS_KEY_ID',
   AwsSecretAccessKey = 'AWS_SECRET_ACCESS_KEY',
   AwsRegion = 'AWS_REGION',

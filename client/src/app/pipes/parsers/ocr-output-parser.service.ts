@@ -4,6 +4,8 @@ import { MistralOcrParser } from '@app/pipes/parsers/mistral-ocr.parser';
 import { TabScannerOcrParser } from '@app/pipes/parsers/tabscanner-ocr.parser';
 import { PaddleOcrApiParser } from '@app/pipes/parsers/paddle-ocr-api.parser';
 import { PaddleOcrLocalParser } from '@app/pipes/parsers/paddle-ocr-local.parser';
+import { GeminiParser } from '@app/pipes/parsers/gemini.parser';
+import { AwsTextractParser } from '@app/pipes/parsers/aws-textract.parser';
 import { RawJsonParser } from '@app/pipes/parsers/raw-json.parser';
 import type { ParsedOcrOutput, OcrOutputParser } from '@app/pipes/parsers/ocr-output-parser.interface';
 
@@ -17,6 +19,8 @@ export class OcrOutputParserService {
     [OcrProvider.TabScanner]: new TabScannerOcrParser(),
     [OcrProvider.PaddleOcrApi]: new PaddleOcrApiParser(),
     [OcrProvider.PaddleOcrLocal]: new PaddleOcrLocalParser(),
+    [OcrProvider.Gemini]: new GeminiParser(),
+    [OcrProvider.AwsTextract]: new AwsTextractParser(),
   };
 
   private readonly fallbackParser = new RawJsonParser();

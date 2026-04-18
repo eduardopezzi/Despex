@@ -118,7 +118,9 @@
       "mistral": "Mistral OCR",
       "tabscanner": "TabScanner",
       "paddleOcrLocal": "Paddle OCR Local",
-      "paddleOcrApi": "Paddle OCR API"
+      "paddleOcrApi": "Paddle OCR API",
+      "gemini": "Google Gemini",
+      "awsTextract": "AWS Textract"
     },
     "outputs": {
       "markdown": "Descarregar Markdown",
@@ -132,7 +134,9 @@
       "mistral": "Mistral OCR",
       "tabscanner": "TabScanner (Rápido)",
       "paddleOcrLocal": "Paddle OCR Local (Auto-hospedado)",
-      "paddleOcrApi": "Paddle OCR API"
+      "paddleOcrApi": "Paddle OCR API",
+      "gemini": "Google Gemini",
+      "awsTextract": "AWS Textract"
     }
   }
 }
