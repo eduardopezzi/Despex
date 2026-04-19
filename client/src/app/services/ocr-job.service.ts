@@ -4,6 +4,8 @@ import { OcrProvider, OcrJob, OcrExecution, PaginatedResponse, OcrJobStatus, Sor
 import { Observable, tap } from 'rxjs';
 import { environment } from '@environments/environment';
 
+export const LOCAL_PROVIDERS = new Set<OcrProvider>([OcrProvider.LlamaCpp, OcrProvider.Tesseract, OcrProvider.PaddleOcrLocal]);
+
 export const OCR_PROVIDER_ICONS: Record<OcrProvider, string> = {
   [OcrProvider.Mistral]: 'pi pi-sparkles',
   [OcrProvider.TabScanner]: 'pi pi-bolt',

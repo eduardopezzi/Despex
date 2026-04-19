@@ -37,43 +37,46 @@
         <span class="text-[9px] text-surface-400 italic">{{ t('config.singleSelection') }}</span>
       </div>
 
-      @for (opt of ocrOptions; track opt.value) {
-        <div
-          [attr.data-sel-provider]="configService.defaultOcrProvider() === opt.value ? '' : null"
-          (click)="setOcrProvider($any(opt.value))"
-          (keydown.enter)="setOcrProvider($any(opt.value))"
-          tabindex="0"
-          [class.border-primary-500]="configService.defaultOcrProvider() === opt.value"
-          [class.bg-primary-50]="configService.defaultOcrProvider() === opt.value"
-          [class.dark:bg-primary-900\/30]="configService.defaultOcrProvider() === opt.value"
-          class="cursor-pointer flex items-center justify-between px-3 py-2.5 rounded-xl border border-surface-200 dark:border-surface-800 hover:border-primary-400 transition-all duration-200 select-none"
-        >
-          <div class="flex items-center gap-2 min-w-0">
-            <div
-              class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-colors"
-              [class.bg-primary-100]="configService.defaultOcrProvider() === opt.value"
-              [class.dark:bg-primary-900\/40]="configService.defaultOcrProvider() === opt.value"
-              [class.bg-surface-100]="configService.defaultOcrProvider() !== opt.value"
-              [class.dark:bg-surface-800]="configService.defaultOcrProvider() !== opt.value"
-            >
-              <i [class]="opt.icon" [class.text-primary-500]="configService.defaultOcrProvider() === opt.value" class="text-[11px]"></i>
-            </div>
-            <div class="flex flex-col min-w-0">
-              <span
-                class="text-xs font-semibold truncate transition-colors"
-                [class.text-primary-900]="configService.defaultOcrProvider() === opt.value"
-                [class.dark:text-primary-200]="configService.defaultOcrProvider() === opt.value"
-                [class.text-surface-800]="configService.defaultOcrProvider() !== opt.value"
-                [class.dark:text-surface-100]="configService.defaultOcrProvider() !== opt.value"
+      @for (group of ocrOptionGroups; track group.label) {
+        <div class="text-[9px] font-black uppercase tracking-wider text-surface-400 px-1 mt-2 first:mt-0">{{ group.label }}</div>
+        @for (opt of group.items; track opt.value) {
+          <div
+            [attr.data-sel-provider]="configService.defaultOcrProvider() === opt.value ? '' : null"
+            (click)="setOcrProvider($any(opt.value))"
+            (keydown.enter)="setOcrProvider($any(opt.value))"
+            tabindex="0"
+            [class.border-primary-500]="configService.defaultOcrProvider() === opt.value"
+            [class.bg-primary-50]="configService.defaultOcrProvider() === opt.value"
+            [class.dark:bg-primary-900\/30]="configService.defaultOcrProvider() === opt.value"
+            class="cursor-pointer flex items-center justify-between px-3 py-2.5 rounded-xl border border-surface-200 dark:border-surface-800 hover:border-primary-400 transition-all duration-200 select-none"
+          >
+            <div class="flex items-center gap-2 min-w-0">
+              <div
+                class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-colors"
+                [class.bg-primary-100]="configService.defaultOcrProvider() === opt.value"
+                [class.dark:bg-primary-900\/40]="configService.defaultOcrProvider() === opt.value"
+                [class.bg-surface-100]="configService.defaultOcrProvider() !== opt.value"
+                [class.dark:bg-surface-800]="configService.defaultOcrProvider() !== opt.value"
               >
-                {{ opt.label }}
-              </span>
+                <i [class]="opt.icon" [class.text-primary-500]="configService.defaultOcrProvider() === opt.value" class="text-[11px]"></i>
+              </div>
+              <div class="flex flex-col min-w-0">
+                <span
+                  class="text-xs font-semibold truncate transition-colors"
+                  [class.text-primary-900]="configService.defaultOcrProvider() === opt.value"
+                  [class.dark:text-primary-200]="configService.defaultOcrProvider() === opt.value"
+                  [class.text-surface-800]="configService.defaultOcrProvider() !== opt.value"
+                  [class.dark:text-surface-100]="configService.defaultOcrProvider() !== opt.value"
+                >
+                  {{ opt.label }}
+                </span>
+              </div>
             </div>
+            @if (configService.defaultOcrProvider() === opt.value) {
+              <i class="pi pi-check-circle text-primary-500 text-xs shrink-0 ml-1"></i>
+            }
           </div>
-          @if (configService.defaultOcrProvider() === opt.value) {
-            <i class="pi pi-check-circle text-primary-500 text-xs shrink-0 ml-1"></i>
-          }
-        </div>
+        }
       }
     </div>
 

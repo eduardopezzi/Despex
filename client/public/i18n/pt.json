@@ -114,6 +114,10 @@
     "multiSelection": "Seleção Múltipla",
     "input": "Entrada",
     "savePreferences": "Guardar Preferências",
+    "groups": {
+      "local": "Local",
+      "online": "Online"
+    },
     "providers": {
       "mistral": "Mistral OCR",
       "tabscanner": "TabScanner",

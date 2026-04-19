@@ -1,6 +1,6 @@
 import { Component, effect, inject, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { OcrJobService, OCR_PROVIDER_ICONS } from '@services/ocr-job.service';
+import { OcrJobService, OCR_PROVIDER_ICONS, LOCAL_PROVIDERS } from '@services/ocr-job.service';
 import { OcrOutputParserService } from '@app/pipes/parsers/ocr-output-parser.service';
 import {
   OcrJob,
@@ -147,8 +147,12 @@ export class OcrJobsPageComponent implements OnInit, OnDestroy {
     ];
   }
 
-  get providers() {
-    return Object.values(OcrProvider);
+  get providerGroups() {
+    const all = Object.values(OcrProvider);
+    return [
+      { label: 'Local', providers: all.filter((p) => LOCAL_PROVIDERS.has(p)) },
+      { label: 'Online', providers: all.filter((p) => !LOCAL_PROVIDERS.has(p)) },
+    ];
   }
 
   getProviderIcon(provider: OcrProvider): string {

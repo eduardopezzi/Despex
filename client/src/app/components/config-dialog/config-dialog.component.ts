@@ -5,7 +5,7 @@ import { DialogModule } from 'primeng/dialog';
 import { ButtonModule } from 'primeng/button';
 import { SelectModule } from 'primeng/select';
 import { ConfigService } from '@services/config.service';
-import { OCR_PROVIDER_ICONS } from '@services/ocr-job.service';
+import { OCR_PROVIDER_ICONS, LOCAL_PROVIDERS } from '@services/ocr-job.service';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { OcrProvider } from '@open-receipt-ocr/types';
 
@@ -32,12 +32,17 @@ export class ConfigDialogComponent implements OnChanges {
     }
   }
 
-  get ocrOptions() {
-    return Object.values(OcrProvider).map((ocrProvider) => ({
-      label: this.translocoService.translate(`config.providers.${ocrProvider}`),
-      value: ocrProvider,
-      icon: OCR_PROVIDER_ICONS[ocrProvider],
-    }));
+  get ocrOptionGroups() {
+    const local: { label: string; value: OcrProvider; icon: string }[] = [];
+    const online: { label: string; value: OcrProvider; icon: string }[] = [];
+    for (const p of Object.values(OcrProvider)) {
+      const opt = { label: this.translocoService.translate(`config.providers.${p}`), value: p, icon: OCR_PROVIDER_ICONS[p] };
+      (LOCAL_PROVIDERS.has(p) ? local : online).push(opt);
+    }
+    return [
+      { label: this.translocoService.translate('config.groups.local'), items: local },
+      { label: this.translocoService.translate('config.groups.online'), items: online },
+    ];
   }
 
   get outputOptions() {

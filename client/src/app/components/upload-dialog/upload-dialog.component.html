@@ -64,9 +64,12 @@
 
             <div class="flex items-center gap-2">
               <p-select
-                [options]="ocrOptions"
+                [options]="ocrOptionGroups"
                 [ngModel]="item.ocrProvider"
                 (ngModelChange)="setProvider(item, $event)"
+                [group]="true"
+                optionGroupLabel="label"
+                optionGroupChildren="items"
                 optionLabel="label"
                 optionValue="value"
                 styleClass="flex-1 sm:w-48"
