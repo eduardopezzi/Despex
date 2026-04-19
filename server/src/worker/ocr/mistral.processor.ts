@@ -7,6 +7,7 @@ import { StorageProvider } from '@core/storage/storage-provider.interface';
 import { MimeType, FileExtension } from '@open-receipt-ocr/types';
 import { OcrFileEntity } from '@core/database/entities/ocr-file.entity';
 import { getMimeType } from '@worker/ocr/utils/mime-type.util';
+import { streamToBase64 } from '@worker/ocr/utils/stream.util';
 
 @Injectable()
 export class MistralProcessor {
@@ -22,7 +23,7 @@ export class MistralProcessor {
     const client = new Mistral({ apiKey: mistralApiKey });
 
     const fileStream = await this.storage.getStream(file.filename);
-    const base64Content = await this.streamToBase64(fileStream);
+    const base64Content = await streamToBase64(fileStream);
     const mimeType = getMimeType(extname(file.originalName).toLowerCase() as FileExtension);
 
     this.logger.log(`Calling Mistral OCR API (SDK) for execution #${executionId}`);
@@ -40,15 +41,4 @@ export class MistralProcessor {
     return JSON.stringify(ocrResponse);
   }
 
-  private streamToBase64(stream: NodeJS.ReadableStream): Promise<string> {
-    return new Promise((resolve, reject) => {
-      const chunks: Buffer[] = [];
-      stream.on('data', (chunk: Buffer) => chunks.push(chunk));
-      stream.on('end', () => {
-        const buffer = Buffer.concat(chunks);
-        resolve(buffer.toString('base64'));
-      });
-      stream.on('error', reject);
-    });
-  }
 }

@@ -7,6 +7,7 @@ import { StorageProvider } from '@core/storage/storage-provider.interface';
 import { FileExtension } from '@open-receipt-ocr/types';
 import { OcrFileEntity } from '@core/database/entities/ocr-file.entity';
 import { getMimeType } from '@worker/ocr/utils/mime-type.util';
+import { streamToBase64 } from '@worker/ocr/utils/stream.util';
 
 const GEMINI_MODEL = 'gemini-2.5-flash';
 
@@ -30,7 +31,7 @@ export class GeminiProcessor {
     const client = new GoogleGenAI({ apiKey });
 
     const fileStream = await this.storage.getStream(file.filename);
-    const base64Content = await this.streamToBase64(fileStream);
+    const base64Content = await streamToBase64(fileStream);
     const mimeType = getMimeType(extname(file.originalName).toLowerCase() as FileExtension);
 
     this.logger.log(`Calling Gemini (${GEMINI_MODEL}) for execution #${executionId}`);
@@ -50,15 +51,4 @@ export class GeminiProcessor {
     return JSON.stringify({ markdown, model: GEMINI_MODEL });
   }
 
-  private streamToBase64(stream: NodeJS.ReadableStream): Promise<string> {
-    return new Promise((resolve, reject) => {
-      const chunks: Buffer[] = [];
-      stream.on('data', (chunk: Buffer) => chunks.push(chunk));
-      stream.on('end', () => {
-        const buffer = Buffer.concat(chunks);
-        resolve(buffer.toString('base64'));
-      });
-      stream.on('error', reject);
-    });
-  }
 }

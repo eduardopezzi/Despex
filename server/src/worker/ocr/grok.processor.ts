@@ -7,6 +7,7 @@ import { StorageProvider } from '@core/storage/storage-provider.interface';
 import { FileExtension } from '@open-receipt-ocr/types';
 import { OcrFileEntity } from '@core/database/entities/ocr-file.entity';
 import { getMimeType } from '@worker/ocr/utils/mime-type.util';
+import { streamToBase64 } from '@worker/ocr/utils/stream.util';
 
 const GROK_MODEL = 'grok-2-vision-1212';
 const XAI_BASE_URL = 'https://api.x.ai/v1';
@@ -31,7 +32,7 @@ export class GrokProcessor {
     const client = new OpenAI({ apiKey, baseURL: XAI_BASE_URL });
 
     const fileStream = await this.storage.getStream(file.filename);
-    const base64Content = await this.streamToBase64(fileStream);
+    const base64Content = await streamToBase64(fileStream);
     const mimeType = getMimeType(extname(file.originalName).toLowerCase() as FileExtension);
 
     this.logger.log(`Calling Grok (${GROK_MODEL}) for execution #${executionId}`);
@@ -54,15 +55,4 @@ export class GrokProcessor {
     return JSON.stringify({ markdown, model: GROK_MODEL });
   }
 
-  private streamToBase64(stream: NodeJS.ReadableStream): Promise<string> {
-    return new Promise((resolve, reject) => {
-      const chunks: Buffer[] = [];
-      stream.on('data', (chunk: Buffer) => chunks.push(chunk));
-      stream.on('end', () => {
-        const buffer = Buffer.concat(chunks);
-        resolve(buffer.toString('base64'));
-      });
-      stream.on('error', reject);
-    });
-  }
 }

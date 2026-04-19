@@ -7,6 +7,7 @@ import { StorageProvider } from '@core/storage/storage-provider.interface';
 import { FileExtension } from '@open-receipt-ocr/types';
 import { OcrFileEntity } from '@core/database/entities/ocr-file.entity';
 import { getMimeType } from '@worker/ocr/utils/mime-type.util';
+import { streamToBase64 } from '@worker/ocr/utils/stream.util';
 
 const OCR_PROMPT = [
   'You are an OCR engine. Transcribe every piece of text visible in the provided document into clean, well-structured GitHub-flavored Markdown.',
@@ -31,7 +32,7 @@ export class LlamaCppProcessor {
     const client = new OpenAI({ apiKey: 'llama-cpp', baseURL });
 
     const fileStream = await this.storage.getStream(file.filename);
-    const base64Content = await this.streamToBase64(fileStream);
+    const base64Content = await streamToBase64(fileStream);
     const mimeType = getMimeType(extname(file.originalName).toLowerCase() as FileExtension);
 
     this.logger.log(`Calling llama.cpp (${baseURL}, model: ${model}) for execution #${executionId}`);
@@ -54,15 +55,4 @@ export class LlamaCppProcessor {
     return JSON.stringify({ markdown, model });
   }
 
-  private streamToBase64(stream: NodeJS.ReadableStream): Promise<string> {
-    return new Promise((resolve, reject) => {
-      const chunks: Buffer[] = [];
-      stream.on('data', (chunk: Buffer) => chunks.push(chunk));
-      stream.on('end', () => {
-        const buffer = Buffer.concat(chunks);
-        resolve(buffer.toString('base64'));
-      });
-      stream.on('error', reject);
-    });
-  }
 }
