@@ -25,7 +25,7 @@ export class LlamaCppProcessor {
 
   async process(file: OcrFileEntity, executionId: number): Promise<string> {
     const baseURL = await this.secretProvider.getSecretOrThrow(AppSecret.LlamaCppBaseUrl);
-    const model = await this.secretProvider.getSecret(AppSecret.LlamaCppModel) || 'local-model';
+    const model = (await this.secretProvider.getSecret(AppSecret.LlamaCppModel)) || 'local-model';
 
     // llama.cpp server requires no API key — pass a placeholder to satisfy the SDK
     const client = new OpenAI({ apiKey: 'llama-cpp', baseURL });
