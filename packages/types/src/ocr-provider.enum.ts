@@ -8,4 +8,5 @@ export enum OcrProvider {
   Grok = 'grok',
   Tesseract = 'tesseract',
   OpenAi = 'openAi',
+  LlamaCpp = 'llamaCpp',
 }

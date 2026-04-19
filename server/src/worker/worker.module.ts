@@ -17,6 +17,7 @@ import { TextractProcessor } from '@worker/ocr/textract.processor';
 import { GrokProcessor } from '@worker/ocr/grok.processor';
 import { TesseractProcessor } from '@worker/ocr/tesseract.processor';
 import { OpenAiProcessor } from '@worker/ocr/openai.processor';
+import { LlamaCppProcessor } from '@worker/ocr/llama-cpp.processor';
 
 @Module({
   imports: [
@@ -47,6 +48,7 @@ import { OpenAiProcessor } from '@worker/ocr/openai.processor';
     GrokProcessor,
     TesseractProcessor,
     OpenAiProcessor,
+    LlamaCppProcessor,
   ],
 })
 export class WorkerModule {}

@@ -38,6 +38,10 @@ export enum AppSecret {
   // ─── Tesseract.js ────────────────────────────────────────────────────────────
   TesseractLanguage = 'TESSERACT_LANGUAGE',
 
+  // ─── llama.cpp ───────────────────────────────────────────────────────────────
+  LlamaCppBaseUrl = 'LLAMA_CPP_BASE_URL',
+  LlamaCppModel = 'LLAMA_CPP_MODEL',
+
   // ─── Azure OCR ──────────────────────────────────────────────────────────────
   AzureOcrApiKey = 'AZURE_OCR_API_KEY',
   AzureOcrEndpoint = 'AZURE_OCR_ENDPOINT',
