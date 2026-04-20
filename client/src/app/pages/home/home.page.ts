@@ -8,13 +8,14 @@ import { TagModule } from 'primeng/tag';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { UploadDialogComponent } from '@components/upload-dialog/upload-dialog.component';
 
-import { RouterModule } from '@angular/router';
+import { RouterLink, RouterModule } from '@angular/router';
+import { DatePipe } from '@angular/common';
 import { TranslocoModule } from '@jsverse/transloco';
 
 @Component({
   selector: 'app-home-page',
   standalone: true,
-  imports: [CommonModule, CardModule, ButtonModule, TagModule, ProgressSpinnerModule, UploadDialogComponent, TranslocoModule, RouterModule],
+  imports: [CommonModule, DatePipe, CardModule, ButtonModule, TagModule, ProgressSpinnerModule, UploadDialogComponent, TranslocoModule, RouterModule, RouterLink],
   templateUrl: './home.page.html',
 })
 export class HomePageComponent implements OnInit {

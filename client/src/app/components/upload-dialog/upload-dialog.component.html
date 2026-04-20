@@ -89,6 +89,9 @@
                   </div>
                 </ng-template>
               </p-select>
+              @if (isImage(item.file)) {
+                <p-button icon="pi pi-crop" [text]="true" [pTooltip]="t('upload.crop')" tooltipPosition="top" (onClick)="openCrop(item)" />
+              }
               <p-button icon="pi pi-times" [text]="true" severity="danger" (onClick)="removeFile(item)" />
             </div>
           </div>
@@ -123,3 +126,10 @@
   </div>
   <p-toast position="top-right" />
 </p-dialog>
+
+<app-image-crop-dialog
+  [visible]="!!cropTarget()"
+  (visibleChange)="!$event && closeCrop()"
+  [file]="cropTarget()?.file ?? null"
+  (cropped)="applyCrop($event)"
+/>

@@ -1,5 +1,5 @@
 import { Component, effect, inject, OnDestroy, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, DatePipe } from '@angular/common';
 import { OcrJobService, OCR_PROVIDER_ICONS, LOCAL_PROVIDERS } from '@services/ocr-job.service';
 import { OcrOutputParserService } from '@app/pipes/parsers/ocr-output-parser.service';
 import {
@@ -29,7 +29,6 @@ import { TooltipModule } from 'primeng/tooltip';
 import { PopoverModule } from 'primeng/popover';
 import { PaginatorModule } from 'primeng/paginator';
 import { TableModule } from 'primeng/table';
-import { SelectButtonModule } from 'primeng/selectbutton';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { OcrOutputPipe } from '@app/pipes/ocr-output.pipe';
 import { FormsModule } from '@angular/forms';
@@ -43,6 +42,7 @@ import { SelectModule } from 'primeng/select';
   standalone: true,
   imports: [
     CommonModule,
+    DatePipe,
     CardModule,
     ButtonModule,
     TagModule,
@@ -62,7 +62,6 @@ import { SelectModule } from 'primeng/select';
     InputTextModule,
     SelectModule,
     TableModule,
-    SelectButtonModule,
   ],
   templateUrl: './ocr-jobs.page.html',
 })
@@ -101,23 +100,9 @@ export class OcrJobsPageComponent implements OnInit, OnDestroy {
   sortOrderDir: SortOrder = SortOrder.DESC;
   viewMode: 'grid' | 'list' = (localStorage.getItem('ocr-jobs-view-mode') as 'grid' | 'list') || 'grid';
 
-  // For the dropdown shortcut
-  get sortOrder() {
-    if (this.sortField === 'createdAt') {
-      return this.sortOrderDir === SortOrder.DESC ? 'latest' : 'oldest';
-    }
-    return null;
-  }
-
-  set sortOrder(value: string | null) {
-    if (value === 'latest') {
-      this.sortField = 'createdAt';
-      this.sortOrderDir = SortOrder.DESC;
-    } else if (value === 'oldest') {
-      this.sortField = 'createdAt';
-      this.sortOrderDir = SortOrder.ASC;
-    }
-  }
+  // Dropdown shortcut — plain field (two-way bound). Kept in sync with
+  // sortField/sortOrderDir via onSortChange() and onTableSort().
+  sortOrder: 'latest' | 'oldest' | null = 'latest';
   get viewOptions() {
     return [
       { label: this.translocoService.translate('ocrJobs.view.cards'), value: 'grid', icon: 'pi pi-th-large' },
@@ -170,7 +155,9 @@ export class OcrJobsPageComponent implements OnInit, OnDestroy {
   selectedExecution: OcrExecution | null = null;
 
   ngOnInit() {
-    this.fetchJobsWithPagination();
+    setTimeout(() => {
+      this.fetchJobsWithPagination();
+    });
     this.startPolling();
   }
 
@@ -198,17 +185,27 @@ export class OcrJobsPageComponent implements OnInit, OnDestroy {
     this.fetchJobsWithPagination();
   }
 
-  onFilterChange() {
+  onSortOrderChange(value: 'latest' | 'oldest' | null) {
+    this.sortOrder = value;
+    if (value === 'latest') {
+      this.sortField = 'createdAt';
+      this.sortOrderDir = SortOrder.DESC;
+    } else if (value === 'oldest') {
+      this.sortField = 'createdAt';
+      this.sortOrderDir = SortOrder.ASC;
+    }
     this.first = 0;
     this.fetchJobsWithPagination();
   }
 
-  onSearch() {
+  onFilterStatusChange(value: OcrJobStatus | null) {
+    this.filterStatus = value;
     this.first = 0;
     this.fetchJobsWithPagination();
   }
 
-  onSortChange() {
+  onSearchChange(value: string) {
+    this.searchQuery = value;
     this.first = 0;
     this.fetchJobsWithPagination();
   }
@@ -216,6 +213,7 @@ export class OcrJobsPageComponent implements OnInit, OnDestroy {
   onTableSort(event: { field: string; order: number }) {
     this.sortField = event.field as 'id' | 'name' | 'createdAt' | 'status' | 'filesCount';
     this.sortOrderDir = event.order === 1 ? SortOrder.ASC : SortOrder.DESC;
+    this.sortOrder = this.sortField === 'createdAt' ? (this.sortOrderDir === SortOrder.DESC ? 'latest' : 'oldest') : null;
     this.first = 0;
     this.fetchJobsWithPagination();
   }

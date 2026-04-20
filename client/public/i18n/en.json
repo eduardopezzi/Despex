@@ -33,7 +33,9 @@
     "uploadSuccess": "Job created! OCR executions are starting.",
     "uploadFailed": "Upload failed. Please try again.",
     "processing": "Uploading and creating job...",
-    "singleSelection": "Single Selection"
+    "singleSelection": "Single Selection",
+    "crop": "Crop image",
+    "cropApply": "Apply crop"
   },
   "ocrJobs": {
     "title": "OCR Jobs",

@@ -33,7 +33,9 @@
     "uploadSuccess": "Trabalho criado! As execuções OCR estão a iniciar.",
     "uploadFailed": "Falha no carregamento. Tente novamente.",
     "processing": "A carregar e a criar trabalho...",
-    "singleSelection": "Seleção Única"
+    "singleSelection": "Seleção Única",
+    "crop": "Recortar imagem",
+    "cropApply": "Aplicar recorte"
   },
   "ocrJobs": {
     "title": "Trabalhos OCR",

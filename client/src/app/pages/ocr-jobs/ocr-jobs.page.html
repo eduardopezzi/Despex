@@ -24,36 +24,37 @@
           <input
             type="text"
             pInputText
-            [(ngModel)]="searchQuery"
-            (ngModelChange)="onSearch()"
+            [ngModel]="searchQuery"
+            (ngModelChange)="onSearchChange($event)"
             [placeholder]="t('ocrJobs.filters.searchPlaceholder')"
             class="w-full rounded-2xl border-none bg-surface-50/50 dark:bg-surface-800/30 py-3"
           />
         </p-iconField>
 
-        <p-selectButton
-          [options]="viewOptions"
-          [(ngModel)]="viewMode"
-          (ngModelChange)="onViewModeChange($event)"
-          optionLabel="icon"
-          optionValue="value"
-          styleClass="hidden md:flex border-none"
-        >
-          <ng-template #item let-item>
-            <div class="px-4 py-2 flex items-center gap-2" [pTooltip]="item.label">
-              <i [class]="item.icon"></i>
-            </div>
-          </ng-template>
-        </p-selectButton>
+        <div class="hidden md:flex items-center rounded-2xl border border-surface-200 dark:border-surface-800 overflow-hidden">
+          @for (opt of viewOptions; track opt.value) {
+            <button
+              type="button"
+              (click)="onViewModeChange($any(opt.value))"
+              [class.bg-primary-500]="viewMode === opt.value"
+              [class.text-white]="viewMode === opt.value"
+              [class.text-surface-500]="viewMode !== opt.value"
+              class="px-4 py-2 transition-colors hover:bg-surface-100 dark:hover:bg-surface-800"
+              [pTooltip]="opt.label"
+            >
+              <i [class]="opt.icon"></i>
+            </button>
+          }
+        </div>
       </div>
 
       <div class="flex flex-wrap items-center gap-2 sm:gap-3">
         <p-select
-          [(ngModel)]="filterStatus"
+          [ngModel]="filterStatus"
+          (ngModelChange)="onFilterStatusChange($event)"
           [options]="statusOptions"
           optionLabel="label"
           optionValue="value"
-          (onChange)="onFilterChange()"
           [placeholder]="t('ocrJobs.filters.statusPlaceholder')"
           appendTo="body"
           styleClass="flex-1 min-w-[140px] sm:flex-none sm:min-w-[180px] rounded-2xl border-none bg-surface-50/50 dark:bg-surface-800/30 px-2"
@@ -69,11 +70,11 @@
         </p-select>
 
         <p-select
-          [(ngModel)]="sortOrder"
+          [ngModel]="sortOrder"
+          (ngModelChange)="onSortOrderChange($event)"
           [options]="sortOptions"
           optionLabel="label"
           optionValue="value"
-          (onChange)="onSortChange()"
           [placeholder]="t('ocrJobs.filters.sortPlaceholder')"
           appendTo="body"
           styleClass="flex-1 min-w-[140px] sm:flex-none sm:min-w-[180px] rounded-2xl border-none bg-surface-50/50 dark:bg-surface-800/30 px-2"

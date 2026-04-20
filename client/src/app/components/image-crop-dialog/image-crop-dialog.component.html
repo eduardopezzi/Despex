@@ -1,0 +1,29 @@
+<p-dialog
+  *transloco="let t"
+  [visible]="visible"
+  (visibleChange)="visibleChange.emit($event); !$event && close()"
+  [modal]="true"
+  [closable]="true"
+  [dismissableMask]="false"
+  [header]="t('upload.crop')"
+  [style]="{ width: 'min(700px, 95vw)' }"
+  [contentStyle]="{ overflow: 'hidden', padding: '0' }"
+>
+  @if (visible && file) {
+    <div class="bg-surface-900 flex items-center justify-center" style="min-height: 320px; max-height: 70vh">
+      <image-cropper
+        [imageFile]="file"
+        [maintainAspectRatio]="false"
+        output="blob"
+        format="jpeg"
+        [imageQuality]="92"
+        (imageCropped)="onCropped($event)"
+      />
+    </div>
+  }
+
+  <ng-template pTemplate="footer">
+    <p-button [label]="t('common.cancel')" severity="secondary" [text]="true" (onClick)="close()" />
+    <p-button [label]="t('upload.cropApply')" icon="pi pi-check" severity="primary" size="small" (onClick)="apply()" />
+  </ng-template>
+</p-dialog>

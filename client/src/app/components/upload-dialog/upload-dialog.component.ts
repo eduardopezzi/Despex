@@ -12,12 +12,14 @@ import { SelectModule } from 'primeng/select';
 import { FormsModule } from '@angular/forms';
 import { FileUpload, FileUploadModule } from 'primeng/fileupload';
 import { InputTextModule } from 'primeng/inputtext';
+import { TooltipModule } from 'primeng/tooltip';
 
 import { ConfigService } from '@services/config.service';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
 import { MimeType } from '@open-receipt-ocr/types';
+import { ImageCropDialogComponent } from '@components/image-crop-dialog/image-crop-dialog.component';
 
 interface FileWithProvider {
   file: File;
@@ -39,6 +41,8 @@ interface FileWithProvider {
     FileUploadModule,
     ToastModule,
     InputTextModule,
+    TooltipModule,
+    ImageCropDialogComponent,
   ],
   templateUrl: './upload-dialog.component.html',
 })
@@ -69,6 +73,26 @@ export class UploadDialogComponent {
   uploading = signal(false);
   message = signal<string | null>(null);
   isError = signal(false);
+  cropTarget = signal<FileWithProvider | null>(null);
+
+  isImage(file: File): boolean {
+    return file.type.startsWith('image/');
+  }
+
+  openCrop(item: FileWithProvider) {
+    this.cropTarget.set(item);
+  }
+
+  closeCrop() {
+    this.cropTarget.set(null);
+  }
+
+  applyCrop(newFile: File) {
+    const target = this.cropTarget();
+    if (!target) return;
+    this.filesWithProviders.update((items) => items.map((i) => (i === target ? { ...i, file: newFile } : i)));
+    this.cropTarget.set(null);
+  }
 
   get ocrOptionGroups() {
     const local: { label: string; value: OcrProvider; icon: string }[] = [];
@@ -92,7 +116,7 @@ export class UploadDialogComponent {
     this.fileUpload?.clear();
   }
 
-  readonly ALLOWED_TYPES = [MimeType.Pdf, MimeType.Jpeg, MimeType.Png];
+  readonly ALLOWED_TYPES = [MimeType.Pdf, MimeType.Jpeg, MimeType.Png, MimeType.Webp];
 
   get acceptTypes() {
     return this.ALLOWED_TYPES.join(',');
@@ -129,6 +153,14 @@ export class UploadDialogComponent {
     }
 
     this.filesWithProviders.set(updated);
+
+    // Auto-open crop dialog if only one image was selected (e.g. from camera)
+    if (newFiles.length === 1 && this.isImage(newFiles[0])) {
+      const addedItem = updated.find((i) => i.file === newFiles[0]);
+      if (addedItem) {
+        this.openCrop(addedItem);
+      }
+    }
   }
 
   setProvider(item: FileWithProvider, provider: OcrProvider) {
