@@ -9,18 +9,44 @@
   [style]="{ width: 'min(700px, 95vw)' }"
   [contentStyle]="{ overflow: 'hidden', padding: '0' }"
 >
-  @if (visible && file) {
-    <div class="bg-surface-900 flex items-center justify-center" style="min-height: 320px; max-height: 70vh">
-      <image-cropper
-        [imageFile]="file"
-        [maintainAspectRatio]="false"
-        output="blob"
-        format="jpeg"
-        [imageQuality]="92"
-        (imageCropped)="onCropped($event)"
-      />
+  <div class="flex flex-col h-full">
+    <!-- Toolbar -->
+    <div class="flex items-center justify-between px-4 py-2 bg-surface-50 dark:bg-surface-900 border-b border-surface-200 dark:border-surface-700">
+      <div class="flex items-center gap-2">
+        <p-buttongroup>
+          <p-button icon="pi pi-replay" [text]="true" [pTooltip]="t('upload.cropRotateLeft')" tooltipPosition="bottom" (onClick)="rotate(-90)" />
+          <p-button icon="pi pi-refresh" [text]="true" [pTooltip]="t('upload.cropRotateRight')" tooltipPosition="bottom" (onClick)="rotate(90)" />
+        </p-buttongroup>
+        <div class="w-px h-4 bg-surface-200 dark:bg-surface-700 mx-1"></div>
+        <p-buttongroup>
+          <p-button icon="pi pi-search-minus" [text]="true" [pTooltip]="t('upload.cropZoomOut')" tooltipPosition="bottom" (onClick)="zoom(-0.1)" />
+          <p-button icon="pi pi-search-plus" [text]="true" [pTooltip]="t('upload.cropZoomIn')" tooltipPosition="bottom" (onClick)="zoom(0.1)" />
+        </p-buttongroup>
+        <div class="w-px h-4 bg-surface-200 dark:bg-surface-700 mx-1"></div>
+        <p-button icon="pi pi-arrows-h" [text]="true" [pTooltip]="t('upload.cropFlipH')" tooltipPosition="bottom" (onClick)="flipH()" />
+      </div>
+      <div class="text-xs font-medium text-surface-500">
+        {{ (transform().scale ?? 1) * 100 | number : '1.0-0' }}%
+      </div>
     </div>
-  }
+
+    <!-- Cropper -->
+    @if (visible && file) {
+      <div class="bg-black flex items-center justify-center relative overflow-hidden" style="min-height: 400px; max-height: 75vh">
+        <image-cropper
+          [imageFile]="file"
+          [maintainAspectRatio]="false"
+          [transform]="transform()"
+          output="blob"
+          format="jpeg"
+          [imageQuality]="92"
+          [autoCrop]="true"
+          (imageCropped)="onCropped($event)"
+          class="max-w-full"
+        />
+      </div>
+    }
+  </div>
 
   <ng-template pTemplate="footer">
     <p-button [label]="t('common.cancel')" severity="secondary" [text]="true" (onClick)="close()" />

@@ -35,7 +35,12 @@
     "processing": "Uploading and creating job...",
     "singleSelection": "Single Selection",
     "crop": "Crop image",
-    "cropApply": "Apply crop"
+    "cropApply": "Apply crop",
+    "cropRotateLeft": "Rotate Left",
+    "cropRotateRight": "Rotate Right",
+    "cropZoomIn": "Zoom In",
+    "cropZoomOut": "Zoom Out",
+    "cropFlipH": "Flip Horizontal"
   },
   "ocrJobs": {
     "title": "OCR Jobs",
