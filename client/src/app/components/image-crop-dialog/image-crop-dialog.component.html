@@ -32,7 +32,7 @@
 
     <!-- Cropper -->
     @if (visible && file) {
-      <div class="bg-black flex items-center justify-center relative overflow-hidden" style="min-height: 400px; max-height: 75vh">
+      <div class="bg-black flex items-center justify-center relative p-6 sm:p-10" style="min-height: 400px; max-height: 80vh">
         <image-cropper
           [imageFile]="file"
           [maintainAspectRatio]="false"
@@ -42,7 +42,8 @@
           [imageQuality]="92"
           [autoCrop]="true"
           (imageCropped)="onCropped($event)"
-          class="max-w-full"
+          class="max-w-full max-h-full"
+          [style.maxHeight.vh]="80"
         />
       </div>
     }
