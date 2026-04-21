@@ -492,6 +492,14 @@
                         pTooltip="{{ t('ocrJobs.detail.copyToClipboard') }}"
                       />
                       <p-button
+                        icon="pi pi-align-left"
+                        [text]="true"
+                        severity="secondary"
+                        size="small"
+                        (onClick)="copyAsPlainText()"
+                        pTooltip="{{ t('ocrJobs.detail.copyPlainText') }}"
+                      />
+                      <p-button
                         icon="pi pi-file-export"
                         [text]="true"
                         severity="secondary"

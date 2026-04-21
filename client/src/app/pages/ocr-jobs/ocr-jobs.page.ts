@@ -32,6 +32,7 @@ import { TableModule } from 'primeng/table';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { OcrOutputPipe } from '@app/pipes/ocr-output.pipe';
 import { FormsModule } from '@angular/forms';
+import { marked } from 'marked';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { InputTextModule } from 'primeng/inputtext';
@@ -82,7 +83,9 @@ export class OcrJobsPageComponent implements OnInit, OnDestroy {
 
   showUploadDialog = false;
   private _showDetail = false;
-  get showDetail() { return this._showDetail; }
+  get showDetail() {
+    return this._showDetail;
+  }
   set showDetail(value: boolean) {
     this._showDetail = value;
     if (!value) this.stopDetailPolling();
@@ -222,11 +225,11 @@ export class OcrJobsPageComponent implements OnInit, OnDestroy {
     effect(() => {
       const jobs = this.ocrJobService.jobs();
       if (this.selectedJob) {
-        const updated = jobs.find((j) => j.id === this.selectedJob?.id);
+        const updated = jobs.find((j: OcrJob) => j.id === this.selectedJob?.id);
         if (updated) {
           this.selectedJob = updated;
           if (this._selectedFile) {
-            const updatedFile = updated.files?.find((f) => f.id === this._selectedFile?.id);
+            const updatedFile = updated.files?.find((f: OcrFile) => f.id === this._selectedFile?.id);
             if (updatedFile) {
               const wasOnLatest = this.selectedExecution?.id === this.getLatestExecution(this._selectedFile)?.id;
               const hasFilenameChanged = this._selectedFile?.filename !== updatedFile.filename;
@@ -236,7 +239,7 @@ export class OcrJobsPageComponent implements OnInit, OnDestroy {
               }
 
               if (this.selectedExecution) {
-                const updatedExecution = updatedFile.executions?.find((e) => e.id === this.selectedExecution?.id);
+                const updatedExecution = updatedFile.executions?.find((e: OcrExecution) => e.id === this.selectedExecution?.id);
                 if (updatedExecution) {
                   this.selectedExecution = updatedExecution;
                 } else if (wasOnLatest) {
@@ -255,7 +258,7 @@ export class OcrJobsPageComponent implements OnInit, OnDestroy {
   private startPolling() {
     if (this.pollingSubscription) return;
     this.pollingSubscription = interval(3000).subscribe(() => {
-      const needsPolling = this.ocrJobService.jobs().some((j) => j.status === OcrJobStatus.Pending || j.status === OcrJobStatus.Processing);
+      const needsPolling = this.ocrJobService.jobs().some((j: OcrJob) => j.status === OcrJobStatus.Pending || j.status === OcrJobStatus.Processing);
 
       if (needsPolling) {
         this.fetchJobsWithPagination(false);
@@ -297,28 +300,132 @@ export class OcrJobsPageComponent implements OnInit, OnDestroy {
     }
   }
 
-  copyToClipboard() {
+  async copyToClipboard() {
     if (!this.selectedExecution?.ocrData) return;
     const ocrData = this.selectedExecution.ocrData;
     const parsed = this.ocrOutputParser.parse(ocrData, this.selectedExecution.ocrProvider);
     const contentToCopy = parsed && parsed.markdown ? parsed.markdown : ocrData;
 
-    if (navigator.clipboard && window.isSecureContext) {
-      navigator.clipboard.writeText(contentToCopy);
-    } else {
-      const el = document.createElement('textarea');
-      el.value = contentToCopy;
-      document.body.appendChild(el);
-      el.select();
-      document.execCommand('copy');
-      document.body.removeChild(el);
-    }
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(contentToCopy);
+      } else {
+        const el = document.createElement('textarea');
+        el.value = contentToCopy;
+        el.setAttribute('readonly', '');
+        el.style.position = 'absolute';
+        el.style.left = '-9999px';
+        document.body.appendChild(el);
+        el.select();
+        const successful = document.execCommand('copy');
+        document.body.removeChild(el);
+        if (!successful) throw new Error('execCommand copy failed');
+      }
 
-    this.messageService.add({
-      severity: 'success',
-      summary: this.translocoService.translate('ocrJobs.detail.copied'),
-      detail: this.translocoService.translate('ocrJobs.detail.copySuccess'),
-    });
+      this.messageService.add({
+        severity: 'success',
+        summary: this.translocoService.translate('ocrJobs.detail.copied'),
+        detail: this.translocoService.translate('ocrJobs.detail.copySuccess'),
+      });
+    } catch (err) {
+      console.error('Failed to copy to clipboard:', err);
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Failed to copy to clipboard',
+      });
+    }
+  }
+
+  async copyAsPlainText() {
+    if (!this.selectedExecution?.ocrData) return;
+    const ocrData = this.selectedExecution.ocrData;
+    const parsed = this.ocrOutputParser.parse(ocrData, this.selectedExecution.ocrProvider);
+    const markdown = parsed && parsed.markdown ? parsed.markdown : ocrData;
+
+    try {
+      // Configuration for marked (explicitly pass to parse for clarity)
+      const parseOptions = { gfm: true, breaks: true };
+
+      // Convert markdown to HTML
+      const html = (await marked.parse(markdown, parseOptions)) as string;
+
+      // Create a temporary element and ATTACH IT TO THE DOM
+      const tempDiv = document.createElement('div');
+      tempDiv.style.position = 'fixed'; // FIXED to avoid layout jumping
+      tempDiv.style.left = '-9999px';
+      tempDiv.style.top = '0';
+      tempDiv.style.width = '1200px';
+      tempDiv.style.whiteSpace = 'pre-wrap';
+      tempDiv.style.visibility = 'hidden';
+
+      // Inject the HTML
+      tempDiv.innerHTML = html;
+
+      // PRE-PROCESS TABLES: Inject tabs between cells for visual column separation
+      const tables = tempDiv.querySelectorAll('table');
+      tables.forEach((table: HTMLTableElement) => {
+        const rows = table.querySelectorAll('tr');
+        rows.forEach((row: HTMLTableRowElement) => {
+          const cells = row.querySelectorAll('th, td');
+          cells.forEach((cell: Element, idx: number) => {
+            // Add a tab to the cell text itself for better innerText capture
+            if (idx < cells.length - 1) {
+              cell.textContent = (cell.textContent || '') + '\t';
+            }
+          });
+        });
+      });
+
+      document.body.appendChild(tempDiv);
+      let plainText = tempDiv.innerText || '';
+      document.body.removeChild(tempDiv);
+
+      // FALLBACK: If innerText calculation failed, use a regex tag stripper
+      if (!plainText.trim()) {
+        plainText = html
+          .replace(/<\/tr>/gi, '\n')
+          .replace(/<\/td>/gi, '\t')
+          .replace(/<[^>]+>/g, '') // Strip all other tags
+          .replace(/&nbsp;/g, ' ')
+          .replace(/&lt;/g, '<')
+          .replace(/&gt;/g, '>')
+          .replace(/&amp;/g, '&');
+      }
+
+      const finalContent = plainText.trim();
+      if (!finalContent) {
+        throw new Error('Final content is empty');
+      }
+
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(finalContent);
+      } else {
+        const el = document.createElement('textarea');
+        el.value = finalContent;
+        el.setAttribute('readonly', '');
+        el.style.position = 'absolute';
+        el.style.left = '-9999px';
+        document.body.appendChild(el);
+        el.select();
+        const successful = document.execCommand('copy');
+        document.body.removeChild(el);
+        if (!successful) throw new Error('execCommand copy failed');
+      }
+
+      this.messageService.add({
+        severity: 'success',
+        summary: this.translocoService.translate('ocrJobs.detail.copied'),
+        detail: this.translocoService.translate('ocrJobs.detail.copyPlainTextSuccess'),
+      });
+    } catch (err) {
+      console.error('Failed to convert to plain text:', err);
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Failed to copy as plain text',
+      });
+    }
   }
 
   downloadMarkdown() {

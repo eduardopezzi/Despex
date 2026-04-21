@@ -90,10 +90,12 @@
       "noData": "Nenhum dado OCR disponível para esta execução.",
       "selectFile": "Selecione um ficheiro na barra lateral para ver os resultados",
       "copyToClipboard": "Copiar texto OCR",
+      "copyPlainText": "Copiar como Texto Simples",
       "downloadMarkdown": "Descarregar Markdown",
       "refresh": "Atualizar",
       "copied": "Copiado",
       "copySuccess": "Conteúdo OCR copiado para a área de transferência",
+      "copyPlainTextSuccess": "Conteúdo OCR copiado como texto simples",
       "downloaded": "Descarregado",
       "downloadSuccess": "Markdown guardado"
     },
