@@ -337,6 +337,50 @@ export class OcrJobsPageComponent implements OnInit, OnDestroy {
     }
   }
 
+  private recursiveExtractText(node: Node, isInCell = false): string {
+    let text = '';
+    const children = Array.from(node.childNodes);
+
+    for (const child of children) {
+      if (child.nodeType === Node.TEXT_NODE) {
+        text += child.textContent || '';
+      } else if (child.nodeType === Node.ELEMENT_NODE) {
+        const el = child as HTMLElement;
+        const tagName = el.tagName.toLowerCase();
+
+        // Detect if we are entering a table cell
+        const isNewCell = ['td', 'th'].includes(tagName);
+        
+        // Process children with the current or updated context
+        const childText = this.recursiveExtractText(el, isInCell || isNewCell);
+
+        // Apply formatting based on tag
+        if (tagName === 'br') {
+          text += childText + (isInCell ? ' ' : '\n');
+        } else if (['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'].includes(tagName)) {
+          // Paragraphs and headers get a double newline for visual spacing (WYSIWYG)
+          // unless we are inside a table cell, in which case we just add a space
+          text += childText + (isInCell ? ' ' : '\n\n');
+        } else if (['div', 'tr', 'li'].includes(tagName)) {
+          // Other block/structured elements get a single newline
+          // unless we are inside a table cell (div inside td)
+          text += childText + (isInCell ? ' ' : '\n');
+        } else if (isNewCell) {
+          // At the end of a cell, always add exactly one tab
+          text += childText + '\t';
+        } else {
+          text += childText;
+        }
+      }
+    }
+    
+    // Final cleanup for the top-level call (where isInCell is false)
+    if (!isInCell) {
+      return text.replace(/\n{3,}/g, '\n\n');
+    }
+    return text;
+  }
+
   async copyAsPlainText() {
     if (!this.selectedExecution?.ocrData) return;
     const ocrData = this.selectedExecution.ocrData;
@@ -344,54 +388,18 @@ export class OcrJobsPageComponent implements OnInit, OnDestroy {
     const markdown = parsed && parsed.markdown ? parsed.markdown : ocrData;
 
     try {
-      // Configuration for marked (explicitly pass to parse for clarity)
+      // Configuration for marked
       const parseOptions = { gfm: true, breaks: true };
 
       // Convert markdown to HTML
       const html = (await marked.parse(markdown, parseOptions)) as string;
 
-      // Create a temporary element and ATTACH IT TO THE DOM
+      // Create a temporary container for structural parsing
       const tempDiv = document.createElement('div');
-      tempDiv.style.position = 'fixed'; // FIXED to avoid layout jumping
-      tempDiv.style.left = '-9999px';
-      tempDiv.style.top = '0';
-      tempDiv.style.width = '1200px';
-      tempDiv.style.whiteSpace = 'pre-wrap';
-      tempDiv.style.visibility = 'hidden';
-
-      // Inject the HTML
       tempDiv.innerHTML = html;
 
-      // PRE-PROCESS TABLES: Inject tabs between cells for visual column separation
-      const tables = tempDiv.querySelectorAll('table');
-      tables.forEach((table: HTMLTableElement) => {
-        const rows = table.querySelectorAll('tr');
-        rows.forEach((row: HTMLTableRowElement) => {
-          const cells = row.querySelectorAll('th, td');
-          cells.forEach((cell: Element, idx: number) => {
-            // Add a tab to the cell text itself for better innerText capture
-            if (idx < cells.length - 1) {
-              cell.textContent = (cell.textContent || '') + '\t';
-            }
-          });
-        });
-      });
-
-      document.body.appendChild(tempDiv);
-      let plainText = tempDiv.innerText || '';
-      document.body.removeChild(tempDiv);
-
-      // FALLBACK: If innerText calculation failed, use a regex tag stripper
-      if (!plainText.trim()) {
-        plainText = html
-          .replace(/<\/tr>/gi, '\n')
-          .replace(/<\/td>/gi, '\t')
-          .replace(/<[^>]+>/g, '') // Strip all other tags
-          .replace(/&nbsp;/g, ' ')
-          .replace(/&lt;/g, '<')
-          .replace(/&gt;/g, '>')
-          .replace(/&amp;/g, '&');
-      }
+      // Extract text using our recursive walker that understands line breaks and tables
+      const plainText = this.recursiveExtractText(tempDiv, false);
 
       const finalContent = plainText.trim();
       if (!finalContent) {
