@@ -10,7 +10,7 @@ import { ProgressBarModule } from 'primeng/progressbar';
 import { OcrProvider } from '@open-receipt-ocr/types';
 import { SelectModule } from 'primeng/select';
 import { FormsModule } from '@angular/forms';
-import { FileUpload, FileUploadModule } from 'primeng/fileupload';
+import { FileUpload, FileUploadModule, FileSelectEvent } from 'primeng/fileupload';
 import { InputTextModule } from 'primeng/inputtext';
 import { TooltipModule } from 'primeng/tooltip';
 
@@ -122,8 +122,8 @@ export class UploadDialogComponent {
     return this.ALLOWED_TYPES.join(',');
   }
 
-  onSelect(event: { currentFiles: File[] }) {
-    const newFiles: File[] = event.currentFiles;
+  onSelect(event: { currentFiles?: File[]; files?: File[] }) {
+    const newFiles: File[] = event.currentFiles || event.files || [];
     const defaultProvider = this.configService.defaultOcrProvider();
 
     const current = this.filesWithProviders();
@@ -161,6 +161,9 @@ export class UploadDialogComponent {
         this.openCrop(addedItem);
       }
     }
+
+    // Clear the PrimeNG internal file list because we manage our own in filesWithProviders
+    this.fileUpload.clear();
   }
 
   setProvider(item: FileWithProvider, provider: OcrProvider) {
