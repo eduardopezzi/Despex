@@ -4,6 +4,7 @@ import { AppSecret } from '@core/types/app-secret.enum';
 import { SecretProvider } from '@core/secrets/secret-provider.interface';
 import { StorageProvider } from '@core/storage/storage-provider.interface';
 import { OcrFileEntity } from '@core/database/entities/ocr-file.entity';
+import { streamToBuffer } from '@core/utils/stream.util';
 
 @Injectable()
 export class TextractProcessor {
@@ -25,21 +26,12 @@ export class TextractProcessor {
     });
 
     const fileStream = await this.storage.getStream(file.filename);
-    const bytes = await this.streamToBuffer(fileStream);
+    const bytes = await streamToBuffer(fileStream);
 
     this.logger.log(`Calling AWS Textract AnalyzeExpense for execution #${executionId}`);
 
     const response = await client.send(new AnalyzeExpenseCommand({ Document: { Bytes: bytes } }));
 
     return JSON.stringify(response);
-  }
-
-  private streamToBuffer(stream: NodeJS.ReadableStream): Promise<Buffer> {
-    return new Promise((resolve, reject) => {
-      const chunks: Buffer[] = [];
-      stream.on('data', (chunk: Buffer) => chunks.push(chunk));
-      stream.on('end', () => resolve(Buffer.concat(chunks)));
-      stream.on('error', reject);
-    });
   }
 }

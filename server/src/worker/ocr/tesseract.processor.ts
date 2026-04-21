@@ -4,6 +4,7 @@ import { AppSecret } from '@core/types/app-secret.enum';
 import { SecretProvider } from '@core/secrets/secret-provider.interface';
 import { StorageProvider } from '@core/storage/storage-provider.interface';
 import { OcrFileEntity } from '@core/database/entities/ocr-file.entity';
+import { streamToBuffer } from '@core/utils/stream.util';
 
 @Injectable()
 export class TesseractProcessor {
@@ -18,7 +19,7 @@ export class TesseractProcessor {
     const language = await this.secretProvider.getSecretOrThrow(AppSecret.TesseractLanguage);
 
     const fileStream = await this.storage.getStream(file.filename);
-    const buffer = await this.streamToBuffer(fileStream);
+    const buffer = await streamToBuffer(fileStream);
 
     this.logger.log(`Running Tesseract.js (lang: ${language}) for execution #${executionId}`);
 
@@ -34,14 +35,5 @@ export class TesseractProcessor {
     const confidence = result.data.confidence;
 
     return JSON.stringify({ text, language, confidence });
-  }
-
-  private streamToBuffer(stream: NodeJS.ReadableStream): Promise<Buffer> {
-    return new Promise((resolve, reject) => {
-      const chunks: Buffer[] = [];
-      stream.on('data', (chunk: Buffer) => chunks.push(chunk));
-      stream.on('end', () => resolve(Buffer.concat(chunks)));
-      stream.on('error', reject);
-    });
   }
 }
