@@ -91,7 +91,7 @@
                 </ng-template>
               </p-select>
               @if (isImage(item.file)) {
-                <p-button icon="pi pi-crop" [text]="true" [pTooltip]="t('upload.crop')" tooltipPosition="top" (onClick)="openCrop(item)" />
+                <p-button icon="pi pi-pencil" [text]="true" severity="secondary" styleClass="text-primary-500 w-8 h-8 p-0" [pTooltip]="t('upload.crop')" tooltipPosition="top" (onClick)="openCrop(item)" />
               }
               <p-button icon="pi pi-times" [text]="true" severity="danger" (onClick)="removeFile(item)" />
             </div>
