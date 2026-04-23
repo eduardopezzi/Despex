@@ -50,7 +50,9 @@
   </div>
 
   <ng-template pTemplate="footer">
-    <p-button [label]="t('common.cancel')" severity="secondary" [text]="true" (onClick)="close()" />
-    <p-button [label]="t('upload.cropApply')" icon="pi pi-check" severity="primary" size="small" (onClick)="apply()" />
+    <div class="flex items-center justify-end gap-3 px-4 py-3 border-t border-surface-200 dark:border-surface-700">
+      <p-button [label]="t('common.cancel')" severity="secondary" [text]="true" (onClick)="close()" />
+      <p-button [label]="t('upload.cropApply')" icon="pi pi-check" severity="primary" size="small" (onClick)="apply()" />
+    </div>
   </ng-template>
 </p-dialog>
