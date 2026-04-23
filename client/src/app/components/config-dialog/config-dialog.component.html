@@ -181,8 +181,13 @@
   </div>
 
   <ng-template pTemplate="footer">
-    <p-button [label]="t('common.cancel')" severity="secondary" [text]="true" (onClick)="close()" />
-    <p-button [label]="t('config.savePreferences')" icon="pi pi-save" severity="primary" size="small" (onClick)="save()" />
+    <div class="flex items-center justify-between w-full">
+      <p-button [label]="t('config.resetToDefaults')" icon="pi pi-refresh" severity="secondary" [text]="true" size="small" (onClick)="resetToDefaults()" />
+      <div class="flex items-center gap-2">
+        <p-button [label]="t('common.cancel')" severity="secondary" [text]="true" (onClick)="close()" />
+        <p-button [label]="t('config.savePreferences')" icon="pi pi-save" severity="primary" size="small" (onClick)="save()" />
+      </div>
+    </div>
   </ng-template>
 </p-dialog>
 

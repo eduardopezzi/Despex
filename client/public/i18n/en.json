@@ -137,7 +137,8 @@
       "grok": "Grok (xAI)",
       "tesseract": "Tesseract.js",
       "openAi": "OpenAI",
-      "llamaCpp": "llama.cpp"
+      "llamaCpp": "llama.cpp",
+      "none": "None (Manual Selection)"
     },
     "outputs": {
       "db": "Stored in DB",
@@ -152,6 +153,7 @@
       "light": "Light",
       "dark": "Dark"
     },
+    "resetToDefaults": "Reset to Defaults",
     "languages": {
       "en": "English",
       "pt": "Portuguese"

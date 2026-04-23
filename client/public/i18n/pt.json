@@ -132,7 +132,8 @@
       "grok": "Grok (xAI)",
       "tesseract": "Tesseract.js",
       "openAi": "OpenAI",
-      "llamaCpp": "llama.cpp"
+      "llamaCpp": "llama.cpp",
+      "none": "Nenhum (Seleção Manual)"
     },
     "outputs": {
       "db": "Guardado na BD",
@@ -147,6 +148,7 @@
       "light": "Claro",
       "dark": "Escuro"
     },
+    "resetToDefaults": "Repor Predefinições",
     "languages": {
       "en": "Inglês",
       "pt": "Português"

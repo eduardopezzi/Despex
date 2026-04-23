@@ -33,8 +33,10 @@ export class ConfigDialogComponent implements OnChanges {
   }
 
   get ocrOptionGroups() {
-    const local: { label: string; value: OcrProvider; icon: string }[] = [];
-    const online: { label: string; value: OcrProvider; icon: string }[] = [];
+    const local: { label: string; value: OcrProvider | undefined; icon: string }[] = [
+      { label: this.translocoService.translate('config.providers.none'), value: undefined, icon: 'pi pi-question-circle' },
+    ];
+    const online: { label: string; value: OcrProvider | undefined; icon: string }[] = [];
     for (const p of Object.values(OcrProvider)) {
       const opt = { label: this.translocoService.translate(`config.providers.${p}`), value: p, icon: OCR_PROVIDER_ICONS[p] };
       (LOCAL_PROVIDERS.has(p) ? local : online).push(opt);
@@ -118,7 +120,7 @@ export class ConfigDialogComponent implements OnChanges {
     this.arrows.set(allArrows);
   }
 
-  setOcrProvider(value: OcrProvider) {
+  setOcrProvider(value: OcrProvider | undefined) {
     this.configService.defaultOcrProvider.set(value);
     setTimeout(() => this.updateArrows(), 60);
   }
@@ -139,6 +141,13 @@ export class ConfigDialogComponent implements OnChanges {
 
   close() {
     this.visibleChange.emit(false);
+  }
+
+  resetToDefaults() {
+    this.configService.defaultOcrProvider.set(OcrProvider.Mistral);
+    this.configService.language.set('en');
+    this.configService.theme.set('light');
+    setTimeout(() => this.updateArrows(), 60);
   }
 
   save() {
