@@ -156,7 +156,8 @@
     "resetToDefaults": "Reset to Defaults",
     "languages": {
       "en": "English",
-      "pt": "Portuguese"
+      "pt": "Portuguese",
+      "fr": "French"
     }
   },
   "ocr": {

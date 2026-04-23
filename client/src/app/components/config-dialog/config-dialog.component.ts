@@ -55,6 +55,7 @@ export class ConfigDialogComponent implements OnChanges {
     return [
       { label: this.translocoService.translate('config.languages.en'), value: 'en' },
       { label: this.translocoService.translate('config.languages.pt'), value: 'pt' },
+      { label: this.translocoService.translate('config.languages.fr'), value: 'fr' },
     ];
   }
 
