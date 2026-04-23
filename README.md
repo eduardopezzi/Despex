@@ -181,6 +181,33 @@ export class S3StorageProvider extends StorageProvider {
 
 ---
 
+## 🔐 Adding a New Secret Provider
+
+To add a new secret management backend (e.g., "Vault"):
+
+### 1. Define the Provider Type
+Add `vault` to the `SecretProviderType` enum in `server/src/core/secrets/secret-provider-type.enum.ts`.
+
+### 2. Implement the Provider
+Create `server/src/core/secrets/providers/vault-secret.provider.ts` extending the `SecretProvider` abstract class:
+```typescript
+@Injectable()
+export class VaultSecretProvider extends SecretProvider {
+  readonly name = SecretProviderType.Vault;
+  // Implement getSecret
+  async getSecret(name: AppSecret): Promise<string | undefined> {
+    // Fetch secret from Vault
+  }
+}
+```
+
+### 3. Register and Configure
+- Add your provider to the `providers` array in `server/src/core/secrets/secrets.module.ts`.
+- Update the factory in `server/src/core/secrets/secrets.provider.ts` to include your new provider in the `switch` statement.
+- Document any required setup variables in `server/.env.example`.
+
+---
+
 ## 🎨 Technology Stack
 - **Frontend:** Angular, PrimeNG
 - **Backend:** NestJS, BullMQ (for background job processing)
