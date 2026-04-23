@@ -17,7 +17,7 @@
     "dashboard": "Painel",
     "ocrJobs": "Trabalhos OCR",
     "admin": "Admin",
-    "selfHosted": "Auto-hospedado",
+    "selfHosted": "Alojamento Próprio",
     "collapse": "Recolher",
     "expand": "Expandir"
   },
@@ -40,7 +40,7 @@
   },
   "ocrJobs": {
     "title": "Trabalhos OCR",
-    "subtitle": "Gerencie o seu pipeline de processamento de documentos",
+    "subtitle": "Gerir o fluxo de processamento de documentos",
     "addJob": "Adicionar Trabalho OCR",
     "view": {
       "cards": "Cartões",
@@ -63,8 +63,8 @@
       "statusPlaceholder": "Todos os Estados",
       "statusAll": "Todos os Estados",
       "sortPlaceholder": "Ordenar por",
-      "latest": "Criados Mais Recentemente",
-      "oldest": "Criados Mais Antigamente"
+      "latest": "Mais recentes",
+      "oldest": "Mais antigos"
     },
     "home": {
       "welcome": "Bem-vindo de volta!",
@@ -157,8 +157,8 @@
   "ocr": {
     "providers": {
       "mistral": "Mistral OCR",
-      "tabscanner": "TabScanner (Rápido)",
-      "paddleOcrLocal": "Paddle OCR Local (Auto-hospedado)",
+      "tabscanner": "TabScanner",
+      "paddleOcrLocal": "Paddle OCR Local (Alojamento próprio)",
       "paddleOcrApi": "Paddle OCR API",
       "gemini": "Google Gemini",
       "awsTextract": "AWS Textract",

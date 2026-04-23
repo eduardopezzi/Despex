@@ -162,7 +162,7 @@
   "ocr": {
     "providers": {
       "mistral": "Mistral OCR",
-      "tabscanner": "TabScanner (Fast)",
+      "tabscanner": "TabScanner",
       "paddleOcrLocal": "Paddle OCR Local (Self-hosted)",
       "paddleOcrApi": "Paddle OCR API",
       "gemini": "Google Gemini",
