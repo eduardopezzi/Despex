@@ -45,8 +45,10 @@ export class ShellLayoutComponent {
   }
 
   toggleLang() {
+    const langs = ['en', 'pt', 'fr'];
     const current = this.configService.language();
-    this.configService.language.set(current === 'en' ? 'pt' : 'en');
+    const nextIndex = (langs.indexOf(current) + 1) % langs.length;
+    this.configService.language.set(langs[nextIndex]);
     this.configService.saveConfig();
   }
 
