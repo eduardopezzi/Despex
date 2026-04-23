@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    image: open-receipt-ocr:latest
+    container_name: ocr-app
+    restart: unless-stopped
+    depends_on:
+      - redis
+    ports:
+      - "9999:9999"
+    environment:
+      # --- Overrides to Sane Defaults ---
+      - NODE_ENV=production
+      - REDIS_HOST=redis
+      
+      # --- OCR Provider API Keys ---
+      # Populate these in a .env file or directly here
+      - MISTRAL_API_KEY=${MISTRAL_API_KEY}
+      - TAB_SCANNER_API_KEY=${TAB_SCANNER_API_KEY}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - XAI_API_KEY=${XAI_API_KEY}
+      
+      # AWS Textract (Optional)
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_REGION=${AWS_REGION:-us-east-1}
+
+    volumes:
+      - ./data/uploads:/app/data/uploads
+      - ./data/db:/app/data/db
+    networks:
+      - ocr-network
+
+  redis:
+    image: redis:alpine
+    container_name: ocr-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - ocr-network
+
+volumes:
+  redis_data:
+
+networks:
+  ocr-network:
+    driver: bridge

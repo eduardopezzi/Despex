@@ -1,4 +1,4 @@
-import { AppSecret } from '@core/types/app-secret.enum';
+import { AppSecret, DefaultAppSecret } from '@core/types/app-secret.enum';
 import { SecretProviderType } from '@core/secrets/secret-provider-type.enum';
 
 /**
@@ -12,9 +12,18 @@ export abstract class SecretProvider {
 
   abstract getSecret(name: AppSecret): Promise<string | undefined>;
 
-  async getSecretAsInt(name: AppSecret): Promise<number | undefined> {
+  async getSecretWithDefault(name: AppSecret): Promise<string | undefined> {
     const value = await this.getSecret(name);
-    if (value === undefined || value === null || value === '') {
+    if (value !== undefined && value !== null && value !== '') {
+      return value;
+    }
+    const defaultValue = DefaultAppSecret[name];
+    return defaultValue !== undefined ? String(defaultValue) : undefined;
+  }
+
+  async getSecretAsInt(name: AppSecret): Promise<number | undefined> {
+    const value = await this.getSecretWithDefault(name);
+    if (value === undefined) {
       return undefined;
     }
     const num = parseInt(value, 10);
@@ -25,16 +34,16 @@ export abstract class SecretProvider {
     const value = await this.getSecretAsInt(name);
     if (value === undefined) {
       throw new Error(
-        `Secret "${name}" is missing, empty, or not a valid integer. This secret is required for the application to function properly.`,
+        `Secret "${name}" is missing and has no default. This secret is required for the application to function properly.`,
       );
     }
     return value;
   }
 
   async getSecretOrThrow(name: AppSecret): Promise<string> {
-    const value = await this.getSecret(name);
-    if (value === undefined || value === null || value === '') {
-      throw new Error(`Secret "${name}" is missing or empty. This secret is required for the application to function properly.`);
+    const value = await this.getSecretWithDefault(name);
+    if (value === undefined) {
+      throw new Error(`Secret "${name}" is missing and has no default. This secret is required for the application to function properly.`);
     }
     return value;
   }
