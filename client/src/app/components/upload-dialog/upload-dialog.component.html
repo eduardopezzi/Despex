@@ -91,7 +91,36 @@
                 </ng-template>
               </p-select>
               @if (isImage(item.file)) {
-                <p-button icon="pi pi-pencil" [text]="true" severity="secondary" styleClass="text-primary-500 w-8 h-8 p-0" [pTooltip]="t('upload.crop')" tooltipPosition="top" (onClick)="openCrop(item)" />
+                @if (item.croppedFile) {
+                  <p-button 
+                    icon="pi pi-pencil" 
+                    [text]="true" 
+                    severity="success" 
+                    styleClass="w-8 h-8 p-0" 
+                    [pTooltip]="t('upload.editCrop')" 
+                    tooltipPosition="top" 
+                    (onClick)="openCrop(item)" 
+                  />
+                  <p-button 
+                    icon="pi pi-refresh" 
+                    [text]="true" 
+                    severity="warn" 
+                    styleClass="w-8 h-8 p-0" 
+                    [pTooltip]="t('upload.resetCrop')" 
+                    tooltipPosition="top" 
+                    (onClick)="resetCrop(item)" 
+                  />
+                } @else {
+                  <p-button 
+                    icon="pi pi-crop" 
+                    [text]="true" 
+                    severity="secondary" 
+                    styleClass="text-primary-500 w-8 h-8 p-0" 
+                    [pTooltip]="t('upload.crop')" 
+                    tooltipPosition="top" 
+                    (onClick)="openCrop(item)" 
+                  />
+                }
               }
               <p-button icon="pi pi-times" [text]="true" severity="danger" (onClick)="removeFile(item)" />
             </div>
@@ -132,5 +161,7 @@
   [visible]="!!cropTarget()"
   (visibleChange)="!$event && closeCrop()"
   [file]="cropTarget()?.file ?? null"
+  [initialTransform]="cropTarget()?.transform ?? null"
+  [initialCropper]="cropTarget()?.cropper ?? null"
   (cropped)="applyCrop($event)"
 />

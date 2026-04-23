@@ -2,7 +2,7 @@ import { Component, EventEmitter, Input, Output, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DialogModule } from 'primeng/dialog';
 import { ButtonModule } from 'primeng/button';
-import { ImageCropperComponent, ImageCroppedEvent, ImageTransform } from 'ngx-image-cropper';
+import { ImageCropperComponent, ImageCroppedEvent, ImageTransform, CropperPosition } from 'ngx-image-cropper';
 import { TranslocoModule } from '@jsverse/transloco';
 import { TooltipModule } from 'primeng/tooltip';
 import { ButtonGroupModule } from 'primeng/buttongroup';
@@ -16,11 +16,20 @@ import { ButtonGroupModule } from 'primeng/buttongroup';
 export class ImageCropDialogComponent {
   @Input() visible = false;
   @Input() file: File | null = null;
+  @Input() set initialTransform(val: ImageTransform | null) {
+    if (val) {
+      this.transform.set(val);
+    } else {
+      this.transform.set({ scale: 1, rotate: 0, flipH: false, flipV: false });
+    }
+  }
+  @Input() initialCropper: CropperPosition | null = null;
 
   @Output() visibleChange = new EventEmitter<boolean>();
-  @Output() cropped = new EventEmitter<File>();
+  @Output() cropped = new EventEmitter<{ file: File; transform: ImageTransform; cropper: CropperPosition }>();
 
   private latestBlob = signal<Blob | null>(null);
+  private latestCropper = signal<CropperPosition | null>(null);
   transform = signal<ImageTransform>({
     scale: 1,
     rotate: 0,
@@ -48,28 +57,25 @@ export class ImageCropDialogComponent {
     if (event.blob) {
       this.latestBlob.set(event.blob);
     }
+    if (event.cropperPosition) {
+      this.latestCropper.set(event.cropperPosition);
+    }
   }
 
   apply() {
     const blob = this.latestBlob();
-    if (!blob || !this.file) {
+    const cropper = this.latestCropper();
+    if (!blob || !cropper || !this.file) {
       this.close();
       return;
     }
     const originalName = this.file.name;
     const newFile = new File([blob], originalName, { type: 'image/jpeg' });
-    this.cropped.emit(newFile);
-    this.reset();
+    this.cropped.emit({ file: newFile, transform: this.transform(), cropper });
     this.visibleChange.emit(false);
   }
 
   close() {
-    this.reset();
     this.visibleChange.emit(false);
-  }
-
-  private reset() {
-    this.latestBlob.set(null);
-    this.transform.set({ scale: 1, rotate: 0, flipH: false, flipV: false });
   }
 }

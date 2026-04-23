@@ -21,9 +21,14 @@ import { ToastModule } from 'primeng/toast';
 import { MimeType } from '@open-receipt-ocr/types';
 import { ImageCropDialogComponent } from '@components/image-crop-dialog/image-crop-dialog.component';
 
+import { ImageTransform, CropperPosition } from 'ngx-image-cropper';
+
 interface FileWithProvider {
   file: File;
   ocrProvider?: OcrProvider;
+  croppedFile?: File;
+  transform?: ImageTransform;
+  cropper?: CropperPosition;
 }
 
 @Component({
@@ -87,11 +92,17 @@ export class UploadDialogComponent {
     this.cropTarget.set(null);
   }
 
-  applyCrop(newFile: File) {
+  applyCrop(event: { file: File; transform: ImageTransform; cropper: CropperPosition }) {
     const target = this.cropTarget();
     if (!target) return;
-    this.filesWithProviders.update((items) => items.map((i) => (i === target ? { ...i, file: newFile } : i)));
+    this.filesWithProviders.update((items) =>
+      items.map((i) => (i === target ? { ...i, croppedFile: event.file, transform: event.transform, cropper: event.cropper } : i)),
+    );
     this.cropTarget.set(null);
+  }
+
+  resetCrop(item: FileWithProvider) {
+    this.filesWithProviders.update((items) => items.map((i) => (i === item ? { ...i, croppedFile: undefined, transform: undefined, cropper: undefined } : i)));
   }
 
   get ocrOptionGroups() {
@@ -187,7 +198,7 @@ export class UploadDialogComponent {
     this.uploading.set(true);
     this.message.set(null);
 
-    const files = items.map((i) => i.file);
+    const files = items.map((i) => i.croppedFile || i.file);
     const providers = items.map((i) => i.ocrProvider as OcrProvider);
 
     this.ocrJobService.uploadJob(files, providers, this.jobName()).subscribe({

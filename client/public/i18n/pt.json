@@ -34,6 +34,8 @@
     "uploadFailed": "Falha no carregamento. Tente novamente.",
     "processing": "A carregar e a criar trabalho...",
     "crop": "Recortar imagem",
+    "editCrop": "Editar recorte",
+    "resetCrop": "Repor original",
     "cropApply": "Aplicar recorte"
   },
   "ocrJobs": {
