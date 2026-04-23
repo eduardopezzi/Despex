@@ -1,9 +1,25 @@
 import { Inject, Injectable, Logger, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
-import { PaddleOcrResult, PaddleOcrService } from 'ppu-paddle-ocr';
 import { AppSecret } from '@core/types/app-secret.enum';
 import { SecretProvider } from '@core/secrets/secret-provider.interface';
 import { StorageProvider } from '@core/storage/storage-provider.interface';
 import { OcrFileEntity } from '@core/database/entities/ocr-file.entity';
+
+/** Native PaddleOCR result structure (isolated from library types) */
+interface PaddleOcrResult {
+  lines: {
+    text: string;
+    confidence: number;
+    box: number[][];
+  }[][];
+}
+
+/** Local interface for the PaddleOCR service to avoid 'any' and static imports */
+interface PaddleOcrService {
+  initialize(): Promise<void>;
+  isInitialized(): boolean;
+  recognize(image: any, options?: any): Promise<PaddleOcrResult>;
+  destroy(): Promise<void>;
+}
 
 @Injectable()
 export class PaddleOcrLocalProcessor implements OnModuleInit, OnModuleDestroy {
@@ -36,20 +52,30 @@ export class PaddleOcrLocalProcessor implements OnModuleInit, OnModuleDestroy {
     }
 
     if (!this.paddleOcr) {
-      this.paddleOcr = new PaddleOcrService({
-        session: {
-          executionProviders: ['cpu'], // Use CPU-only for consistent performance
-          graphOptimizationLevel: 'all', // Enable all optimizations
-          enableCpuMemArena: true, // Better memory management
-          enableMemPattern: true, // Memory pattern optimization
-          executionMode: 'sequential', // Better for single-threaded performance
-          interOpNumThreads: 0, // Let ONNX decide optimal thread count
-          intraOpNumThreads: 0, // Let ONNX decide optimal thread count
-        },
-      });
+      this.logger.log('Loading PaddleOCR local engine...');
+      try {
+        const { PaddleOcrService } = await import('ppu-paddle-ocr');
+        this.paddleOcr = new (PaddleOcrService as any)({
+          session: {
+            executionProviders: ['cpu'],
+            // Use CPU-only for consistent performance
+            graphOptimizationLevel: 'all', // Enable all optimizations
+            enableCpuMemArena: true, // Better memory management
+            enableMemPattern: true, // Memory pattern optimization
+            executionMode: 'sequential', // Better for single-threaded performance
+            interOpNumThreads: 0, // Let ONNX decide optimal thread count
+            intraOpNumThreads: 0, // Let ONNX decide optimal thread count
+          },
+        });
+      } catch (err: Error) {
+        this.logger.error('Could not load ppu-paddle-ocr. Is it installed?');
+        throw new Error(
+          'Local PaddleOCR library is missing. Please install it with "npm install ppu-paddle-ocr onnxruntime-node" inside the container.',
+        );
+      }
     }
 
-    if (!this.paddleOcr.isInitialized()) {
+    if (!this.paddleOcr!.isInitialized()) {
       let isAlreadyInitializing = true;
 
       if (!this.initializationPromise) {
@@ -61,7 +87,7 @@ export class PaddleOcrLocalProcessor implements OnModuleInit, OnModuleDestroy {
           this.logger.log(`Initializing PaddleOCR for execution #${executionId}...`);
         }
 
-        this.initializationPromise = this.paddleOcr.initialize().catch((err) => {
+        this.initializationPromise = this.paddleOcr!.initialize().catch((err) => {
           this.logger.error('Failed to initialize PaddleOCR', err);
           this.initializationPromise = null;
         });
@@ -73,7 +99,7 @@ export class PaddleOcrLocalProcessor implements OnModuleInit, OnModuleDestroy {
         }
         await this.initializationPromise;
 
-        if (!this.paddleOcr.isInitialized()) {
+        if (!this.paddleOcr!.isInitialized()) {
           throw new Error('PaddleOCR failed to initialize properly.');
         }
       }
@@ -109,7 +135,7 @@ export class PaddleOcrLocalProcessor implements OnModuleInit, OnModuleDestroy {
   }
 
   private formatPaddleOcrResults(results: PaddleOcrResult): object {
-    const textBlocks: { text: string; confidence: number; bbox: unknown }[] = [];
+    const textBlocks: { text: string; confidence: number; bbox: number[][] }[] = [];
 
     if (Array.isArray(results.lines)) {
       for (const line of results.lines) {

@@ -52,10 +52,13 @@ COPY --from=builder /app/client/dist/client/browser ./public
 # Create persistent storage directories
 RUN mkdir -p data/uploads data/db && chmod 777 data/uploads data/db
 
+# Copy entrypoint script
+COPY docker-entrypoint.sh ./
+RUN chmod +x docker-entrypoint.sh
+
 # Final environment
 ENV NODE_ENV=production
 
 EXPOSE 9999
 
-# Start script
-CMD ["sh", "-c", "node server/dist/main.js & node server/dist/worker.js"]
+ENTRYPOINT ["/app/docker-entrypoint.sh"]
