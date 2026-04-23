@@ -1,4 +1,4 @@
-import { Component, effect, inject, OnDestroy, OnInit } from '@angular/core';
+import { Component, effect, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { OcrJobService, OCR_PROVIDER_ICONS, LOCAL_PROVIDERS } from '@services/ocr-job.service';
 import { OcrOutputParserService } from '@app/pipes/parsers/ocr-output-parser.service';
@@ -88,7 +88,12 @@ export class OcrJobsPageComponent implements OnInit, OnDestroy {
   }
   set showDetail(value: boolean) {
     this._showDetail = value;
-    if (!value) this.stopDetailPolling();
+    if (!value) {
+      this.stopDetailPolling();
+      this.selectedJob = null;
+      this.selectedFile = null;
+      this.safeUrl = null;
+    }
   }
   selectedJob: OcrJob | null = null;
   private _selectedFile: OcrFile | null = null;
@@ -147,6 +152,9 @@ export class OcrJobsPageComponent implements OnInit, OnDestroy {
     return OCR_PROVIDER_ICONS[provider] || 'pi pi-sparkles';
   }
 
+  imageLoading = signal(false);
+  selectedExecution: OcrExecution | null = null;
+
   get selectedFile() {
     return this._selectedFile;
   }
@@ -154,8 +162,12 @@ export class OcrJobsPageComponent implements OnInit, OnDestroy {
     this._selectedFile = file;
     this.selectedExecution = this.getLatestExecution(file) || null;
     this.safeUrl = file ? this.getSafeUrl(file.filename) : null;
+    this.imageLoading.set(!!file && this.isFileImage(file.originalName));
   }
-  selectedExecution: OcrExecution | null = null;
+
+  onImageLoad() {
+    this.imageLoading.set(false);
+  }
 
   ngOnInit() {
     setTimeout(() => {

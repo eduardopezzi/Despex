@@ -415,8 +415,14 @@
                 <div
                   class="flex-grow max-h-[65vh] bg-white dark:bg-surface-900 rounded-[2rem] overflow-hidden border border-surface-200 dark:border-surface-800 shadow-sm flex items-center justify-center p-4 relative"
                 >
+                  @if (imageLoading()) {
+                    <div class="absolute inset-0 flex items-center justify-center bg-white/80 dark:bg-surface-900/80 z-10 transition-opacity">
+                      <p-progressSpinner styleClass="w-12 h-12" strokeWidth="4" />
+                    </div>
+                  }
+
                   @if (isFileImage(selectedFile.originalName)) {
-                    <img [src]="getSafeUrl(selectedFile.filename)" class="max-w-full max-h-full object-contain rounded-xl" alt="Preview" />
+                    <img [src]="safeUrl" (load)="onImageLoad()" class="max-w-full max-h-full object-contain rounded-xl" alt="Preview" />
                   } @else if (isFilePdf(selectedFile.originalName)) {
                     <iframe [src]="safeUrl" class="w-full h-full border-none rounded-xl"></iframe>
                   } @else {
