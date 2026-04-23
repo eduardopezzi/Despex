@@ -151,6 +151,10 @@
     "themes": {
       "light": "Light",
       "dark": "Dark"
+    },
+    "languages": {
+      "en": "English",
+      "pt": "Portuguese"
     }
   },
   "ocr": {

@@ -146,6 +146,10 @@
     "themes": {
       "light": "Claro",
       "dark": "Escuro"
+    },
+    "languages": {
+      "en": "Inglês",
+      "pt": "Português"
     }
   },
   "ocr": {
