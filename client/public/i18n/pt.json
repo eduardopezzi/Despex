@@ -33,7 +33,6 @@
     "uploadSuccess": "Trabalho criado! As execuções OCR estão a iniciar.",
     "uploadFailed": "Falha no carregamento. Tente novamente.",
     "processing": "A carregar e a criar trabalho...",
-    "singleSelection": "Seleção Única",
     "crop": "Recortar imagem",
     "cropApply": "Aplicar recorte"
   },
@@ -114,8 +113,6 @@
     "title": "Definições Padrão de OCR e Saída",
     "ocrProvider": "Fornecedor OCR",
     "outputTargets": "Destinos de Saída",
-    "singleSelection": "Seleção Única",
-    "multiSelection": "Seleção Múltipla",
     "input": "Entrada",
     "savePreferences": "Guardar Preferências",
     "groups": {
@@ -136,11 +133,7 @@
       "none": "Nenhum (Seleção Manual)"
     },
     "outputs": {
-      "db": "Guardado na BD",
-      "markdown": "Descarregar Markdown",
-      "clipboard": "Copiar para Área de Transferência",
-      "n8n": "Enviar para n8n",
-      "api": "REST API"
+      "db": "Guardado na BD"
     },
     "defaultLanguage": "Idioma Padrão",
     "defaultTheme": "Modo de Aparência",

@@ -132,20 +132,6 @@ export class ConfigDialogComponent implements OnChanges {
     setTimeout(() => this.updateArrows(), 60);
   }
 
-  toggleOutput(value: string) {
-    const current = this.configService.defaultOutputs() as string[];
-    if (current.includes(value)) {
-      this.configService.defaultOutputs.set(current.filter((v) => v !== value));
-    } else {
-      this.configService.defaultOutputs.set([...current, value]);
-    }
-    setTimeout(() => this.updateArrows(), 60);
-  }
-
-  isOutputSelected(value: string): boolean {
-    return (this.configService.defaultOutputs() as string[]).includes(value);
-  }
-
   close() {
     this.visibleChange.emit(false);
   }

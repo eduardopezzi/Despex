@@ -33,7 +33,6 @@
     "uploadSuccess": "Job created! OCR executions are starting.",
     "uploadFailed": "Upload failed. Please try again.",
     "processing": "Uploading and creating job...",
-    "singleSelection": "Single Selection",
     "crop": "Crop image",
     "cropApply": "Apply crop",
     "cropRotateLeft": "Rotate Left",
@@ -119,8 +118,6 @@
     "title": "Default OCR and Output Settings",
     "ocrProvider": "OCR Provider",
     "outputTargets": "Output Targets",
-    "singleSelection": "Single Selection",
-    "multiSelection": "Multi Selection",
     "input": "Input",
     "savePreferences": "Save Preferences",
     "groups": {
@@ -141,11 +138,7 @@
       "none": "None (Manual Selection)"
     },
     "outputs": {
-      "db": "Stored in DB",
-      "markdown": "Download Markdown",
-      "clipboard": "Copy to Clipboard",
-      "n8n": "Send to n8n",
-      "api": "REST API"
+      "db": "Stored in DB"
     },
     "defaultLanguage": "Default Language",
     "defaultTheme": "Appearance Mode",
