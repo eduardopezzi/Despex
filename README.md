@@ -61,6 +61,57 @@ You can choose how the application retrieves secrets (like API keys):
 
 ---
 
+## 🔌 API Usage (Headless)
+
+You can use the platform without the UI by interacting directly with the REST API.
+
+### 1. Upload a File for OCR
+Send a `multipart/form-data` request to the `/ocr-jobs/upload` endpoint. For every file uploaded, you must provide a corresponding `ocrProvider_<index>` field.
+
+**Example using `curl`:**
+```bash
+curl -X POST http://localhost:9999/ocr-jobs/upload \
+  -F "file=@receipt.jpg" \
+  -F "ocrProvider_0=mistral" \
+  -F "jobName=Weekly Groceries"
+```
+*Note: The index `0` corresponds to the first file in the multipart request.*
+
+**Response:**
+```json
+{ "id": 123 }
+```
+
+### 2. Check Job Status & Results
+Polling the job by ID will return the status and the transcribed OCR data once finished.
+
+**Example using `curl`:**
+```bash
+curl http://localhost:9999/ocr-jobs/123
+```
+
+**Response Snippet:**
+```json
+{
+  "id": 123,
+  "status": "completed",
+  "files": [
+    {
+      "originalName": "receipt.jpg",
+      "executions": [
+        {
+          "status": "completed",
+          "ocrProvider": "mistral",
+          "ocrData": "{\"markdown\": \"# Receipt ...\"}"
+        }
+      ]
+    }
+  ]
+}
+```
+
+---
+
 ## 🛠️ Adding a New OCR Provider
 
 To add a new OCR provider (e.g., "AI-OCR-2000"), follow these steps:
