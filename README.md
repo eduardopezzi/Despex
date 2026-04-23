@@ -157,6 +157,30 @@ To ensure the OCR output is correctly rendered in the UI:
 
 ---
 
+## 📦 Adding a New Storage Provider
+
+To add a new storage backend (e.g., "S3"):
+
+### 1. Define the Provider Type
+Add `s3` to the `StorageProviderType` enum in `server/src/core/storage/storage-provider-type.enum.ts`.
+
+### 2. Implement the Provider
+Create `server/src/core/storage/s3-storage.provider.ts` extending the `StorageProvider` abstract class:
+```typescript
+@Injectable()
+export class S3StorageProvider extends StorageProvider {
+  readonly name = StorageProviderType.S3;
+  // Implement uploadStream, getStream, exists, and delete
+}
+```
+
+### 3. Register and Configure
+- Add your provider to the `providers` and `exports` in `server/src/core/storage/storage.module.ts`.
+- Update the factory in `server/src/core/storage/storage.provider.ts` to include your new provider in the `switch` statement.
+- Add any new environment variables to `AppSecret` (server) and `.env.example`.
+
+---
+
 ## 🎨 Technology Stack
 - **Frontend:** Angular, PrimeNG
 - **Backend:** NestJS, BullMQ (for background job processing)
