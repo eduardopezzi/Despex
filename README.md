@@ -208,6 +208,55 @@ export class VaultSecretProvider extends SecretProvider {
 
 ---
 
+## 🌍 Adding a New Language
+
+To add a new language (e.g., German - `de`):
+
+### 1. Create the Translation File
+Create `client/public/i18n/de.json` by copying `client/public/i18n/en.json` and translating all the values.
+
+### 2. Register the Language
+In `client/src/app/app.config.ts`, add the new language code to the `availableLangs` array:
+```typescript
+provideTransloco({
+  config: {
+    availableLangs: ['en', 'pt', 'fr', 'de'], // Add 'de' here
+    // ...
+  },
+  loader: TranslocoHttpLoader,
+}),
+```
+
+### 3. Update Language Labels
+To ensure the new language appears correctly in the settings dropdown across all versions:
+- Add `"de": "Deutsch"` to the `languages` section in your new `de.json`.
+- Add `"de": "German"` to `en.json`.
+- Add `"de": "Alemão"` to `pt.json`.
+
+### 4. Update the Settings UI
+In `client/src/app/components/config-dialog/config-dialog.component.ts`, add the new language to the `languageOptions` getter:
+```typescript
+get languageOptions() {
+  return [
+    { label: this.translocoService.translate('config.languages.en'), value: 'en' },
+    { label: this.translocoService.translate('config.languages.pt'), value: 'pt' },
+    { label: this.translocoService.translate('config.languages.fr'), value: 'fr' },
+    { label: this.translocoService.translate('config.languages.de'), value: 'de' }, // Add this
+  ];
+}
+```
+
+### 5. Update the Quick Switcher
+In `client/src/app/layouts/shell/shell.layout.ts`, update the `toggleLang()` method to include the new language in the rotation list:
+```typescript
+toggleLang() {
+  const langs = ['en', 'pt', 'fr', 'de']; // Include 'de' here
+  // ... (rotation logic remains same)
+}
+```
+
+---
+
 ## 🎨 Technology Stack
 - **Frontend:** Angular, PrimeNG
 - **Backend:** NestJS, BullMQ (for background job processing)
