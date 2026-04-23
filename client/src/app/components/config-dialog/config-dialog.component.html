@@ -178,6 +178,32 @@
         </ng-template>
       </p-select>
     </div>
+    <!-- Sidebar -->
+    <div class="flex-1 flex flex-col gap-1.5">
+      <label class="text-[10px] font-extrabold text-surface-500 uppercase tracking-wider">{{ t('config.defaultSidebar') }}</label>
+      <p-select
+        [options]="sidebarOptions"
+        [ngModel]="configService.sidebarCollapsed()"
+        (ngModelChange)="configService.sidebarCollapsed.set($event)"
+        optionLabel="label"
+        optionValue="value"
+        class="w-full"
+        appendTo="body"
+      >
+        <ng-template pTemplate="selectedItem" let-opt>
+          <div class="flex items-center gap-2 py-0.5">
+            <i [class]="opt.icon" class="text-xs text-primary-500"></i>
+            <span class="text-sm font-medium">{{ opt.label }}</span>
+          </div>
+        </ng-template>
+        <ng-template pTemplate="item" let-opt>
+          <div class="flex items-center gap-2 text-sm px-1">
+            <i [class]="opt.icon" class="text-[11px] text-surface-500"></i>
+            <span>{{ opt.label }}</span>
+          </div>
+        </ng-template>
+      </p-select>
+    </div>
   </div>
 
   <ng-template pTemplate="footer">

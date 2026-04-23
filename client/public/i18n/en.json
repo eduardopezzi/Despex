@@ -149,6 +149,11 @@
     },
     "defaultLanguage": "Default Language",
     "defaultTheme": "Appearance Mode",
+    "defaultSidebar": "Sidebar Default",
+    "sidebar": {
+      "expanded": "Expanded",
+      "collapsed": "Collapsed"
+    },
     "themes": {
       "light": "Light",
       "dark": "Dark"

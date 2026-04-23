@@ -65,6 +65,13 @@ export class ConfigDialogComponent implements OnChanges {
     ];
   }
 
+  get sidebarOptions() {
+    return [
+      { label: this.translocoService.translate('config.sidebar.expanded'), value: false, icon: 'pi pi-window-maximize' },
+      { label: this.translocoService.translate('config.sidebar.collapsed'), value: true, icon: 'pi pi-window-minimize' },
+    ];
+  }
+
   updateArrows() {
     if (!this.visible) {
       this.arrows.set([]);
@@ -147,6 +154,7 @@ export class ConfigDialogComponent implements OnChanges {
     this.configService.defaultOcrProvider.set(OcrProvider.Mistral);
     this.configService.language.set('en');
     this.configService.theme.set('light');
+    this.configService.sidebarCollapsed.set(false);
     setTimeout(() => this.updateArrows(), 60);
   }
 

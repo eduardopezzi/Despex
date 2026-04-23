@@ -144,6 +144,11 @@
     },
     "defaultLanguage": "Idioma Padrão",
     "defaultTheme": "Modo de Aparência",
+    "defaultSidebar": "Barra Lateral Padrão",
+    "sidebar": {
+      "expanded": "Expandida",
+      "collapsed": "Recolhida"
+    },
     "themes": {
       "light": "Claro",
       "dark": "Escuro"

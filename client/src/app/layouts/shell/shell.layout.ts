@@ -15,11 +15,11 @@ export class ShellLayoutComponent {
   private translocoService = inject(TranslocoService);
   private configService = inject(ConfigService);
 
-  collapsed = signal(false);
   showConfig = signal(false);
 
   isDark = computed(() => this.configService.theme() === 'dark');
   currentLang = computed(() => this.configService.language());
+  collapsed = computed(() => this.configService.sidebarCollapsed());
 
   constructor() {
     effect(() => {
@@ -47,6 +47,11 @@ export class ShellLayoutComponent {
   toggleLang() {
     const current = this.configService.language();
     this.configService.language.set(current === 'en' ? 'pt' : 'en');
+    this.configService.saveConfig();
+  }
+
+  setCollapsed(val: boolean) {
+    this.configService.sidebarCollapsed.set(val);
     this.configService.saveConfig();
   }
 }
