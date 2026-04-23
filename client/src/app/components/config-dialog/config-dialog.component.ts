@@ -46,11 +46,20 @@ export class ConfigDialogComponent implements OnChanges {
   }
 
   get outputOptions() {
+    return [{ label: this.translocoService.translate('config.outputs.db'), value: 'db', icon: 'pi pi-database' }];
+  }
+
+  get languageOptions() {
     return [
-      { label: this.translocoService.translate('config.outputs.markdown'), value: 'markdown', icon: 'pi pi-download' },
-      { label: this.translocoService.translate('config.outputs.clipboard'), value: 'clipboard', icon: 'pi pi-copy' },
-      { label: this.translocoService.translate('config.outputs.n8n'), value: 'n8n', icon: 'pi pi-send' },
-      { label: this.translocoService.translate('config.outputs.api'), value: 'api', icon: 'pi pi-code', disabled: true },
+      { label: 'English', value: 'en' },
+      { label: 'Português', value: 'pt' },
+    ];
+  }
+
+  get themeOptions() {
+    return [
+      { label: this.translocoService.translate('config.themes.light'), value: 'light', icon: 'pi pi-sun' },
+      { label: this.translocoService.translate('config.themes.dark'), value: 'dark', icon: 'pi pi-moon' },
     ];
   }
 

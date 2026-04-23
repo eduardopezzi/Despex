@@ -135,10 +135,17 @@
       "llamaCpp": "llama.cpp"
     },
     "outputs": {
+      "db": "Guardado na BD",
       "markdown": "Descarregar Markdown",
       "clipboard": "Copiar para Área de Transferência",
       "n8n": "Enviar para n8n",
       "api": "REST API"
+    },
+    "defaultLanguage": "Idioma Padrão",
+    "defaultTheme": "Modo de Aparência",
+    "themes": {
+      "light": "Claro",
+      "dark": "Escuro"
     }
   },
   "ocr": {

@@ -1,8 +1,9 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, effect, computed } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { ConfigDialogComponent } from '@components/config-dialog/config-dialog.component';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
+import { ConfigService } from '@services/config.service';
 
 @Component({
   selector: 'app-shell-layout',
@@ -12,21 +13,40 @@ import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 })
 export class ShellLayoutComponent {
   private translocoService = inject(TranslocoService);
+  private configService = inject(ConfigService);
 
   collapsed = signal(false);
-  isDark = signal(false);
   showConfig = signal(false);
-  currentLang = signal(this.translocoService.getActiveLang());
+
+  isDark = computed(() => this.configService.theme() === 'dark');
+  currentLang = computed(() => this.configService.language());
+
+  constructor() {
+    effect(() => {
+      const lang = this.configService.language();
+      this.translocoService.setActiveLang(lang);
+    });
+
+    effect(() => {
+      const theme = this.configService.theme();
+      const el = document.documentElement;
+      if (theme === 'dark') {
+        el.classList.add('app-dark');
+      } else {
+        el.classList.remove('app-dark');
+      }
+    });
+  }
 
   toggleDark() {
-    const el = document.documentElement;
-    el.classList.toggle('app-dark');
-    this.isDark.set(el.classList.contains('app-dark'));
+    const current = this.configService.theme();
+    this.configService.theme.set(current === 'light' ? 'dark' : 'light');
+    this.configService.saveConfig();
   }
 
   toggleLang() {
-    const next = this.currentLang() === 'en' ? 'pt' : 'en';
-    this.translocoService.setActiveLang(next);
-    this.currentLang.set(next);
+    const current = this.configService.language();
+    this.configService.language.set(current === 'en' ? 'pt' : 'en');
+    this.configService.saveConfig();
   }
 }

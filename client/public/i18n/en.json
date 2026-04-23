@@ -140,10 +140,17 @@
       "llamaCpp": "llama.cpp"
     },
     "outputs": {
+      "db": "Stored in DB",
       "markdown": "Download Markdown",
       "clipboard": "Copy to Clipboard",
       "n8n": "Send to n8n",
       "api": "REST API"
+    },
+    "defaultLanguage": "Default Language",
+    "defaultTheme": "Appearance Mode",
+    "themes": {
+      "light": "Light",
+      "dark": "Dark"
     }
   },
   "ocr": {

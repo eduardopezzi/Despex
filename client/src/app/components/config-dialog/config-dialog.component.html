@@ -86,63 +86,23 @@
         <span class="text-[10px] font-extrabold text-surface-500 uppercase tracking-wider">
           {{ t('config.outputTargets') }}
         </span>
-        <span class="text-[9px] text-surface-400 italic">{{ t('config.multiSelection') }}</span>
       </div>
 
-      @for (opt of outputOptions; track opt.value) {
-        <div
-          [attr.data-sel-output]="isOutputSelected(opt.value) ? '' : null"
-          [attr.data-output-val]="opt.value"
-          (click)="!opt.disabled && toggleOutput(opt.value)"
-          (keydown.enter)="!opt.disabled && toggleOutput(opt.value)"
-          tabindex="0"
-          [class.border-primary-500]="isOutputSelected(opt.value)"
-          [class.bg-primary-50]="isOutputSelected(opt.value)"
-          [class.dark:bg-primary-900\/30]="isOutputSelected(opt.value)"
-          [class.opacity-40]="opt.disabled"
-          [class.cursor-not-allowed]="opt.disabled"
-          [class.cursor-pointer]="!opt.disabled"
-          class="flex items-center justify-between px-3 py-2.5 rounded-xl border border-surface-200 dark:border-surface-800 hover:border-primary-400 transition-all duration-200 select-none"
-        >
-          <div class="flex items-center gap-2 min-w-0">
-            <div
-              class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-colors"
-              [class.bg-primary-100]="isOutputSelected(opt.value)"
-              [class.dark:bg-primary-900\/40]="isOutputSelected(opt.value)"
-              [class.bg-surface-100]="!isOutputSelected(opt.value)"
-              [class.dark:bg-surface-800]="!isOutputSelected(opt.value)"
-            >
-              <i [class]="opt.icon" [class.text-primary-500]="isOutputSelected(opt.value)" class="text-[11px]"></i>
-            </div>
-            <div class="flex flex-col min-w-0">
-              <span
-                class="text-xs font-semibold truncate transition-colors"
-                [class.text-primary-900]="isOutputSelected(opt.value)"
-                [class.dark:text-primary-200]="isOutputSelected(opt.value)"
-                [class.text-surface-800]="!isOutputSelected(opt.value)"
-                [class.dark:text-surface-100]="!isOutputSelected(opt.value)"
-              >
-                {{ opt.label }}
-              </span>
-              @if (opt.disabled) {
-                <span class="text-[9px] text-surface-400">{{ t('common.comingSoon') }}</span>
-              }
-            </div>
+      <div
+        data-sel-output
+        data-output-val="db"
+        class="flex items-center justify-between px-3 py-2.5 rounded-xl border border-primary-500 bg-primary-50 dark:bg-primary-900/30 transition-all duration-200 select-none"
+      >
+        <div class="flex items-center gap-2 min-w-0">
+          <div class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 bg-primary-100 dark:bg-primary-900/40">
+            <i class="pi pi-database text-primary-500 text-[11px]"></i>
           </div>
-          <!-- Checkbox -->
-          <div
-            class="w-4 h-4 rounded border flex items-center justify-center shrink-0 transition-all ml-1"
-            [class.bg-primary-500]="isOutputSelected(opt.value)"
-            [class.border-primary-500]="isOutputSelected(opt.value)"
-            [class.border-surface-300]="!isOutputSelected(opt.value)"
-            [class.dark:border-surface-600]="!isOutputSelected(opt.value)"
-          >
-            @if (isOutputSelected(opt.value)) {
-              <i class="pi pi-check text-[8px] text-white"></i>
-            }
+          <div class="flex flex-col min-w-0">
+            <span class="text-xs font-semibold truncate text-primary-900 dark:text-primary-200"> {{ t('config.outputs.db') }} </span>
           </div>
         </div>
-      }
+        <i class="pi pi-check-circle text-primary-500 text-xs shrink-0 ml-1"></i>
+      </div>
     </div>
 
     <!-- ── SVG overlay – pulse flow ──────────────────────────── -->
@@ -165,6 +125,60 @@
     </svg>
   </div>
   <!-- /pipeline -->
+
+  <!-- ── Extra Settings ────────────────────────────────────────── -->
+  <div class="px-8 pb-8 flex flex-col md:flex-row gap-6 bg-surface-0 dark:bg-surface-900 border-t border-surface-100 dark:border-surface-800 pt-6">
+    <!-- Language -->
+    <div class="flex-1 flex flex-col gap-1.5">
+      <label class="text-[10px] font-extrabold text-surface-500 uppercase tracking-wider">{{ t('config.defaultLanguage') }}</label>
+      <p-select
+        [options]="languageOptions"
+        [ngModel]="configService.language()"
+        (ngModelChange)="configService.language.set($event)"
+        optionLabel="label"
+        optionValue="value"
+        class="w-full"
+        appendTo="body"
+      >
+        <ng-template pTemplate="selectedItem" let-opt>
+          <div class="flex items-center gap-2 py-0.5">
+            <span class="text-sm font-medium">{{ opt.label }}</span>
+          </div>
+        </ng-template>
+        <ng-template pTemplate="item" let-opt>
+          <div class="flex items-center gap-2 text-sm px-1">
+            <span>{{ opt.label }}</span>
+          </div>
+        </ng-template>
+      </p-select>
+    </div>
+    <!-- Theme -->
+    <div class="flex-1 flex flex-col gap-1.5">
+      <label class="text-[10px] font-extrabold text-surface-500 uppercase tracking-wider">{{ t('config.defaultTheme') }}</label>
+      <p-select
+        [options]="themeOptions"
+        [ngModel]="configService.theme()"
+        (ngModelChange)="configService.theme.set($event)"
+        optionLabel="label"
+        optionValue="value"
+        class="w-full"
+        appendTo="body"
+      >
+        <ng-template pTemplate="selectedItem" let-opt>
+          <div class="flex items-center gap-2 py-0.5">
+            <i [class]="opt.icon" class="text-xs text-primary-500"></i>
+            <span class="text-sm font-medium">{{ opt.label }}</span>
+          </div>
+        </ng-template>
+        <ng-template pTemplate="item" let-opt>
+          <div class="flex items-center gap-2 text-sm px-1">
+            <i [class]="opt.icon" class="text-[11px] text-surface-500"></i>
+            <span>{{ opt.label }}</span>
+          </div>
+        </ng-template>
+      </p-select>
+    </div>
+  </div>
 
   <ng-template pTemplate="footer">
     <p-button [label]="t('common.cancel')" severity="secondary" [text]="true" (onClick)="close()" />
