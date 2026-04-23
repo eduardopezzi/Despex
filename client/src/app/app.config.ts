@@ -20,7 +20,7 @@ export const appConfig: ApplicationConfig = {
     ConfirmationService,
     provideTransloco({
       config: {
-        availableLangs: ['en', 'pt', 'fr'],
+        availableLangs: ['en', 'pt', 'fr', 'de'],
         defaultLang: 'en',
         reRenderOnLangChange: true,
         prodMode: !isDevMode(),

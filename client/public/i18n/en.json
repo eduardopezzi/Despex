@@ -157,7 +157,8 @@
     "languages": {
       "en": "English",
       "pt": "Portuguese",
-      "fr": "French"
+      "fr": "French",
+      "de": "German"
     }
   },
   "ocr": {
