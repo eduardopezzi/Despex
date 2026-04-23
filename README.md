@@ -61,6 +61,51 @@ You can choose how the application retrieves secrets (like API keys):
 
 ---
 
+## 🛠️ Adding a New OCR Provider
+
+To add a new OCR provider (e.g., "AI-OCR-2000"), follow these steps:
+
+### 1. Update Shared Types
+Add the new provider to the `OcrProvider` enum in `packages/types/src/ocr-provider.enum.ts`.
+
+### 2. Configure Secrets
+- Add any required API keys or settings to `AppSecret` enum in `server/src/core/types/app-secret.enum.ts`.
+- Document these variables in `server/.env.example`.
+
+### 3. Create the Processor
+Create `server/src/worker/ocr/ai-ocr-2000.processor.ts`. It should follow this structure:
+```typescript
+@Injectable()
+export class AiOcr2000Processor {
+  constructor(
+    @Inject(SecretProvider) private readonly secretProvider: SecretProvider,
+    private readonly storage: StorageProvider
+  ) {}
+
+  async process(file: OcrFileEntity, executionId: number): Promise<string> {
+    // 1. Get API key from secretProvider
+    // 2. Get file stream from storage
+    // 3. Call your OCR API
+    // 4. Return result as a string (JSON or Markdown)
+  }
+}
+```
+
+### 4. Register the Processor
+- Add your new processor to the `providers` array in `server/src/worker/worker.module.ts`.
+
+### 5. Hook it Up
+In `server/src/worker/ocr/ocr.processor.ts`:
+- Inject your new processor in the `constructor`.
+- Add a new `case` to the `switch` statement in the `process()` method to call your implementation.
+
+### 6. Client-Side Rendering (Optional but Recommended)
+To ensure the OCR output is correctly rendered in the UI:
+- Create a new parser in `client/src/app/pipes/parsers/ai-ocr-2000.parser.ts`. It should implement the `OcrOutputParser` interface.
+- Register your parser in `client/src/app/pipes/parsers/ocr-output-parser.service.ts` by adding it to the `parsers` record.
+
+---
+
 ## 🎨 Technology Stack
 - **Frontend:** Angular, PrimeNG
 - **Backend:** NestJS, BullMQ (for background job processing)
