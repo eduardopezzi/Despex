@@ -9,7 +9,7 @@ services:
     depends_on:
       - redis
     ports:
-      - "9999:9999"
+      - "9191:9999"
     environment:
       # --- Overrides to Sane Defaults ---
       - NODE_ENV=production
@@ -18,15 +18,15 @@ services:
       # --- OCR Provider API Keys ---
       # Populate these in a .env file or directly here
       - MISTRAL_API_KEY=${MISTRAL_API_KEY}
-      - TAB_SCANNER_API_KEY=${TAB_SCANNER_API_KEY}
-      - GEMINI_API_KEY=${GEMINI_API_KEY}
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
-      - XAI_API_KEY=${XAI_API_KEY}
+#      - TAB_SCANNER_API_KEY=${TAB_SCANNER_API_KEY}
+#      - GEMINI_API_KEY=${GEMINI_API_KEY}
+#      - OPENAI_API_KEY=${OPENAI_API_KEY}
+#      - XAI_API_KEY=${XAI_API_KEY}
       
       # AWS Textract (Optional)
-      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
-      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
-      - AWS_REGION=${AWS_REGION:-us-east-1}
+#      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+#      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+#      - AWS_REGION=${AWS_REGION:-us-east-1}
 
     volumes:
       - ./data/uploads:/app/data/uploads

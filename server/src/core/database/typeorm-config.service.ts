@@ -18,7 +18,7 @@ export class TypeOrmConfigService implements TypeOrmOptionsFactory {
       type: 'sqlite',
       database: databasePath,
       entities: [OcrExecutionEntity, OcrFileEntity, OcrJobEntity],
-      synchronize: nodeEnv !== 'production',
+      synchronize: true, // Auto-create tables (using synchronize for simplicity in v0.x)
       autoLoadEntities: true,
     };
   }
