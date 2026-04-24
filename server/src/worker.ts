@@ -1,3 +1,4 @@
+import 'reflect-metadata';
 import { NestFactory } from '@nestjs/core';
 import { WorkerModule } from '@worker/worker.module';
 import { Logger } from '@nestjs/common';

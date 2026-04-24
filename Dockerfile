@@ -4,57 +4,44 @@ FROM node:24-bookworm AS builder
 WORKDIR /app
 COPY . .
 RUN npm install
-# Build all projects (Server, Client, Shared Types)
+# Server now bundles almost all dependencies (except native ones)
 RUN npm run build
 
-# --- Stage 2: Isolate Production Dependencies ---
-# We use turbo prune to extract only the server's dependency graph
-FROM node:24-bookworm AS pruner
-WORKDIR /app
-RUN npm install -g turbo
-COPY . .
-RUN turbo prune @open-receipt-ocr/server --docker
-
-# --- Stage 3: Install Production Dependencies ---
-FROM node:24-bookworm AS runner
-WORKDIR /app
-
-# Copy pruned manifests
-COPY --from=pruner /app/out/json/ .
-COPY --from=pruner /app/out/package-lock.json ./package-lock.json
-
-# Install ONLY production dependencies for the server
-# This excludes all client dependencies and devDependencies
-RUN npm install --omit=dev
-
-# --- Stage 4: Runtime ---
+# --- Stage 2: Runtime ---
 FROM node:24-bookworm-slim
 
-# Install system dependencies for native modules
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
     ca-certificates \
+    python3 \
+    make \
+    g++ \
+    libc6-dev \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
-# Copy production node_modules (this should be significantly smaller)
-COPY --from=runner /app/node_modules ./node_modules
+# Install native dependencies FIRST in a clean directory.
+# We build from source to ensure compatibility with the local GLIBC version.
+RUN npm install sqlite3 --omit=dev --build-from-source && npm cache clean --force
 
-# Copy built server assets
-COPY --from=builder /app/package.json ./package.json
-COPY --from=builder /app/server/package.json ./server/package.json
-COPY --from=builder /app/server/dist ./server/dist
-COPY --from=builder /app/packages/types/package.json ./packages/types/package.json
-
-# Copy built frontend to the server's public directory
+# Now copy the bundled server binaries and frontend assets
+COPY --from=builder /app/server/dist/main.js ./main.js
+COPY --from=builder /app/server/dist/worker.js ./worker.js
 COPY --from=builder /app/client/dist/client/browser ./public
+
+# Optional: Copy package.json for metadata purposes, but AFTER install
+COPY --from=builder /app/server/package.json ./package.json
+
+# Remove build tools to keep image slim
+RUN apt-get purge -y python3 make g++ && apt-get autoremove -y
+
+# Copy dynamic dependency installer script
+COPY docker-entrypoint.sh ./
+RUN chmod +x docker-entrypoint.sh
 
 # Create persistent storage directories
 RUN mkdir -p data/uploads data/db && chmod 777 data/uploads data/db
-
-# Copy entrypoint script
-COPY docker-entrypoint.sh ./
-RUN chmod +x docker-entrypoint.sh
 
 # Final environment
 ENV NODE_ENV=production
