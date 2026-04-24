@@ -517,7 +517,7 @@
                   </div>
                   <div class="flex-grow p-6 overflow-y-auto">
                     @if (selectedExecution; as current) {
-                      @if (current.status === OcrExecutionStatus.Running) {
+                      @if (current.status === OcrExecutionStatus.Running || current.status === OcrExecutionStatus.Pending) {
                         <div class="flex flex-col items-center justify-center py-20 gap-4">
                           <p-progressSpinner styleClass="w-12 h-12" strokeWidth="4" />
                           <p class="text-surface-400 font-bold">{{ t('ocrJobs.detail.ocrInProgress') }}</p>
