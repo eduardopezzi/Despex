@@ -1,49 +1,40 @@
-# --- Stage 1: Build everything ---
-FROM node:24-bookworm AS builder
-
+# --- Stage 1: Bundler (JS Build) ---
+FROM node:24-bookworm AS js-builder
 WORKDIR /app
 COPY . .
-RUN npm install
-# Server now bundles almost all dependencies (except native ones)
-RUN npm run build
+# We only need devDependencies to build the bundles
+RUN npm install && npm run build
 
-# --- Stage 2: Runtime ---
+# --- Stage 2: Native Driver Builder ---
+FROM node:24-bookworm AS native-builder
+WORKDIR /app
+# Install ONLY sqlite3. Building from source ensures it works with our slim runtime.
+RUN npm install sqlite3 --omit=dev --build-from-source
+
+# --- Stage 3: Final Lightweight Runtime ---
 FROM node:24-bookworm-slim
-
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
+# Install only essential runtime system libs
+RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
-    python3 \
-    make \
-    g++ \
-    libc6-dev \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
-# Install native dependencies FIRST in a clean directory.
-# We build from source to ensure compatibility with the local GLIBC version.
-RUN npm install sqlite3 --omit=dev --build-from-source && npm cache clean --force
+# 1. Copy the bundled application code (few megabytes each)
+COPY --from=js-builder /app/server/dist/main.js ./main.js
+COPY --from=js-builder /app/server/dist/worker.js ./worker.js
 
-# Now copy the bundled server binaries and frontend assets
-COPY --from=builder /app/server/dist/main.js ./main.js
-COPY --from=builder /app/server/dist/worker.js ./worker.js
-COPY --from=builder /app/client/dist/client/browser ./public
+# 2. Copy the built frontend (few megabytes)
+COPY --from=js-builder /app/client/dist/client/browser ./public
 
-# Optional: Copy package.json for metadata purposes, but AFTER install
-COPY --from=builder /app/server/package.json ./package.json
+# 3. Copy the native node_modules (contains sqlite3 and its binaries)
+COPY --from=native-builder /app/node_modules ./node_modules
 
-# Remove build tools to keep image slim
-RUN apt-get purge -y python3 make g++ && apt-get autoremove -y
-
-# Copy dynamic dependency installer script
+# 4. Copy essentials
 COPY docker-entrypoint.sh ./
 RUN chmod +x docker-entrypoint.sh
-
-# Create persistent storage directories
 RUN mkdir -p data/uploads data/db && chmod 777 data/uploads data/db
 
-# Final environment
 ENV NODE_ENV=production
 
 EXPOSE 9999
