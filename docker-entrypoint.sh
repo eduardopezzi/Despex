@@ -17,4 +17,11 @@ fi
 
 echo "🚀 Starting Open Receipt OCR..."
 # Start the API server and the Background Worker concurrently.
-node main.js & node worker.js
+node main.js &
+MAIN_PID=$!
+
+node worker.js &
+WORKER_PID=$!
+
+# Wait for background processes to finish
+wait $MAIN_PID $WORKER_PID
