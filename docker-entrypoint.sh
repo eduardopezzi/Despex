@@ -23,5 +23,12 @@ MAIN_PID=$!
 node worker.js &
 WORKER_PID=$!
 
-# Wait for background processes to finish
-wait $MAIN_PID $WORKER_PID
+# Wait for ANY process to exit, then kill the other and exit
+# This ensures that if the worker crashes, the container stops (and restarts if configured)
+while kill -0 $MAIN_PID 2>/dev/null && kill -0 $WORKER_PID 2>/dev/null; do
+  sleep 1
+done
+
+echo "⚠️ A background process has exited. Shutting down..."
+kill $MAIN_PID $WORKER_PID 2>/dev/null
+exit 1

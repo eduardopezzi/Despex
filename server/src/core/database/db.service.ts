@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, OnModuleInit, Logger } from '@nestjs/common';
 import { DataSource, EntityManager } from 'typeorm';
 
 /**
@@ -12,8 +12,17 @@ import { DataSource, EntityManager } from 'typeorm';
  *   });
  */
 @Injectable()
-export class DbService {
+export class DbService implements OnModuleInit {
+  private readonly logger = new Logger(DbService.name);
+
   constructor(private readonly dataSource: DataSource) {}
+
+  async onModuleInit() {
+    // Enable WAL mode for better concurrency with multiple processes
+    await this.dataSource.query('PRAGMA journal_mode = WAL;');
+    await this.dataSource.query('PRAGMA synchronous = NORMAL;');
+    this.logger.log('Database initialized with WAL mode enabled.');
+  }
 
   transaction<T>(work: (em: EntityManager) => Promise<T>): Promise<T> {
     return this.dataSource.transaction(work);

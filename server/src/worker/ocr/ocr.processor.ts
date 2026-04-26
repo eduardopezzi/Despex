@@ -1,5 +1,5 @@
 import { OnModuleInit, Logger } from '@nestjs/common';
-import { Processor, WorkerHost } from '@nestjs/bullmq';
+import { Processor, WorkerHost, OnWorkerEvent } from '@nestjs/bullmq';
 import { Job } from 'bullmq';
 import { StorageProvider } from '@core/storage/storage-provider.interface';
 import { QueueName } from '@core/types/queue-name.enum';
@@ -48,6 +48,21 @@ export class OcrProcessor extends WorkerHost implements OnModuleInit {
 
   onModuleInit() {
     this.logger.log(`👷 OCR Processor initialized and listening on queue: ${QueueName.Ocr}`);
+  }
+
+  @OnWorkerEvent('active')
+  onWorkerActive(job: Job) {
+    this.logger.debug(`🏃 Job ${job.id} started processing...`);
+  }
+
+  @OnWorkerEvent('completed')
+  onWorkerCompleted(job: Job) {
+    this.logger.debug(`✅ Job ${job.id} completed successfully.`);
+  }
+
+  @OnWorkerEvent('failed')
+  onWorkerFailed(job: Job, error: Error) {
+    this.logger.error(`❌ Job ${job.id} failed with error: ${error.message}`);
   }
 
   async process(job: Job<{ executionId: number }>): Promise<void> {

@@ -21,6 +21,9 @@ export class TypeOrmConfigService implements TypeOrmOptionsFactory {
       entities: [OcrExecutionEntity, OcrFileEntity, OcrJobEntity],
       synchronize: true, // Auto-create tables (using synchronize for simplicity in v0.x)
       autoLoadEntities: true,
+      extra: {
+        busy_timeout: 30000,
+      },
     };
   }
 }
