@@ -1,6 +1,6 @@
 export enum AppSecret {
   // ─── App ────────────────────────────────────────────────────────────────────
-  ApiPort = 'API_PORT',
+  Port = 'PORT',
   NodeEnv = 'NODE_ENV',
 
   // ─── Secret provider ────────────────────────────────────────────────────────
@@ -55,7 +55,7 @@ export enum AppSecret {
   StorageProvider = 'STORAGE_PROVIDER',
   MaxFileSizeBytes = 'MAX_FILE_SIZE_BYTES',
   // ─── Storage - Local ────────────────────────────────────────────────────────
-  UploadsDir = 'UPLOADS_DIR',
+  StorageLocalPath = 'STORAGE_LOCAL_PATH',
   // ─── Storage - OneDrive ─────────────────────────────────────────────────────
   OneDriveClientId = 'ONEDRIVE_CLIENT_ID',
   OneDriveClientSecret = 'ONEDRIVE_CLIENT_SECRET',
@@ -71,3 +71,16 @@ export enum AppSecret {
   InfisicalEnvironment = 'INFISICAL_ENVIRONMENT',
   InfisicalSiteUrl = 'INFISICAL_SITE_URL',
 }
+
+/**
+ * Sane defaults for core application secrets.
+ * These are used by SecretProvider if no value is found in the background store.
+ */
+export const DefaultAppSecret: Partial<Record<AppSecret, string | number>> = {
+  [AppSecret.Port]: 9999,
+  [AppSecret.DatabasePath]: 'data/db/ocr.sqlite',
+  [AppSecret.StorageProvider]: 'local',
+  [AppSecret.StorageLocalPath]: 'data/uploads',
+  [AppSecret.RedisHost]: 'localhost',
+  [AppSecret.RedisPort]: 6379,
+};

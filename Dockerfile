@@ -1,46 +1,42 @@
-# ── Stage 1: Build Shared Types ──────────────────────────────────────────────
-FROM node:24-alpine AS types-builder
+# --- Stage 1: Bundler (JS Build) ---
+FROM node:24-bookworm AS js-builder
 WORKDIR /app
-COPY package*.json ./
-COPY packages/types/package*.json ./packages/types/
-RUN npm install
-COPY packages/types/ ./packages/types/
-RUN npm run build --workspace=@open-receipt-ocr/types
+COPY . .
+# We only need devDependencies to build the bundles
+RUN npm install && npm run build
 
-# ── Stage 2: Build frontend ──────────────────────────────────────────────────
-FROM node:24-alpine AS client-builder
+# --- Stage 2: Native Driver Builder ---
+FROM node:24-bookworm AS native-builder
 WORKDIR /app
-COPY package*.json ./
-COPY packages/types/package*.json ./packages/types/
-COPY client/package*.json ./client/
-RUN npm install
-COPY packages/types/ ./packages/types/
-COPY client/ ./client/
-COPY --from=types-builder /app/packages/types/dist ./packages/types/dist
-RUN npm run build --workspace=@open-receipt-ocr/client
+# Install ONLY sqlite3. Building from source ensures it works with our slim runtime.
+RUN npm install sqlite3 --omit=dev --build-from-source
 
-# ── Stage 4: Build backend ────────────────────────────────────────────────────
-FROM node:24-alpine AS server-builder
-WORKDIR /app
-COPY package*.json ./
-COPY packages/types/package*.json ./packages/types/
-COPY server/package*.json ./server/
-RUN npm install
-COPY packages/types/ ./packages/types/
-COPY server/ ./server/
-COPY --from=types-builder /app/packages/types/dist ./packages/types/dist
-RUN npm run build --workspace=@open-receipt-ocr/server
+# --- Stage 3: Final Lightweight Runtime ---
+FROM node:24-bookworm-slim
+# Install only essential runtime system libs
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
 
-# ── Stage 5: Production image ─────────────────────────────────────────────────
-FROM node:24-alpine
 WORKDIR /app
-COPY package*.json ./
-COPY packages/types/package*.json ./packages/types/
-COPY server/package*.json ./server/
-RUN npm install --omit=dev --workspace=@open-receipt-ocr/server
-COPY --from=types-builder /app/packages/types/dist ./packages/types/dist
-COPY --from=server-builder /app/server/dist ./server/dist
-COPY --from=client-builder /app/client/dist/client/browser ./public
-RUN mkdir -p /app/data /app/uploads
-EXPOSE 3000
-CMD ["node", "server/dist/main"]
+
+# 1. Copy the bundled application code (few megabytes each)
+COPY --from=js-builder /app/server/dist/main.js ./main.js
+COPY --from=js-builder /app/server/dist/worker.js ./worker.js
+
+# 2. Copy the built frontend (few megabytes)
+COPY --from=js-builder /app/client/dist/client/browser ./public
+
+# 3. Copy the native node_modules (contains sqlite3 and its binaries)
+COPY --from=native-builder /app/node_modules ./node_modules
+
+# 4. Copy essentials
+COPY docker-entrypoint.sh ./
+RUN chmod +x docker-entrypoint.sh
+RUN mkdir -p data/uploads data/db && chmod 777 data/uploads data/db
+
+ENV NODE_ENV=production
+
+EXPOSE 9999
+
+ENTRYPOINT ["/app/docker-entrypoint.sh"]

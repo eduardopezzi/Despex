@@ -1,15 +1,31 @@
 import { Inject, Injectable, Logger, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
-import { PaddleOcrResult, PaddleOcrService } from 'ppu-paddle-ocr';
 import { AppSecret } from '@core/types/app-secret.enum';
 import { SecretProvider } from '@core/secrets/secret-provider.interface';
 import { StorageProvider } from '@core/storage/storage-provider.interface';
 import { OcrFileEntity } from '@core/database/entities/ocr-file.entity';
 
+/** Native PaddleOCR result structure (isolated from library types) */
+interface PaddleOcrResult {
+  lines: {
+    text: string;
+    confidence: number;
+    box: number[][];
+  }[][];
+}
+
+/** Local interface for the PaddleOCR service to avoid static imports and maintain strict typing */
+interface PaddleOcrServiceType {
+  initialize(): Promise<void>;
+  isInitialized(): boolean;
+  recognize(image: ArrayBuffer, options?: Record<string, unknown>): Promise<PaddleOcrResult>;
+  destroy(): Promise<void>;
+}
+
 @Injectable()
 export class PaddleOcrLocalProcessor implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(PaddleOcrLocalProcessor.name);
 
-  private paddleOcr: PaddleOcrService | null = null;
+  private paddleOcr: PaddleOcrServiceType | null = null;
   private initializationPromise: Promise<void> | null = null;
 
   constructor(
@@ -36,17 +52,29 @@ export class PaddleOcrLocalProcessor implements OnModuleInit, OnModuleDestroy {
     }
 
     if (!this.paddleOcr) {
-      this.paddleOcr = new PaddleOcrService({
-        session: {
-          executionProviders: ['cpu'], // Use CPU-only for consistent performance
-          graphOptimizationLevel: 'all', // Enable all optimizations
-          enableCpuMemArena: true, // Better memory management
-          enableMemPattern: true, // Memory pattern optimization
-          executionMode: 'sequential', // Better for single-threaded performance
-          interOpNumThreads: 0, // Let ONNX decide optimal thread count
-          intraOpNumThreads: 0, // Let ONNX decide optimal thread count
-        },
-      });
+      this.logger.log('Loading PaddleOCR local engine...');
+      try {
+        const { PaddleOcrService } = await import('ppu-paddle-ocr');
+        // Use a single cast to our local strictly-typed interface to satisfy the compiler
+        // while maintaining internal type safety without 'any'.
+        this.paddleOcr = new (PaddleOcrService as unknown as { new (options: unknown): PaddleOcrServiceType })({
+          session: {
+            executionProviders: ['cpu'],
+            // Use CPU-only for consistent performance
+            graphOptimizationLevel: 'all', // Enable all optimizations
+            enableCpuMemArena: true, // Better memory management
+            enableMemPattern: true, // Memory pattern optimization
+            executionMode: 'sequential', // Better for single-threaded performance
+            interOpNumThreads: 0, // Let ONNX decide optimal thread count
+            intraOpNumThreads: 0, // Let ONNX decide optimal thread count
+          },
+        });
+      } catch {
+        this.logger.error('Could not load ppu-paddle-ocr. Is it installed?');
+        throw new Error(
+          'Local PaddleOCR library is missing. Please install it with "npm install ppu-paddle-ocr onnxruntime-node" inside the container.',
+        );
+      }
     }
 
     if (!this.paddleOcr.isInitialized()) {
@@ -61,7 +89,7 @@ export class PaddleOcrLocalProcessor implements OnModuleInit, OnModuleDestroy {
           this.logger.log(`Initializing PaddleOCR for execution #${executionId}...`);
         }
 
-        this.initializationPromise = this.paddleOcr.initialize().catch((err) => {
+        this.initializationPromise = this.paddleOcr.initialize().catch((err: unknown) => {
           this.logger.error('Failed to initialize PaddleOCR', err);
           this.initializationPromise = null;
         });
@@ -94,7 +122,7 @@ export class PaddleOcrLocalProcessor implements OnModuleInit, OnModuleDestroy {
       const results = await this.paddleOcr!.recognize(arrayBuffer);
       const formattedResults = this.formatPaddleOcrResults(results);
       return JSON.stringify(formattedResults);
-    } catch (error) {
+    } catch (error: unknown) {
       const message = error instanceof Error ? error.message : String(error);
       throw new Error(`PaddleOCR local processing failed: ${message}`);
     }
@@ -103,13 +131,13 @@ export class PaddleOcrLocalProcessor implements OnModuleInit, OnModuleDestroy {
   private async streamToBuffer(stream: NodeJS.ReadableStream): Promise<Buffer> {
     const chunks: Buffer[] = [];
     for await (const chunk of stream) {
-      chunks.push(Buffer.from(chunk));
+      chunks.push(Buffer.from(chunk)); // NodeJS.ReadableStream chunks can be strings or Buffers
     }
     return Buffer.concat(chunks);
   }
 
   private formatPaddleOcrResults(results: PaddleOcrResult): object {
-    const textBlocks: { text: string; confidence: number; bbox: unknown }[] = [];
+    const textBlocks: { text: string; confidence: number; bbox: number[][] }[] = [];
 
     if (Array.isArray(results.lines)) {
       for (const line of results.lines) {

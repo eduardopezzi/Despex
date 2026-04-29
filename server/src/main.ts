@@ -1,3 +1,4 @@
+import 'reflect-metadata';
 import { Logger, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
@@ -28,7 +29,7 @@ async function bootstrap() {
   SwaggerModule.setup('api/docs', app, document);
 
   const secretProvider = app.get(SecretProvider);
-  const port = await secretProvider.getSecretAsIntOrThrow(AppSecret.ApiPort);
+  const port = await secretProvider.getSecretAsIntOrThrow(AppSecret.Port);
   await app.listen(port);
 
   // Global error handlers to prevent the process from exiting on unhandled asynchronous errors (like ECONNRESET)

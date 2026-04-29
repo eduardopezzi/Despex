@@ -20,7 +20,7 @@ export class LocalStorageProvider extends StorageProvider implements OnModuleIni
   }
 
   async onModuleInit(): Promise<void> {
-    this.uploadDir = await this.secretProvider.getSecretOrThrow(AppSecret.UploadsDir);
+    this.uploadDir = await this.secretProvider.getSecretOrThrow(AppSecret.StorageLocalPath);
     if (!existsSync(this.uploadDir)) {
       mkdirSync(this.uploadDir, { recursive: true });
     }

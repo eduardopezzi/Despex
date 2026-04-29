@@ -1,0 +1,40 @@
+
+services:
+  app:
+    build: .
+    image: open-receipt-ocr:latest
+    container_name: ocr-app
+    restart: unless-stopped
+    depends_on:
+      - redis
+    ports:
+      - "9191:9999"
+    environment:
+      - NODE_ENV=production
+      - REDIS_HOST=redis
+    env_file:
+      - .env
+
+    volumes:
+      - ./data/uploads:/app/data/uploads
+      - ./data/db:/app/data/db
+    networks:
+      - ocr-network
+
+  redis:
+    image: redis:alpine
+    container_name: ocr-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - ocr-network
+
+volumes:
+  redis_data:
+
+networks:
+  ocr-network:
+    driver: bridge

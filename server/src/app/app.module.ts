@@ -34,7 +34,7 @@ if (process.env[AppSecret.NodeEnv] === 'production') {
   moduleImports.push(
     ServeStaticModule.forRoot({
       rootPath: join(process.cwd(), 'public'),
-      exclude: ['/api/(.*)'],
+      exclude: ['/api', '/api/:a', '/api/:a/:b', '/api/:a/:b/:c', '/api/:a/:b/:c/:d'],
     }),
   );
 }

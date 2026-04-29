@@ -1,5 +1,5 @@
-import { Processor, WorkerHost } from '@nestjs/bullmq';
-import { Logger } from '@nestjs/common';
+import { OnModuleInit, Logger } from '@nestjs/common';
+import { Processor, WorkerHost, OnWorkerEvent } from '@nestjs/bullmq';
 import { Job } from 'bullmq';
 import { StorageProvider } from '@core/storage/storage-provider.interface';
 import { QueueName } from '@core/types/queue-name.enum';
@@ -23,7 +23,7 @@ import { OpenAiProcessor } from '@worker/ocr/openai.processor';
 import { LlamaCppProcessor } from '@worker/ocr/llama-cpp.processor';
 
 @Processor(QueueName.Ocr)
-export class OcrProcessor extends WorkerHost {
+export class OcrProcessor extends WorkerHost implements OnModuleInit {
   private readonly logger = new Logger(OcrProcessor.name);
 
   constructor(
@@ -44,6 +44,25 @@ export class OcrProcessor extends WorkerHost {
     private readonly llamaCppProcessor: LlamaCppProcessor,
   ) {
     super();
+  }
+
+  onModuleInit() {
+    this.logger.log(`👷 OCR Processor initialized and listening on queue: ${QueueName.Ocr}`);
+  }
+
+  @OnWorkerEvent('active')
+  onWorkerActive(job: Job) {
+    this.logger.debug(`🏃 Job ${job.id} started processing...`);
+  }
+
+  @OnWorkerEvent('completed')
+  onWorkerCompleted(job: Job) {
+    this.logger.debug(`✅ Job ${job.id} completed successfully.`);
+  }
+
+  @OnWorkerEvent('failed')
+  onWorkerFailed(job: Job, error: Error) {
+    this.logger.error(`❌ Job ${job.id} failed with error: ${error.message}`);
   }
 
   async process(job: Job<{ executionId: number }>): Promise<void> {

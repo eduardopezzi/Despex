@@ -46,6 +46,33 @@ This platform supports multiple OCR engines. You can configure which ones are av
 4. **Using the UI:**
    - When uploading a receipt, you will see a dropdown to select your preferred OCR provider among those you have configured.
 
+## 🐳 Docker Deployment
+
+You can run the entire stack (Client, Server, Worker, and Redis) using Docker Compose.
+
+1. **Prepare Environment Variables:**
+   Create a `.env` file in the root directory with your API keys:
+   ```bash
+   MISTRAL_API_KEY=your_key
+   TAB_SCANNER_API_KEY=your_key
+   # Add others as needed...
+   ```
+
+2. **Build and Start:**
+   ```bash
+   docker-compose up -d --build
+   ```
+
+3. **Access the App:**
+   The application will be available at `http://localhost:9999`. The client is automatically served by the backend.
+
+4. **Persistence:**
+   - Database: `./data/db/ocr.sqlite`
+   - Uploaded Files: `./data/uploads/`
+   - Redis Data: Docker volume `redis_data`
+
+---
+
 ## 📦 Storage Providers
 
 By default, files are stored locally in the `server/uploads` directory. However, you can also use cloud storage:
