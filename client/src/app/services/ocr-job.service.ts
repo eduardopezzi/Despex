@@ -4,6 +4,21 @@ import { OcrProvider, OcrJob, OcrExecution, PaginatedResponse, OcrJobStatus, Sor
 import { Observable, tap } from 'rxjs';
 import { environment } from '@environments/environment';
 
+export const LOCAL_PROVIDERS = new Set<OcrProvider>([OcrProvider.LlamaCpp, OcrProvider.Tesseract, OcrProvider.PaddleOcrLocal]);
+
+export const OCR_PROVIDER_ICONS: Record<OcrProvider, string> = {
+  [OcrProvider.Mistral]: 'pi pi-sparkles',
+  [OcrProvider.TabScanner]: 'pi pi-bolt',
+  [OcrProvider.PaddleOcrLocal]: 'pi pi-desktop',
+  [OcrProvider.PaddleOcrApi]: 'pi pi-cloud',
+  [OcrProvider.Gemini]: 'pi pi-google',
+  [OcrProvider.AwsTextract]: 'pi pi-amazon',
+  [OcrProvider.Grok]: 'pi pi-twitter',
+  [OcrProvider.Tesseract]: 'pi pi-eye',
+  [OcrProvider.OpenAi]: 'pi pi-openai',
+  [OcrProvider.LlamaCpp]: 'pi pi-microchip-ai',
+};
+
 @Injectable({
   providedIn: 'root',
 })

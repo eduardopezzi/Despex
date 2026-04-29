@@ -1,7 +1,6 @@
 import { Processor, WorkerHost } from '@nestjs/bullmq';
-import { Inject, Logger } from '@nestjs/common';
+import { Logger } from '@nestjs/common';
 import { Job } from 'bullmq';
-import { SecretProvider } from '@core/secrets/secret-provider.interface';
 import { StorageProvider } from '@core/storage/storage-provider.interface';
 import { QueueName } from '@core/types/queue-name.enum';
 import { OcrProvider } from '@core/types/ocr-provider.enum';
@@ -14,6 +13,14 @@ import { NoTxn, WithTxn } from '@core/database/txn-def.interface';
 import { DbService } from '@core/database/db.service';
 import { MistralProcessor } from '@worker/ocr/mistral.processor';
 import { TabScannerProcessor } from '@worker/ocr/tabscanner.processor';
+import { PaddleOcrApiProcessor } from '@worker/ocr/paddle-ocr-api.processor';
+import { PaddleOcrLocalProcessor } from '@worker/ocr/paddle-ocr-local.processor';
+import { GeminiProcessor } from '@worker/ocr/gemini.processor';
+import { TextractProcessor } from '@worker/ocr/textract.processor';
+import { GrokProcessor } from '@worker/ocr/grok.processor';
+import { TesseractProcessor } from '@worker/ocr/tesseract.processor';
+import { OpenAiProcessor } from '@worker/ocr/openai.processor';
+import { LlamaCppProcessor } from '@worker/ocr/llama-cpp.processor';
 
 @Processor(QueueName.Ocr)
 export class OcrProcessor extends WorkerHost {
@@ -23,11 +30,18 @@ export class OcrProcessor extends WorkerHost {
     private readonly ocrExecutionsDao: OcrExecutionsDao,
     private readonly ocrFilesDao: OcrFilesDao,
     private readonly ocrJobsDao: OcrJobsDao,
-    @Inject(SecretProvider) private readonly secretProvider: SecretProvider,
     private readonly storage: StorageProvider,
     private readonly db: DbService,
     private readonly mistralProcessor: MistralProcessor,
     private readonly tabScannerProcessor: TabScannerProcessor,
+    private readonly paddleOcrApiProcessor: PaddleOcrApiProcessor,
+    private readonly paddleOcrLocalProcessor: PaddleOcrLocalProcessor,
+    private readonly geminiProcessor: GeminiProcessor,
+    private readonly textractProcessor: TextractProcessor,
+    private readonly grokProcessor: GrokProcessor,
+    private readonly tesseractProcessor: TesseractProcessor,
+    private readonly openAiProcessor: OpenAiProcessor,
+    private readonly llamaCppProcessor: LlamaCppProcessor,
   ) {
     super();
   }
@@ -70,8 +84,32 @@ export class OcrProcessor extends WorkerHost {
         case OcrProvider.TabScanner:
           ocrData = await this.tabScannerProcessor.process(file, executionId);
           break;
+        case OcrProvider.PaddleOcrApi:
+          ocrData = await this.paddleOcrApiProcessor.process(file, executionId);
+          break;
+        case OcrProvider.PaddleOcrLocal:
+          ocrData = await this.paddleOcrLocalProcessor.process(file, executionId);
+          break;
+        case OcrProvider.Gemini:
+          ocrData = await this.geminiProcessor.process(file, executionId);
+          break;
+        case OcrProvider.AwsTextract:
+          ocrData = await this.textractProcessor.process(file, executionId);
+          break;
+        case OcrProvider.Grok:
+          ocrData = await this.grokProcessor.process(file, executionId);
+          break;
+        case OcrProvider.Tesseract:
+          ocrData = await this.tesseractProcessor.process(file, executionId);
+          break;
+        case OcrProvider.OpenAi:
+          ocrData = await this.openAiProcessor.process(file, executionId);
+          break;
+        case OcrProvider.LlamaCpp:
+          ocrData = await this.llamaCppProcessor.process(file, executionId);
+          break;
         default:
-          throw new Error(`OCR Provider "${execution.ocrProvider}" is not yet implemented.`);
+          throw new Error(`OCR Provider "${execution.ocrProvider as string}" is not yet implemented.`);
       }
 
       await this.db.transaction(async (em) => {

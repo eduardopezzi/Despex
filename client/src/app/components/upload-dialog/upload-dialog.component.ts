@@ -1,6 +1,6 @@
-import { Component, EventEmitter, inject, Input, Output, signal } from '@angular/core';
+import { Component, EventEmitter, inject, Input, Output, signal, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { OcrJobService } from '@services/ocr-job.service';
+import { OcrJobService, OCR_PROVIDER_ICONS, LOCAL_PROVIDERS } from '@services/ocr-job.service';
 
 import { DialogModule } from 'primeng/dialog';
 import { ButtonModule } from 'primeng/button';
@@ -10,18 +10,25 @@ import { ProgressBarModule } from 'primeng/progressbar';
 import { OcrProvider } from '@open-receipt-ocr/types';
 import { SelectModule } from 'primeng/select';
 import { FormsModule } from '@angular/forms';
-import { FileUploadModule } from 'primeng/fileupload';
+import { FileUpload, FileUploadModule, FileSelectEvent } from 'primeng/fileupload';
 import { InputTextModule } from 'primeng/inputtext';
+import { TooltipModule } from 'primeng/tooltip';
 
 import { ConfigService } from '@services/config.service';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
 import { MimeType } from '@open-receipt-ocr/types';
+import { ImageCropDialogComponent } from '@components/image-crop-dialog/image-crop-dialog.component';
+
+import { ImageTransform, CropperPosition } from 'ngx-image-cropper';
 
 interface FileWithProvider {
   file: File;
-  ocrProvider: OcrProvider;
+  ocrProvider?: OcrProvider;
+  croppedFile?: File;
+  transform?: ImageTransform;
+  cropper?: CropperPosition;
 }
 
 @Component({
@@ -39,10 +46,14 @@ interface FileWithProvider {
     FileUploadModule,
     ToastModule,
     InputTextModule,
+    TooltipModule,
+    ImageCropDialogComponent,
   ],
   templateUrl: './upload-dialog.component.html',
 })
 export class UploadDialogComponent {
+  @ViewChild('fileUpload') fileUpload!: FileUpload;
+
   private ocrJobService = inject(OcrJobService);
   private configService = inject(ConfigService);
   private translocoService = inject(TranslocoService);
@@ -67,11 +78,43 @@ export class UploadDialogComponent {
   uploading = signal(false);
   message = signal<string | null>(null);
   isError = signal(false);
+  cropTarget = signal<FileWithProvider | null>(null);
 
-  get ocrOptions() {
+  isImage(file: File): boolean {
+    return file.type.startsWith('image/');
+  }
+
+  openCrop(item: FileWithProvider) {
+    this.cropTarget.set(item);
+  }
+
+  closeCrop() {
+    this.cropTarget.set(null);
+  }
+
+  applyCrop(event: { file: File; transform: ImageTransform; cropper: CropperPosition }) {
+    const target = this.cropTarget();
+    if (!target) return;
+    this.filesWithProviders.update((items) =>
+      items.map((i) => (i === target ? { ...i, croppedFile: event.file, transform: event.transform, cropper: event.cropper } : i)),
+    );
+    this.cropTarget.set(null);
+  }
+
+  resetCrop(item: FileWithProvider) {
+    this.filesWithProviders.update((items) => items.map((i) => (i === item ? { ...i, croppedFile: undefined, transform: undefined, cropper: undefined } : i)));
+  }
+
+  get ocrOptionGroups() {
+    const local: { label: string; value: OcrProvider; icon: string }[] = [];
+    const online: { label: string; value: OcrProvider; icon: string }[] = [];
+    for (const p of Object.values(OcrProvider)) {
+      const opt = { label: this.translocoService.translate(`config.providers.${p}`), value: p, icon: OCR_PROVIDER_ICONS[p] };
+      (LOCAL_PROVIDERS.has(p) ? local : online).push(opt);
+    }
     return [
-      { label: this.translocoService.translate('config.providers.mistral'), value: OcrProvider.Mistral },
-      { label: this.translocoService.translate('config.providers.tabscanner'), value: OcrProvider.TabScanner },
+      { label: this.translocoService.translate('config.groups.local'), items: local },
+      { label: this.translocoService.translate('config.groups.online'), items: online },
     ];
   }
 
@@ -81,16 +124,17 @@ export class UploadDialogComponent {
     this.message.set(null);
     this.isError.set(false);
     this.uploading.set(false);
+    this.fileUpload?.clear();
   }
 
-  readonly ALLOWED_TYPES = [MimeType.Pdf, MimeType.Jpeg, MimeType.Png];
+  readonly ALLOWED_TYPES = [MimeType.Pdf, MimeType.Jpeg, MimeType.Png, MimeType.Webp];
 
   get acceptTypes() {
     return this.ALLOWED_TYPES.join(',');
   }
 
-  onSelect(event: { currentFiles: File[] }) {
-    const newFiles: File[] = event.currentFiles;
+  onSelect(event: { currentFiles?: File[]; files?: File[] }) {
+    const newFiles: File[] = event.currentFiles || event.files || [];
     const defaultProvider = this.configService.defaultOcrProvider();
 
     const current = this.filesWithProviders();
@@ -106,7 +150,7 @@ export class UploadDialogComponent {
       if (!updated.some((item) => item.file.name === f.name && item.file.size === f.size)) {
         updated.push({
           file: f,
-          ocrProvider: (defaultProvider as string) === 'ask' ? OcrProvider.Mistral : (defaultProvider as OcrProvider),
+          ocrProvider: defaultProvider ?? undefined,
         });
       }
     });
@@ -120,21 +164,42 @@ export class UploadDialogComponent {
     }
 
     this.filesWithProviders.set(updated);
+
+    // Auto-open crop dialog if only one image was selected (e.g. from camera)
+    if (newFiles.length === 1 && this.isImage(newFiles[0])) {
+      const addedItem = updated.find((i) => i.file === newFiles[0]);
+      if (addedItem) {
+        this.openCrop(addedItem);
+      }
+    }
+
+    // Clear the PrimeNG internal file list because we manage our own in filesWithProviders
+    this.fileUpload.clear();
+  }
+
+  setProvider(item: FileWithProvider, provider: OcrProvider) {
+    this.filesWithProviders.update((items) => items.map((i) => (i === item ? { ...i, ocrProvider: provider } : i)));
   }
 
   removeFile(item: FileWithProvider) {
     this.filesWithProviders.set(this.filesWithProviders().filter((f) => f !== item));
+    this.fileUpload.files = this.fileUpload.files.filter((f) => f !== item.file);
+  }
+
+  allProvidersSelected(): boolean {
+    const items = this.filesWithProviders();
+    return items.length > 0 && items.every((i) => !!i.ocrProvider);
   }
 
   doUpload() {
     const items = this.filesWithProviders();
-    if (items.length === 0) return;
+    if (items.length === 0 || items.some((i) => !i.ocrProvider)) return;
 
     this.uploading.set(true);
     this.message.set(null);
 
-    const files = items.map((i) => i.file);
-    const providers = items.map((i) => i.ocrProvider);
+    const files = items.map((i) => i.croppedFile || i.file);
+    const providers = items.map((i) => i.ocrProvider as OcrProvider);
 
     this.ocrJobService.uploadJob(files, providers, this.jobName()).subscribe({
       next: () => {

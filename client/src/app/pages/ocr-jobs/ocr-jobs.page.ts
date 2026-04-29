@@ -1,13 +1,12 @@
-import { Component, effect, inject, OnDestroy, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { OcrJobService } from '@services/ocr-job.service';
-import { OcrOutputParserService } from '@services/ocr-output-parser.service';
+import { Component, effect, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import { CommonModule, DatePipe } from '@angular/common';
+import { OcrJobService, OCR_PROVIDER_ICONS, LOCAL_PROVIDERS } from '@services/ocr-job.service';
+import { OcrOutputParserService } from '@app/pipes/parsers/ocr-output-parser.service';
 import {
   OcrJob,
   OcrFile,
   OcrExecution,
   OcrJobStatus,
-  OcrFileStatus,
   OcrExecutionStatus,
   OcrProvider,
   FileExtension,
@@ -22,19 +21,18 @@ import { ButtonModule } from 'primeng/button';
 import { TagModule } from 'primeng/tag';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { DialogModule } from 'primeng/dialog';
-import { MenuModule } from 'primeng/menu';
 import { ToastModule } from 'primeng/toast';
-import { MenuItem, MessageService, ConfirmationService } from 'primeng/api';
+import { MessageService, ConfirmationService } from 'primeng/api';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { TooltipModule } from 'primeng/tooltip';
 import { PopoverModule } from 'primeng/popover';
 import { PaginatorModule } from 'primeng/paginator';
 import { TableModule } from 'primeng/table';
-import { SelectButtonModule } from 'primeng/selectbutton';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { OcrOutputPipe } from '@app/pipes/ocr-output.pipe';
 import { FormsModule } from '@angular/forms';
+import { marked } from 'marked';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { InputTextModule } from 'primeng/inputtext';
@@ -45,13 +43,13 @@ import { SelectModule } from 'primeng/select';
   standalone: true,
   imports: [
     CommonModule,
+    DatePipe,
     CardModule,
     ButtonModule,
     TagModule,
     ProgressSpinnerModule,
     DialogModule,
     UploadDialogComponent,
-    MenuModule,
     ToastModule,
     TranslocoModule,
     ConfirmDialogModule,
@@ -65,7 +63,6 @@ import { SelectModule } from 'primeng/select';
     InputTextModule,
     SelectModule,
     TableModule,
-    SelectButtonModule,
   ],
   templateUrl: './ocr-jobs.page.html',
 })
@@ -78,14 +75,26 @@ export class OcrJobsPageComponent implements OnInit, OnDestroy {
   private ocrOutputParser = inject(OcrOutputParserService);
 
   private pollingSubscription?: Subscription;
+  private detailPollingSubscription?: Subscription;
 
   OcrJobStatus = OcrJobStatus;
-  OcrFileStatus = OcrFileStatus;
   OcrExecutionStatus = OcrExecutionStatus;
   OcrProvider = OcrProvider;
 
   showUploadDialog = false;
-  showDetail = false;
+  private _showDetail = false;
+  get showDetail() {
+    return this._showDetail;
+  }
+  set showDetail(value: boolean) {
+    this._showDetail = value;
+    if (!value) {
+      this.stopDetailPolling();
+      this.selectedJob = null;
+      this.selectedFile = null;
+      this.safeUrl = null;
+    }
+  }
   selectedJob: OcrJob | null = null;
   private _selectedFile: OcrFile | null = null;
   safeUrl: SafeResourceUrl | null = null;
@@ -99,23 +108,9 @@ export class OcrJobsPageComponent implements OnInit, OnDestroy {
   sortOrderDir: SortOrder = SortOrder.DESC;
   viewMode: 'grid' | 'list' = (localStorage.getItem('ocr-jobs-view-mode') as 'grid' | 'list') || 'grid';
 
-  // For the dropdown shortcut
-  get sortOrder() {
-    if (this.sortField === 'createdAt') {
-      return this.sortOrderDir === SortOrder.DESC ? 'latest' : 'oldest';
-    }
-    return null;
-  }
-
-  set sortOrder(value: string | null) {
-    if (value === 'latest') {
-      this.sortField = 'createdAt';
-      this.sortOrderDir = SortOrder.DESC;
-    } else if (value === 'oldest') {
-      this.sortField = 'createdAt';
-      this.sortOrderDir = SortOrder.ASC;
-    }
-  }
+  // Dropdown shortcut — plain field (two-way bound). Kept in sync with
+  // sortField/sortOrderDir via onSortChange() and onTableSort().
+  sortOrder: 'latest' | 'oldest' | null = 'latest';
   get viewOptions() {
     return [
       { label: this.translocoService.translate('ocrJobs.view.cards'), value: 'grid', icon: 'pi pi-th-large' },
@@ -145,46 +140,45 @@ export class OcrJobsPageComponent implements OnInit, OnDestroy {
     ];
   }
 
+  get providerGroups() {
+    const all = Object.values(OcrProvider);
+    return [
+      { label: 'Local', providers: all.filter((p) => LOCAL_PROVIDERS.has(p)) },
+      { label: 'Online', providers: all.filter((p) => !LOCAL_PROVIDERS.has(p)) },
+    ];
+  }
+
+  getProviderIcon(provider: OcrProvider): string {
+    return OCR_PROVIDER_ICONS[provider] || 'pi pi-sparkles';
+  }
+
+  imageLoading = signal(false);
+  selectedExecution: OcrExecution | null = null;
+
   get selectedFile() {
     return this._selectedFile;
   }
   set selectedFile(file: OcrFile | null) {
-    const hasFilenameChanged = this._selectedFile?.filename !== file?.filename;
     this._selectedFile = file;
     this.selectedExecution = this.getLatestExecution(file) || null;
-    if (hasFilenameChanged || (file && !this.safeUrl)) {
-      this.safeUrl = file ? this.getSafeUrl(file.filename) : null;
-    }
+    this.safeUrl = file ? this.getSafeUrl(file.filename) : null;
+    this.imageLoading.set(!!file && this.isFileImage(file.originalName));
   }
-  selectedExecution: OcrExecution | null = null;
 
-  get exportItems(): MenuItem[] {
-    return [
-      {
-        label: this.translocoService.translate('ocrJobs.detail.exportTitleNative'),
-        items: [
-          {
-            label: this.translocoService.translate('ocrJobs.detail.copyToClipboard'),
-            icon: 'pi pi-copy',
-            command: () => this.copyToClipboard(),
-          },
-          {
-            label: this.translocoService.translate('ocrJobs.detail.downloadMarkdown'),
-            icon: 'pi pi-file-export',
-            command: () => this.downloadMarkdown(),
-          },
-        ],
-      },
-    ];
+  onImageLoad() {
+    this.imageLoading.set(false);
   }
 
   ngOnInit() {
-    this.fetchJobsWithPagination();
+    setTimeout(() => {
+      this.fetchJobsWithPagination();
+    });
     this.startPolling();
   }
 
   ngOnDestroy() {
     this.stopPolling();
+    this.stopDetailPolling();
   }
 
   fetchJobsWithPagination(showLoading = true) {
@@ -206,17 +200,27 @@ export class OcrJobsPageComponent implements OnInit, OnDestroy {
     this.fetchJobsWithPagination();
   }
 
-  onFilterChange() {
+  onSortOrderChange(value: 'latest' | 'oldest' | null) {
+    this.sortOrder = value;
+    if (value === 'latest') {
+      this.sortField = 'createdAt';
+      this.sortOrderDir = SortOrder.DESC;
+    } else if (value === 'oldest') {
+      this.sortField = 'createdAt';
+      this.sortOrderDir = SortOrder.ASC;
+    }
     this.first = 0;
     this.fetchJobsWithPagination();
   }
 
-  onSearch() {
+  onFilterStatusChange(value: OcrJobStatus | null) {
+    this.filterStatus = value;
     this.first = 0;
     this.fetchJobsWithPagination();
   }
 
-  onSortChange() {
+  onSearchChange(value: string) {
+    this.searchQuery = value;
     this.first = 0;
     this.fetchJobsWithPagination();
   }
@@ -224,6 +228,7 @@ export class OcrJobsPageComponent implements OnInit, OnDestroy {
   onTableSort(event: { field: string; order: number }) {
     this.sortField = event.field as 'id' | 'name' | 'createdAt' | 'status' | 'filesCount';
     this.sortOrderDir = event.order === 1 ? SortOrder.ASC : SortOrder.DESC;
+    this.sortOrder = this.sortField === 'createdAt' ? (this.sortOrderDir === SortOrder.DESC ? 'latest' : 'oldest') : null;
     this.first = 0;
     this.fetchJobsWithPagination();
   }
@@ -232,11 +237,11 @@ export class OcrJobsPageComponent implements OnInit, OnDestroy {
     effect(() => {
       const jobs = this.ocrJobService.jobs();
       if (this.selectedJob) {
-        const updated = jobs.find((j) => j.id === this.selectedJob?.id);
+        const updated = jobs.find((j: OcrJob) => j.id === this.selectedJob?.id);
         if (updated) {
           this.selectedJob = updated;
           if (this._selectedFile) {
-            const updatedFile = updated.files?.find((f) => f.id === this._selectedFile?.id);
+            const updatedFile = updated.files?.find((f: OcrFile) => f.id === this._selectedFile?.id);
             if (updatedFile) {
               const wasOnLatest = this.selectedExecution?.id === this.getLatestExecution(this._selectedFile)?.id;
               const hasFilenameChanged = this._selectedFile?.filename !== updatedFile.filename;
@@ -246,7 +251,7 @@ export class OcrJobsPageComponent implements OnInit, OnDestroy {
               }
 
               if (this.selectedExecution) {
-                const updatedExecution = updatedFile.executions?.find((e) => e.id === this.selectedExecution?.id);
+                const updatedExecution = updatedFile.executions?.find((e: OcrExecution) => e.id === this.selectedExecution?.id);
                 if (updatedExecution) {
                   this.selectedExecution = updatedExecution;
                 } else if (wasOnLatest) {
@@ -265,7 +270,7 @@ export class OcrJobsPageComponent implements OnInit, OnDestroy {
   private startPolling() {
     if (this.pollingSubscription) return;
     this.pollingSubscription = interval(3000).subscribe(() => {
-      const needsPolling = this.ocrJobService.jobs().some((j) => j.status === OcrJobStatus.Pending || j.status === OcrJobStatus.Processing);
+      const needsPolling = this.ocrJobService.jobs().some((j: OcrJob) => j.status === OcrJobStatus.Pending || j.status === OcrJobStatus.Processing);
 
       if (needsPolling) {
         this.fetchJobsWithPagination(false);
@@ -278,6 +283,27 @@ export class OcrJobsPageComponent implements OnInit, OnDestroy {
     this.pollingSubscription = undefined;
   }
 
+  private startDetailPolling() {
+    this.stopDetailPolling();
+    this.detailPollingSubscription = interval(5000).subscribe(() => {
+      if (!this._showDetail) {
+        this.stopDetailPolling();
+        return;
+      }
+      const latest = this.getLatestExecution(this._selectedFile);
+      if (latest?.status === OcrExecutionStatus.Completed || latest?.status === OcrExecutionStatus.Failed) {
+        this.stopDetailPolling();
+        return;
+      }
+      this.fetchJobsWithPagination(false);
+    });
+  }
+
+  private stopDetailPolling() {
+    this.detailPollingSubscription?.unsubscribe();
+    this.detailPollingSubscription = undefined;
+  }
+
   viewDetail(job: OcrJob) {
     this.selectedJob = job;
     this.showDetail = true;
@@ -286,28 +312,140 @@ export class OcrJobsPageComponent implements OnInit, OnDestroy {
     }
   }
 
-  copyToClipboard() {
+  async copyToClipboard() {
     if (!this.selectedExecution?.ocrData) return;
     const ocrData = this.selectedExecution.ocrData;
     const parsed = this.ocrOutputParser.parse(ocrData, this.selectedExecution.ocrProvider);
     const contentToCopy = parsed && parsed.markdown ? parsed.markdown : ocrData;
 
-    if (navigator.clipboard && window.isSecureContext) {
-      navigator.clipboard.writeText(contentToCopy);
-    } else {
-      const el = document.createElement('textarea');
-      el.value = contentToCopy;
-      document.body.appendChild(el);
-      el.select();
-      document.execCommand('copy');
-      document.body.removeChild(el);
-    }
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(contentToCopy);
+      } else {
+        const el = document.createElement('textarea');
+        el.value = contentToCopy;
+        el.setAttribute('readonly', '');
+        el.style.position = 'absolute';
+        el.style.left = '-9999px';
+        document.body.appendChild(el);
+        el.select();
+        const successful = document.execCommand('copy');
+        document.body.removeChild(el);
+        if (!successful) throw new Error('execCommand copy failed');
+      }
 
-    this.messageService.add({
-      severity: 'success',
-      summary: this.translocoService.translate('ocrJobs.detail.copied'),
-      detail: this.translocoService.translate('ocrJobs.detail.copySuccess'),
-    });
+      this.messageService.add({
+        severity: 'success',
+        summary: this.translocoService.translate('ocrJobs.detail.copied'),
+        detail: this.translocoService.translate('ocrJobs.detail.copySuccess'),
+      });
+    } catch (err) {
+      console.error('Failed to copy to clipboard:', err);
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Failed to copy to clipboard',
+      });
+    }
+  }
+
+  private recursiveExtractText(node: Node, isInCell = false): string {
+    let text = '';
+    const children = Array.from(node.childNodes);
+
+    for (const child of children) {
+      if (child.nodeType === Node.TEXT_NODE) {
+        text += child.textContent || '';
+      } else if (child.nodeType === Node.ELEMENT_NODE) {
+        const el = child as HTMLElement;
+        const tagName = el.tagName.toLowerCase();
+
+        // Detect if we are entering a table cell
+        const isNewCell = ['td', 'th'].includes(tagName);
+        
+        // Process children with the current or updated context
+        const childText = this.recursiveExtractText(el, isInCell || isNewCell);
+
+        // Apply formatting based on tag
+        if (tagName === 'br') {
+          text += childText + (isInCell ? ' ' : '\n');
+        } else if (['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'].includes(tagName)) {
+          // Paragraphs and headers get a double newline for visual spacing (WYSIWYG)
+          // unless we are inside a table cell, in which case we just add a space
+          text += childText + (isInCell ? ' ' : '\n\n');
+        } else if (['div', 'tr', 'li'].includes(tagName)) {
+          // Other block/structured elements get a single newline
+          // unless we are inside a table cell (div inside td)
+          text += childText + (isInCell ? ' ' : '\n');
+        } else if (isNewCell) {
+          // At the end of a cell, always add exactly one tab
+          text += childText + '\t';
+        } else {
+          text += childText;
+        }
+      }
+    }
+    
+    // Final cleanup for the top-level call (where isInCell is false)
+    if (!isInCell) {
+      return text.replace(/\n{3,}/g, '\n\n');
+    }
+    return text;
+  }
+
+  async copyAsPlainText() {
+    if (!this.selectedExecution?.ocrData) return;
+    const ocrData = this.selectedExecution.ocrData;
+    const parsed = this.ocrOutputParser.parse(ocrData, this.selectedExecution.ocrProvider);
+    const markdown = parsed && parsed.markdown ? parsed.markdown : ocrData;
+
+    try {
+      // Configuration for marked
+      const parseOptions = { gfm: true, breaks: true };
+
+      // Convert markdown to HTML
+      const html = (await marked.parse(markdown, parseOptions)) as string;
+
+      // Create a temporary container for structural parsing
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = html;
+
+      // Extract text using our recursive walker that understands line breaks and tables
+      const plainText = this.recursiveExtractText(tempDiv, false);
+
+      const finalContent = plainText.trim();
+      if (!finalContent) {
+        throw new Error('Final content is empty');
+      }
+
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(finalContent);
+      } else {
+        const el = document.createElement('textarea');
+        el.value = finalContent;
+        el.setAttribute('readonly', '');
+        el.style.position = 'absolute';
+        el.style.left = '-9999px';
+        document.body.appendChild(el);
+        el.select();
+        const successful = document.execCommand('copy');
+        document.body.removeChild(el);
+        if (!successful) throw new Error('execCommand copy failed');
+      }
+
+      this.messageService.add({
+        severity: 'success',
+        summary: this.translocoService.translate('ocrJobs.detail.copied'),
+        detail: this.translocoService.translate('ocrJobs.detail.copyPlainTextSuccess'),
+      });
+    } catch (err) {
+      console.error('Failed to convert to plain text:', err);
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Failed to copy as plain text',
+      });
+    }
   }
 
   downloadMarkdown() {
@@ -338,60 +476,38 @@ export class OcrJobsPageComponent implements OnInit, OnDestroy {
     this.fetchJobsWithPagination();
   }
 
-  getJobStatusSeverity(status: OcrJobStatus): 'success' | 'info' | 'warn' | 'danger' | 'secondary' {
-    switch (status) {
-      case OcrJobStatus.Pending:
-        return 'secondary';
-      case OcrJobStatus.Processing:
-        return 'info';
-      case OcrJobStatus.Completed:
-        return 'success';
-      case OcrJobStatus.Failed:
-        return 'danger';
-    }
+  refreshSelectedJob() {
+    this.fetchJobsWithPagination(false);
   }
 
-  getFileStatusSeverity(status: OcrFileStatus): 'success' | 'info' | 'warn' | 'danger' | 'secondary' {
-    switch (status) {
-      case OcrFileStatus.Pending:
-        return 'secondary';
-      case OcrFileStatus.Processing:
-        return 'info';
-      case OcrFileStatus.Completed:
-        return 'success';
-      case OcrFileStatus.Failed:
-        return 'danger';
-    }
+  private readonly statusSeverity: Record<string, 'success' | 'info' | 'warn' | 'danger' | 'secondary'> = {
+    pending: 'secondary',
+    processing: 'info',
+    running: 'info',
+    completed: 'success',
+    failed: 'danger',
+  };
+
+  getStatusSeverity(status: string) {
+    return this.statusSeverity[status] ?? 'secondary';
   }
 
-  getExecutionStatusSeverity(status: OcrExecutionStatus): 'success' | 'info' | 'warn' | 'danger' | 'secondary' {
-    switch (status) {
-      case OcrExecutionStatus.Pending:
-        return 'secondary';
-      case OcrExecutionStatus.Running:
-        return 'info';
-      case OcrExecutionStatus.Completed:
-        return 'success';
-      case OcrExecutionStatus.Failed:
-        return 'danger';
-    }
-  }
-
-  getFileIcon(filename: string): string {
-    const ext = '.' + (filename.split('.').pop()?.toLowerCase() || '');
-    if (ext === FileExtension.Pdf) return 'pi pi-file-pdf text-red-400';
-    if (ImageExtensions.includes(ext as FileExtension)) return 'pi pi-image text-emerald-400';
-    return 'pi pi-file text-surface-400';
-  }
-
-  isFileImage(filename: string): boolean {
-    const ext = '.' + (filename.split('.').pop()?.toLowerCase() || '');
-    return ImageExtensions.includes(ext as FileExtension);
+  private ext(filename: string): string {
+    return '.' + (filename.split('.').pop()?.toLowerCase() || '');
   }
 
   isFilePdf(filename: string): boolean {
-    const ext = '.' + (filename.split('.').pop()?.toLowerCase() || '');
-    return ext === FileExtension.Pdf;
+    return this.ext(filename) === FileExtension.Pdf;
+  }
+
+  isFileImage(filename: string): boolean {
+    return ImageExtensions.includes(this.ext(filename) as FileExtension);
+  }
+
+  getFileIcon(filename: string): string {
+    if (this.isFilePdf(filename)) return 'pi pi-file-pdf text-red-400';
+    if (this.isFileImage(filename)) return 'pi pi-image text-emerald-400';
+    return 'pi pi-file text-surface-400';
   }
 
   getSafeUrl(filename: string): SafeResourceUrl {
@@ -412,6 +528,7 @@ export class OcrJobsPageComponent implements OnInit, OnDestroy {
           detail: this.translocoService.translate('ocrJobs.card.retryQueued'),
         });
         this.fetchJobsWithPagination();
+        this.startDetailPolling();
       },
       error: (err) => {
         this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to re-queue OCR job.' });
@@ -425,6 +542,11 @@ export class OcrJobsPageComponent implements OnInit, OnDestroy {
     this.confirmationService.confirm({
       message: this.translocoService.translate('ocrJobs.delete.confirmation'),
       header: this.translocoService.translate('ocrJobs.delete.title'),
+      icon: 'pi pi-exclamation-triangle',
+      acceptLabel: this.translocoService.translate('common.delete'),
+      rejectLabel: this.translocoService.translate('common.cancel'),
+      acceptButtonStyleClass: 'p-button-danger',
+      rejectButtonStyleClass: 'p-button-text p-button-secondary',
       accept: () => {
         this.ocrJobService.deleteJob(job.id).subscribe({
           next: () => {

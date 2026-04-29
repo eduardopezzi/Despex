@@ -1,0 +1,178 @@
+{
+  "common": {
+    "cancel": "Abbrechen",
+    "save": "Speichern",
+    "close": "Schließen",
+    "upload": "Hochladen",
+    "download": "Herunterladen",
+    "copy": "Kopieren",
+    "delete": "Löschen",
+    "loading": "Laden...",
+    "comingSoon": "Demnächst",
+    "of": "von"
+  },
+  "layout": {
+    "appTitle": "OpenOCR",
+    "menu": "Menü",
+    "dashboard": "Dashboard",
+    "ocrJobs": "OCR-Jobs",
+    "admin": "Admin",
+    "selfHosted": "Selbst gehostet",
+    "collapse": "Einklappen",
+    "expand": "Ausklappen"
+  },
+  "upload": {
+    "title": "OCR-Job erstellen",
+    "jobName": "Job-Name",
+    "jobNamePlaceholder": "Geben Sie Ihrem Job einen Namen (z. B. Monatsabrechnung)",
+    "dropZone": "Dateien hier ablegen oder zum Durchsuchen klicken",
+    "dropZoneHint": "PDF, JPG, PNG · max. 50 MB",
+    "ocrProvider": "OCR-Anbieter",
+    "selectProvider": "Anbieter auswählen",
+    "uploadAndProcess": "Job erstellen & OCR starten",
+    "uploadSuccess": "Job erstellt! OCR-Verarbeitung startet.",
+    "uploadFailed": "Upload fehlgeschlagen. Bitte erneut versuchen.",
+    "processing": "Upload und Erstellung läuft...",
+    "crop": "Bild zuschneiden",
+    "editCrop": "Zuschnitt bearbeiten",
+    "resetCrop": "Original wiederherstellen",
+    "cropApply": "Zuschnitt anwenden",
+    "cropRotateLeft": "Nach links drehen",
+    "cropRotateRight": "Nach rechts drehen",
+    "cropZoomIn": "Vergrößern",
+    "cropZoomOut": "Verkleinern",
+    "cropFlipH": "Horizontal spiegeln"
+  },
+  "ocrJobs": {
+    "title": "OCR-Jobs",
+    "subtitle": "Verwalten Sie Ihre Dokumentenverarbeitung",
+    "addJob": "OCR-Job hinzufügen",
+    "view": {
+      "cards": "Karten",
+      "table": "Tabelle"
+    },
+    "table": {
+      "id": "ID",
+      "name": "Name",
+      "date": "Datum",
+      "status": "Status",
+      "files": "Dateien",
+      "actions": "Aktionen"
+    },
+    "file": "Datei",
+    "files": "Dateien",
+    "noJobs": "Noch keine OCR-Jobs",
+    "noJobsHint": "Laden Sie Dokumente hoch, um Ihren ersten OCR-Job zu erstellen.",
+    "filters": {
+      "searchPlaceholder": "Nach Job- oder Dateiname suchen...",
+      "statusPlaceholder": "Alle Status",
+      "statusAll": "Alle Status",
+      "sortPlaceholder": "Sortieren nach",
+      "latest": "Neueste",
+      "oldest": "Älteste"
+    },
+    "home": {
+      "welcome": "Willkommen zurück!",
+      "overview": "Hier ist eine Übersicht Ihrer letzten OCR-Aktivitäten",
+      "recentOcrJobs": "Letzte OCR-Jobs",
+      "viewAll": "Alle anzeigen"
+    },
+    "status": {
+      "total": "Gesamt",
+      "pending": "Ausstehend",
+      "processing": "Verarbeitung",
+      "completed": "Abgeschlossen",
+      "failed": "Fehlgeschlagen",
+      "running": "Läuft"
+    },
+    "detail": {
+      "title": "Job-Übersicht",
+      "jobFiles": "Job-Dateien",
+      "results": "OCR-Ergebnisse",
+      "executionHistory": "Verlauf",
+      "ocrOutput": "OCR-Inhalt",
+      "reprocess": "Erneut verarbeiten",
+      "ocrInProgress": "OCR läuft...",
+      "noData": "Keine OCR-Daten verfügbar.",
+      "selectFile": "Datei auswählen, um Ergebnisse anzuzeigen",
+      "copyToClipboard": "Als Markdown kopieren",
+      "copyPlainText": "Als Text kopieren",
+      "downloadMarkdown": "Markdown herunterladen",
+      "refresh": "Aktualisieren",
+      "copied": "Kopiert",
+      "copySuccess": "Inhalt in Zwischenablage kopiert",
+      "copyPlainTextSuccess": "Als Text kopiert",
+      "downloaded": "Heruntergeladen",
+      "downloadSuccess": "Markdown gespeichert"
+    },
+    "card": {
+      "retrying": "Wird verarbeitet",
+      "retryQueued": "Neue OCR-Verarbeitung eingereiht",
+      "delete": "Job löschen"
+    },
+    "delete": {
+      "title": "OCR-Job löschen",
+      "confirmation": "Sind Sie sicher, dass Sie diesen Job und alle zugehörigen Daten löschen möchten? Dies kann nicht rückgängig gemacht werden.",
+      "success": "Job erfolgreich gelöscht"
+    }
+  },
+  "config": {
+    "title": "Standard-OCR und Ausgabeeinstellungen",
+    "ocrProvider": "OCR-Anbieter",
+    "outputTargets": "Ausgabestatue",
+    "input": "Eingabe",
+    "savePreferences": "Einstellungen speichern",
+    "groups": {
+      "local": "Lokal",
+      "online": "Online"
+    },
+    "providers": {
+      "mistral": "Mistral OCR",
+      "tabscanner": "TabScanner",
+      "paddleOcrLocal": "Paddle OCR Local",
+      "paddleOcrApi": "Paddle OCR API",
+      "gemini": "Google Gemini",
+      "awsTextract": "AWS Textract",
+      "grok": "Grok (xAI)",
+      "tesseract": "Tesseract.js",
+      "openAi": "OpenAI",
+      "llamaCpp": "llama.cpp",
+      "none": "Keine (Manuelle Auswahl)"
+    },
+    "outputs": {
+      "db": "In DB gespeichert"
+    },
+    "defaultLanguage": "Standardsprache",
+    "defaultTheme": "Erscheinungsbild",
+    "defaultSidebar": "Standard-Seitenleiste",
+    "sidebar": {
+      "expanded": "Ausgeklappt",
+      "collapsed": "Eingeklappt"
+    },
+    "themes": {
+      "light": "Hell",
+      "dark": "Dunkel"
+    },
+    "resetToDefaults": "Auf Standard zurücksetzen",
+    "languages": {
+      "en": "Englisch",
+      "pt": "Portugiesisch",
+      "fr": "Französisch",
+      "de": "Deutsch"
+    }
+  },
+  "ocr": {
+    "providers": {
+      "mistral": "Mistral OCR",
+      "tabscanner": "TabScanner",
+      "paddleOcrLocal": "Paddle OCR Local (Selbst gehostet)",
+      "paddleOcrApi": "Paddle OCR API",
+      "gemini": "Google Gemini",
+      "awsTextract": "AWS Textract",
+      "grok": "Grok (xAI)",
+      "tesseract": "Tesseract.js (Lokal)",
+      "openAi": "OpenAI",
+      "llamaCpp": "llama.cpp (Lokal)"
+    }
+  }
+}

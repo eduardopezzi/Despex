@@ -1,11 +1,9 @@
-<div *transloco="let t" class="p-6 lg:p-10 max-w-[1600px] mx-auto min-h-screen">
+<div *transloco="let t" class="p-3 sm:p-6 lg:p-10 max-w-[1600px] mx-auto min-h-screen">
   <!-- Header -->
-  <header class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
+  <header class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-6 sm:mb-12">
     <div class="space-y-1">
-      <h1 class="text-4xl font-black tracking-tight text-surface-900 dark:text-surface-0 flex items-center gap-3">
-        <span class="bg-primary-500 text-white p-2 rounded-xl shadow-lg shadow-primary-500/20">
-          <i class="pi pi-receipt text-2xl"></i>
-        </span>
+      <h1 class="text-3xl font-bold tracking-tight text-surface-900 dark:text-surface-0 flex items-center gap-3">
+        <i class="pi pi-receipt text-2xl text-primary-500"></i>
         {{ t('ocrJobs.title') }}
       </h1>
       <p class="text-surface-500 dark:text-surface-400 font-medium">
@@ -18,47 +16,48 @@
   <div class="relative">
     <!-- Filters and Search -->
     <div
-      class="mb-10 relative z-50 flex flex-col lg:flex-row lg:items-center gap-4 bg-white/40 dark:bg-surface-900/40 backdrop-blur-xl p-5 rounded-[2.5rem] border border-surface-200 dark:border-surface-800 shadow-sm animate-in fade-in slide-in-from-top-4 duration-1000"
+      class="mb-8 flex flex-col lg:flex-row lg:items-center gap-3 p-3 sm:p-4 rounded-2xl border border-surface-200 dark:border-surface-800"
     >
-      <div class="flex-grow flex items-center gap-4">
+      <div class="flex-grow flex items-center gap-3">
         <p-iconField class="flex-grow">
           <p-inputIcon styleClass="pi pi-search" />
           <input
             type="text"
             pInputText
-            [(ngModel)]="searchQuery"
-            (ngModelChange)="onSearch()"
+            [ngModel]="searchQuery"
+            (ngModelChange)="onSearchChange($event)"
             [placeholder]="t('ocrJobs.filters.searchPlaceholder')"
-            class="w-full rounded-2xl border-none bg-surface-50/50 dark:bg-surface-800/30 py-4"
+            class="w-full rounded-2xl border-none bg-surface-50/50 dark:bg-surface-800/30 py-3"
           />
         </p-iconField>
 
-        <p-selectButton
-          [options]="viewOptions"
-          [(ngModel)]="viewMode"
-          (ngModelChange)="onViewModeChange($event)"
-          optionLabel="icon"
-          optionValue="value"
-          styleClass="hidden md:flex border-none"
-        >
-          <ng-template #item let-item>
-            <div class="px-4 py-2 flex items-center gap-2" [pTooltip]="item.label">
-              <i [class]="item.icon"></i>
-            </div>
-          </ng-template>
-        </p-selectButton>
+        <div class="hidden md:flex items-center rounded-2xl border border-surface-200 dark:border-surface-800 overflow-hidden">
+          @for (opt of viewOptions; track opt.value) {
+            <button
+              type="button"
+              (click)="onViewModeChange($any(opt.value))"
+              [class.bg-primary-500]="viewMode === opt.value"
+              [class.text-white]="viewMode === opt.value"
+              [class.text-surface-500]="viewMode !== opt.value"
+              class="px-4 py-2 transition-colors hover:bg-surface-100 dark:hover:bg-surface-800"
+              [pTooltip]="opt.label"
+            >
+              <i [class]="opt.icon"></i>
+            </button>
+          }
+        </div>
       </div>
 
-      <div class="flex items-center gap-3">
+      <div class="flex flex-wrap items-center gap-2 sm:gap-3">
         <p-select
-          [(ngModel)]="filterStatus"
+          [ngModel]="filterStatus"
+          (ngModelChange)="onFilterStatusChange($event)"
           [options]="statusOptions"
           optionLabel="label"
           optionValue="value"
-          (onChange)="onFilterChange()"
           [placeholder]="t('ocrJobs.filters.statusPlaceholder')"
           appendTo="body"
-          styleClass="w-auto min-w-[180px] rounded-2xl border-none bg-surface-50/50 dark:bg-surface-800/30 px-2"
+          styleClass="flex-1 min-w-[140px] sm:flex-none sm:min-w-[180px] rounded-2xl border-none bg-surface-50/50 dark:bg-surface-800/30 px-2"
         >
           <ng-template #selectedItem let-selectedOption>
             @if (selectedOption) {
@@ -71,14 +70,14 @@
         </p-select>
 
         <p-select
-          [(ngModel)]="sortOrder"
+          [ngModel]="sortOrder"
+          (ngModelChange)="onSortOrderChange($event)"
           [options]="sortOptions"
           optionLabel="label"
           optionValue="value"
-          (onChange)="onSortChange()"
           [placeholder]="t('ocrJobs.filters.sortPlaceholder')"
           appendTo="body"
-          styleClass="w-auto min-w-[180px] rounded-2xl border-none bg-surface-50/50 dark:bg-surface-800/30 px-2"
+          styleClass="flex-1 min-w-[140px] sm:flex-none sm:min-w-[180px] rounded-2xl border-none bg-surface-50/50 dark:bg-surface-800/30 px-2"
         >
           <ng-template #selectedItem let-selectedOption>
             @if (selectedOption) {
@@ -94,20 +93,19 @@
           [label]="t('ocrJobs.addJob')"
           icon="pi pi-plus"
           (onClick)="showUploadDialog = true"
-          rounded="true"
-          styleClass="px-8 py-4 shadow-xl shadow-primary-500/10 font-bold"
+          styleClass="w-full sm:w-auto"
         />
       </div>
     </div>
 
     @if (ocrJobService.loading() && ocrJobService.jobs().length === 0) {
-      <div class="flex flex-col items-center justify-center py-32 gap-6 animate-pulse">
+      <div class="flex flex-col items-center justify-center py-32 gap-6">
         <p-progressSpinner styleClass="w-16 h-16" strokeWidth="4" />
         <p class="text-surface-400 font-bold uppercase tracking-widest text-sm">{{ t('common.loading') }}</p>
       </div>
     } @else if (ocrJobService.jobs().length === 0) {
       <div
-        class="flex flex-col items-center justify-center py-32 text-center bg-surface-50 dark:bg-surface-900/40 rounded-[3rem] border-2 border-dashed border-surface-200 dark:border-surface-800 animate-in fade-in zoom-in duration-700"
+        class="flex flex-col items-center justify-center py-32 text-center bg-surface-50 dark:bg-surface-900/40 rounded-2xl border-2 border-dashed border-surface-200 dark:border-surface-800"
       >
         <div class="w-24 h-24 bg-surface-100 dark:bg-surface-800 rounded-full flex items-center justify-center mb-8">
           <i class="pi pi-inbox text-5xl text-surface-300 dark:text-surface-600"></i>
@@ -122,36 +120,36 @@
         <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
           @for (job of ocrJobService.jobs(); track job.id) {
             <div
-              class="group cursor-pointer transition-all duration-300 hover:scale-[1.02]"
+              class="group cursor-pointer"
               (click)="viewDetail(job)"
               (keydown.enter)="viewDetail(job)"
               tabindex="0"
               role="button"
             >
-              <p-card styleClass="h-full border-none shadow-sm hover:shadow-2xl transition-all duration-300 overflow-hidden relative rounded-3xl">
+              <p-card styleClass="h-full border border-surface-200 dark:border-surface-800 shadow-sm hover:shadow-md transition-shadow overflow-hidden rounded-xl">
                 <div class="flex flex-col h-full gap-4">
                   <!-- Card Header -->
-                  <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-3">
+                  <div class="flex items-start justify-between gap-3">
+                    <div class="flex items-center gap-3 min-w-0 flex-grow">
                       <div
-                        class="w-10 h-10 rounded-xl bg-surface-100 dark:bg-surface-800 flex items-center justify-center group-hover:bg-primary-500 group-hover:text-white transition-colors duration-300"
+                        class="flex-none w-10 h-10 rounded-xl bg-surface-100 dark:bg-surface-800 flex items-center justify-center group-hover:bg-primary-500 group-hover:text-white transition-colors duration-300"
                       >
                         <span class="text-xs font-black">#{{ job.id }}</span>
                       </div>
-                      <div class="flex flex-col min-w-0">
+                      <div class="flex flex-col min-w-0 flex-grow">
                         @if (job.name) {
                           <span class="text-sm font-bold truncate text-surface-900 dark:text-surface-100" [title]="job.name">{{ job.name }}</span>
                         }
-                        <div class="flex items-center gap-2">
-                          <span class="text-[10px] font-bold text-surface-400 uppercase tracking-widest">{{ job.createdAt | date: 'MMM d, y' }}</span>
-                          <span class="text-[10px] font-semibold text-surface-500">{{ job.createdAt | date: 'HH:mm' }}</span>
+                        <div class="flex flex-wrap items-center gap-x-2">
+                          <span class="text-[10px] font-bold text-surface-400 uppercase tracking-widest whitespace-nowrap">{{ job.createdAt | date: 'MMM d, y' }}</span>
+                          <span class="text-[10px] font-semibold text-surface-500 whitespace-nowrap">{{ job.createdAt | date: 'HH:mm' }}</span>
                         </div>
                       </div>
                     </div>
                     <p-tag
                       [value]="t('ocrJobs.status.' + job.status)"
-                      [severity]="getJobStatusSeverity(job.status)"
-                      styleClass="font-bold px-3 py-1 rounded-full uppercase text-[10px]"
+                      [severity]="getStatusSeverity(job.status)"
+                      styleClass="flex-none font-bold px-2 py-1 rounded-full uppercase text-[9px] whitespace-nowrap"
                     />
                   </div>
 
@@ -195,7 +193,7 @@
       } @else {
         <!-- Job Table -->
         <div
-          class="bg-white/40 dark:bg-surface-900/40 backdrop-blur-xl rounded-[2.5rem] border border-surface-200 dark:border-surface-800 shadow-sm overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-700"
+          class="rounded-2xl border border-surface-200 dark:border-surface-800 overflow-hidden"
         >
           <p-table
             [value]="ocrJobService.jobs()"
@@ -257,7 +255,7 @@
                 <td class="border-none py-6 text-center">
                   <p-tag
                     [value]="t('ocrJobs.status.' + job.status)"
-                    [severity]="getJobStatusSeverity(job.status)"
+                    [severity]="getStatusSeverity(job.status)"
                     styleClass="font-bold px-3 py-1 rounded-full uppercase text-[10px]"
                   />
                 </td>
@@ -297,7 +295,7 @@
       }
 
       <!-- Pagination -->
-      <div class="mt-8 flex justify-center animate-in fade-in slide-in-from-bottom-4 duration-700">
+      <div class="mt-8 flex justify-center">
         <p-paginator
           (onPageChange)="onPageChange($event)"
           [first]="first"
@@ -307,7 +305,6 @@
           [showCurrentPageReport]="true"
           [showJumpToPageDropdown]="true"
           [currentPageReportTemplate]="'{first} - {last} ' + t('common.of') + ' {totalRecords}'"
-          styleClass="rounded-full shadow-sm border border-surface-200 dark:border-surface-800 bg-white/80 dark:bg-surface-900/80 backdrop-blur-md px-4 py-2"
         />
       </div>
     }
@@ -318,16 +315,31 @@
     [(visible)]="showDetail"
     [modal]="true"
     [maximizable]="true"
-    [header]="selectedJob?.name ? selectedJob?.name + ' (#' + selectedJob?.id + ')' : t('ocrJobs.detail.title') + ' #' + selectedJob?.id"
     [style]="{ width: '90vw', maxWidth: '1400px', height: '85vh' }"
+    [breakpoints]="{ '960px': '100vw' }"
     [contentStyle]="{ padding: '0', overflow: 'hidden' }"
-    styleClass="rounded-3xl overflow-hidden"
+    styleClass="rounded-3xl overflow-hidden !max-h-screen"
     appendTo="body"
   >
+    <ng-template #header>
+      <div class="flex items-center justify-between w-full pr-2">
+        <span class="font-semibold text-base truncate">
+          {{ selectedJob?.name ? selectedJob?.name + ' (#' + selectedJob?.id + ')' : t('ocrJobs.detail.title') + ' #' + selectedJob?.id }}
+        </span>
+        <p-button
+          icon="pi pi-refresh"
+          [text]="true"
+          severity="secondary"
+          size="small"
+          (onClick)="refreshSelectedJob()"
+          pTooltip="{{ t('ocrJobs.detail.refresh') }}"
+        />
+      </div>
+    </ng-template>
     @if (selectedJob) {
-      <div class="flex h-full bg-surface-50 dark:bg-surface-950">
+      <div class="flex flex-col lg:flex-row h-full bg-surface-50 dark:bg-surface-950">
         <!-- Sidebar: Files List -->
-        <aside class="w-80 flex-none border-r border-surface-200 dark:border-surface-800 bg-white dark:bg-surface-900 overflow-y-auto">
+        <aside class="w-full lg:w-80 flex-none border-b lg:border-b-0 lg:border-r border-surface-200 dark:border-surface-800 bg-white dark:bg-surface-900 overflow-y-auto max-h-48 lg:max-h-none">
           <div class="p-4 border-b border-surface-100 dark:border-surface-800">
             <h4 class="text-xs font-black text-surface-400 uppercase tracking-[0.2em]">{{ t('ocrJobs.detail.jobFiles') }}</h4>
           </div>
@@ -336,19 +348,19 @@
               <button
                 (click)="selectedFile = file"
                 class="flex items-center gap-4 p-4 text-left transition-all hover:bg-surface-50 dark:hover:bg-surface-800/50"
-                [class.bg-primary-50]="selectedFile?.id === file.id"
-                [class.dark:bg-primary-950\/20]="selectedFile?.id === file.id"
-                [class.border-l-4]="selectedFile?.id === file.id"
-                [class.border-primary-500]="selectedFile?.id === file.id"
+                [class.file-item-selected]="selectedFile?.id === file.id"
               >
-                <div class="flex-none w-10 h-10 rounded-xl bg-surface-100 dark:bg-surface-800 flex items-center justify-center">
+                <div
+                  class="file-icon-container flex-none w-10 h-10 rounded-xl flex items-center justify-center transition-colors"
+                  [class.file-icon-selected]="selectedFile?.id === file.id"
+                >
                   <i [class]="getFileIcon(file.originalName)"></i>
                 </div>
                 <div class="flex-grow min-w-0">
                   <p class="text-sm font-bold truncate text-surface-900 dark:text-surface-100">{{ file.originalName }}</p>
                   <p-tag
                     [value]="t('ocrJobs.status.' + file.status)"
-                    [severity]="getFileStatusSeverity(file.status)"
+                    [severity]="getStatusSeverity(file.status)"
                     styleClass="text-[9px] px-2 py-0.5 rounded-full"
                   />
                 </div>
@@ -358,9 +370,9 @@
         </aside>
 
         <!-- Main Content: File details & Results -->
-        <main class="flex-grow overflow-y-auto p-4 md:p-8">
+        <main class="flex-grow overflow-y-auto p-3 sm:p-4 md:p-8">
           @if (selectedFile) {
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 h-full">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 lg:gap-8 h-full">
               <!-- Left: Image Preview & Actions -->
               <div class="flex flex-col gap-6 h-full min-h-[400px]">
                 <div class="flex items-center justify-between bg-white dark:bg-surface-900 p-4 rounded-2xl shadow-sm">
@@ -385,23 +397,32 @@
                     <div class="p-3 bg-surface-50 dark:bg-surface-900 border-b border-surface-100 dark:border-surface-800">
                       <span class="text-[10px] font-black uppercase text-surface-400">{{ t('upload.ocrProvider') }}</span>
                     </div>
-                    @for (provider of [OcrProvider.Mistral, OcrProvider.TabScanner]; track provider) {
-                      <button
-                        (click)="reprocess(selectedFile, provider); op.hide()"
-                        class="flex items-center gap-3 p-3 text-sm hover:bg-surface-50 dark:hover:bg-surface-800 transition-colors"
-                      >
-                        <i class="pi pi-sparkles text-primary-500"></i>
-                        <span>{{ provider | titlecase }}</span>
-                      </button>
+                    @for (group of providerGroups; track group.label) {
+                      <div class="px-3 pt-2 pb-0.5 text-[9px] font-black uppercase tracking-wider text-surface-400">{{ group.label }}</div>
+                      @for (provider of group.providers; track provider) {
+                        <button
+                          (click)="reprocess(selectedFile, provider); op.hide()"
+                          class="flex items-center gap-3 p-3 text-sm hover:bg-surface-50 dark:hover:bg-surface-800 transition-colors w-full text-left"
+                        >
+                          <i [class]="getProviderIcon(provider)" class="text-primary-500"></i>
+                          <span>{{ t('config.providers.' + provider) }}</span>
+                        </button>
+                      }
                     }
                   </div>
                 </p-popover>
 
                 <div
-                  class="flex-grow bg-white dark:bg-surface-900 rounded-[2rem] overflow-hidden border border-surface-200 dark:border-surface-800 shadow-sm flex items-center justify-center p-4 relative"
+                  class="flex-grow max-h-[65vh] bg-white dark:bg-surface-900 rounded-[2rem] overflow-hidden border border-surface-200 dark:border-surface-800 shadow-sm flex items-center justify-center p-4 relative"
                 >
+                  @if (imageLoading()) {
+                    <div class="absolute inset-0 flex items-center justify-center bg-white/80 dark:bg-surface-900/80 z-10 transition-opacity">
+                      <p-progressSpinner styleClass="w-12 h-12" strokeWidth="4" />
+                    </div>
+                  }
+
                   @if (isFileImage(selectedFile.originalName)) {
-                    <img [src]="getSafeUrl(selectedFile.filename)" class="max-w-full max-h-full object-contain rounded-xl" alt="Preview" />
+                    <img [src]="safeUrl" (load)="onImageLoad()" class="max-w-full max-h-full object-contain rounded-xl" alt="Preview" />
                   } @else if (isFilePdf(selectedFile.originalName)) {
                     <iframe [src]="safeUrl" class="w-full h-full border-none rounded-xl"></iframe>
                   } @else {
@@ -439,16 +460,19 @@
                       >
                         <div class="flex items-center gap-3">
                           <div class="w-8 h-8 rounded-lg bg-white dark:bg-surface-800 flex items-center justify-center">
-                            <i class="pi pi-sparkles text-primary-500 text-xs"></i>
+                            <i [class]="getProviderIcon(exec.ocrProvider)" class="text-primary-500 text-xs"></i>
                           </div>
                           <div class="flex flex-col">
-                            <span class="text-sm font-bold text-surface-800 dark:text-surface-100">{{ exec.ocrProvider | titlecase }}</span>
+                            <span class="text-sm font-bold text-surface-800 dark:text-surface-100">
+                              <span class="text-surface-400 font-semibold mr-1">#{{ exec.id }}</span>
+                              {{ t('config.providers.' + exec.ocrProvider) }}
+                            </span>
                             <span class="text-[10px] text-surface-500">{{ exec.createdAt | date: 'short' }}</span>
                           </div>
                         </div>
                         <p-tag
                           [value]="t('ocrJobs.status.' + exec.status)"
-                          [severity]="getExecutionStatusSeverity(exec.status)"
+                          [severity]="getStatusSeverity(exec.status)"
                           styleClass="text-[9px]"
                         />
                       </div>
@@ -474,6 +498,14 @@
                         pTooltip="{{ t('ocrJobs.detail.copyToClipboard') }}"
                       />
                       <p-button
+                        icon="pi pi-align-left"
+                        [text]="true"
+                        severity="secondary"
+                        size="small"
+                        (onClick)="copyAsPlainText()"
+                        pTooltip="{{ t('ocrJobs.detail.copyPlainText') }}"
+                      />
+                      <p-button
                         icon="pi pi-file-export"
                         [text]="true"
                         severity="secondary"
@@ -488,11 +520,11 @@
                       @if (current.status === OcrExecutionStatus.Running) {
                         <div class="flex flex-col items-center justify-center py-20 gap-4">
                           <p-progressSpinner styleClass="w-12 h-12" strokeWidth="4" />
-                          <p class="text-surface-400 font-bold animate-pulse">{{ t('ocrJobs.detail.ocrInProgress') }}</p>
+                          <p class="text-surface-400 font-bold">{{ t('ocrJobs.detail.ocrInProgress') }}</p>
                         </div>
                       } @else if (current.status === OcrExecutionStatus.Completed) {
                         <div
-                          class="ocr-markdown-output prose dark:prose-invert max-w-none text-sm font-mono"
+                          class="ocr-markdown-output max-w-none text-sm font-mono"
                           [innerHTML]="current.ocrData | ocrOutput: current.ocrProvider"
                         ></div>
                       } @else if (current.status === OcrExecutionStatus.Failed) {
@@ -531,39 +563,7 @@
   <app-upload-dialog [(visible)]="showUploadDialog" (uploaded)="onUploaded()" />
 
   <!-- Global Confirmations / Toast -->
-  <p-confirmDialog #cd [style]="{ width: '450px' }" styleClass="rounded-[2.5rem] overflow-hidden shadow-2xl border-none backdrop-blur-md">
-    <ng-template #header>
-      <div class="flex flex-col items-center justify-center pt-10 pb-4 w-full">
-        <div
-          class="w-20 h-20 rounded-[2rem] bg-red-50 dark:bg-red-500/10 flex items-center justify-center transform rotate-12 transition-transform hover:rotate-0 duration-500"
-        >
-          <i class="pi pi-trash text-4xl text-red-500"></i>
-        </div>
-      </div>
-    </ng-template>
-    <ng-template #message let-msg>
-      <div class="flex flex-col items-center text-center px-8 pb-8 gap-3">
-        <h3 class="text-2xl font-black text-surface-900 dark:text-surface-0 tracking-tight">{{ msg.header }}</h3>
-        <p class="text-surface-500 dark:text-surface-400 font-semibold leading-relaxed">{{ msg.message }}</p>
-      </div>
-    </ng-template>
-    <ng-template #footer>
-      <div class="flex items-center justify-center gap-4 pb-10 px-8 w-full">
-        <p-button
-          [label]="t('common.cancel')"
-          (onClick)="cd.onReject()"
-          [outlined]="true"
-          severity="secondary"
-          styleClass="flex-grow py-4 rounded-2xl font-bold border-2"
-        />
-        <p-button
-          [label]="t('common.delete')"
-          (onClick)="cd.onAccept()"
-          severity="danger"
-          styleClass="flex-grow py-4 rounded-2xl font-bold border-none shadow-xl shadow-red-500/20 hover:scale-105 transition-transform"
-        />
-      </div>
-    </ng-template>
-  </p-confirmDialog>
+  <p-confirmDialog [style]="{ width: '450px' }" />
+
   <p-toast position="top-right" />
 </div>

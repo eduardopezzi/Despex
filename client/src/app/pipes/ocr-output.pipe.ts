@@ -2,7 +2,7 @@ import { inject, Pipe, PipeTransform } from '@angular/core';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { marked, Renderer } from 'marked';
 import { OcrProvider } from '@open-receipt-ocr/types';
-import { OcrOutputParserService } from '@services/ocr-output-parser.service';
+import { OcrOutputParserService } from '@app/pipes/parsers/ocr-output-parser.service';
 
 /**
  * Pipe that converts a raw `ocrData` JSON string (as stored in `ocr_executions.ocr_data`)

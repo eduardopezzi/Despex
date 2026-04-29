@@ -60,6 +60,39 @@ export class OcrJobsService {
       allowedMimeTypes: ALLOWED_MIME_TYPES,
     });
 
+    type FileAndOcrProvider = {
+      file: Awaited<ReturnType<typeof parseMultipartStream>>['files'][0];
+      ocrProvider: OcrProvider;
+    };
+
+    const files: FileAndOcrProvider[] = [];
+
+    for (const [idx, file] of parseResult.files.entries()) {
+      let ocrProvider: OcrProvider | undefined;
+
+      const providerField = `ocrProvider_${idx}`;
+      if (parseResult.fields[providerField] && Object.values(OcrProvider).includes(parseResult.fields[providerField] as OcrProvider)) {
+        ocrProvider = parseResult.fields[providerField] as OcrProvider;
+      }
+
+      if (ocrProvider) {
+        files.push({ file, ocrProvider });
+      } else {
+        this.logger.warn(
+          `The given ocr provider for the file named ${file.originalName}, does not exist. Given: ${parseResult.fields[providerField]}. List of allowed OCR Providers is: ${Object.values(OcrProvider).join(', ')}`,
+        );
+        try {
+          await this.storage.delete(file.key);
+        } catch (err) {
+          this.logger.error(`Failed to delete orphaned file ${file.key} from storage: ${(err as Error).message}`);
+        }
+      }
+    }
+
+    if (files.length === 0) {
+      throw new BadRequestException('No valid files provided. Each file must have a valid ocrProvider_<index> field.');
+    }
+
     const { ocrJob, executionsToQueue } = await this.dbService.transaction(async (em) => {
       const txn = WithTxn(em);
 
@@ -71,15 +104,7 @@ export class OcrJobsService {
 
       const executions: { id: number; fileId: number }[] = [];
 
-      for (let i = 0; i < parseResult.files.length; i++) {
-        const file = parseResult.files[i];
-        let ocrProvider: OcrProvider = OcrProvider.Mistral;
-
-        const providerField = `ocrProvider_${i}`;
-        if (parseResult.fields[providerField] && Object.values(OcrProvider).includes(parseResult.fields[providerField] as OcrProvider)) {
-          ocrProvider = parseResult.fields[providerField] as OcrProvider;
-        }
-
+      for (const { file, ocrProvider } of files) {
         const ocrFile = await this.ocrFilesDao.create(txn, {
           jobId: job.id,
           filename: file.key,

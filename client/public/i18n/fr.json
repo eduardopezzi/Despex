@@ -1,0 +1,178 @@
+{
+  "common": {
+    "cancel": "Annuler",
+    "save": "Enregistrer",
+    "close": "Fermer",
+    "upload": "Importer",
+    "download": "Télécharger",
+    "copy": "Copier",
+    "delete": "Supprimer",
+    "loading": "Chargement...",
+    "comingSoon": "Bientôt disponible",
+    "of": "sur"
+  },
+  "layout": {
+    "appTitle": "OpenOCR",
+    "menu": "Menu",
+    "dashboard": "Tableau de bord",
+    "ocrJobs": "Tâches OCR",
+    "admin": "Admin",
+    "selfHosted": "Auto-hébergé",
+    "collapse": "Réduire",
+    "expand": "Agrandir"
+  },
+  "upload": {
+    "title": "Créer une tâche OCR",
+    "jobName": "Nom de la tâche",
+    "jobNamePlaceholder": "Nommez votre tâche OCR (ex: Factures mensuelles)",
+    "dropZone": "Déposez les fichiers ici ou cliquez pour parcourir",
+    "dropZoneHint": "PDF, JPG, PNG · max 50 Mo",
+    "ocrProvider": "Fournisseur OCR",
+    "selectProvider": "Choisir le fournisseur",
+    "uploadAndProcess": "Créer la tâche et démarrer l'OCR",
+    "uploadSuccess": "Tâche créée ! Les exécutions OCR démarrent.",
+    "uploadFailed": "Échec de l'importation. Veuillez réessayer.",
+    "processing": "Importation et création de la tâche...",
+    "crop": "Recadrer l'image",
+    "editCrop": "Modifier le cadrage",
+    "resetCrop": "Réinitialiser",
+    "cropApply": "Appliquer le cadrage",
+    "cropRotateLeft": "Rotation Gauche",
+    "cropRotateRight": "Rotation Droite",
+    "cropZoomIn": "Zoomer",
+    "cropZoomOut": "Dézoomer",
+    "cropFlipH": "Retourner Horizontalement"
+  },
+  "ocrJobs": {
+    "title": "Tâches OCR",
+    "subtitle": "Gérez votre flux de traitement de documents",
+    "addJob": "Ajouter une tâche OCR",
+    "view": {
+      "cards": "Cartes",
+      "table": "Tableau"
+    },
+    "table": {
+      "id": "ID",
+      "name": "Nom",
+      "date": "Date",
+      "status": "Statut",
+      "files": "Fichiers",
+      "actions": "Actions"
+    },
+    "file": "fichier",
+    "files": "fichiers",
+    "noJobs": "Aucune tâche OCR pour le moment",
+    "noJobsHint": "Importez un ou plusieurs documents pour créer votre première tâche OCR.",
+    "filters": {
+      "searchPlaceholder": "Rechercher par nom de tâche ou de fichier...",
+      "statusPlaceholder": "Tous les statuts",
+      "statusAll": "Tous les statuts",
+      "sortPlaceholder": "Trier par",
+      "latest": "Plus récents",
+      "oldest": "Plus anciens"
+    },
+    "home": {
+      "welcome": "Bon retour !",
+      "overview": "Voici un aperçu de votre activité OCR récente",
+      "recentOcrJobs": "Tâches OCR Récentes",
+      "viewAll": "Voir tout"
+    },
+    "status": {
+      "total": "Total",
+      "pending": "En attente",
+      "processing": "Traitement en cours",
+      "completed": "Terminé",
+      "failed": "Échoué",
+      "running": "En cours"
+    },
+    "detail": {
+      "title": "Aperçu de la tâche",
+      "jobFiles": "Fichiers de la tâche",
+      "results": "Résultats OCR",
+      "executionHistory": "Historique des exécutions",
+      "ocrOutput": "Contenu du résultat OCR",
+      "reprocess": "Retraiter",
+      "ocrInProgress": "OCR en cours...",
+      "noData": "Aucune donnée OCR disponible pour cette exécution.",
+      "selectFile": "Sélectionnez un fichier dans la barre latérale pour voir les résultats",
+      "copyToClipboard": "Copier en Markdown",
+      "copyPlainText": "Copiar en texte brut",
+      "downloadMarkdown": "Télécharger en Markdown",
+      "refresh": "Actualiser",
+      "copied": "Copié",
+      "copySuccess": "Contenu OCR copié dans le presse-papiers",
+      "copyPlainTextSuccess": "Contenu OCR copié en texte brut",
+      "downloaded": "Téléchargé",
+      "downloadSuccess": "Markdown enregistré"
+    },
+    "card": {
+      "retrying": "Retraitement en cours",
+      "retryQueued": "Nouvelle exécution OCR mise en file d'attente",
+      "delete": "Supprimer la tâche"
+    },
+    "delete": {
+      "title": "Supprimer la tâche OCR",
+      "confirmation": "Êtes-vous sûr de vouloir supprimer cette tâche et toutes les données associées ? Cette action est irréversible.",
+      "success": "Tâche supprimée avec succès"
+    }
+  },
+  "config": {
+    "title": "Paramètres OCR et de sortie par défaut",
+    "ocrProvider": "Fournisseur OCR",
+    "outputTargets": "Cibles de sortie",
+    "input": "Entrée",
+    "savePreferences": "Enregistrer les préférences",
+    "groups": {
+      "local": "Local",
+      "online": "En ligne"
+    },
+    "providers": {
+      "mistral": "Mistral OCR",
+      "tabscanner": "TabScanner",
+      "paddleOcrLocal": "Paddle OCR Local",
+      "paddleOcrApi": "Paddle OCR API",
+      "gemini": "Google Gemini",
+      "awsTextract": "AWS Textract",
+      "grok": "Grok (xAI)",
+      "tesseract": "Tesseract.js",
+      "openAi": "OpenAI",
+      "llamaCpp": "llama.cpp",
+      "none": "Aucun (Sélection Manuelle)"
+    },
+    "outputs": {
+      "db": "Enregistré en BD"
+    },
+    "defaultLanguage": "Langage par défaut",
+    "defaultTheme": "Mode d'apparence",
+    "defaultSidebar": "Barre latérale par défaut",
+    "sidebar": {
+      "expanded": "Déployée",
+      "collapsed": "Réduite"
+    },
+    "themes": {
+      "light": "Clair",
+      "dark": "Sombre"
+    },
+    "resetToDefaults": "Réinitialiser les paramètres",
+    "languages": {
+      "en": "Anglais",
+      "pt": "Portugais",
+      "fr": "Français",
+      "de": "Allemand"
+    }
+  },
+  "ocr": {
+    "providers": {
+      "mistral": "Mistral OCR",
+      "tabscanner": "TabScanner",
+      "paddleOcrLocal": "Paddle OCR Local (Auto-hébergé)",
+      "paddleOcrApi": "Paddle OCR API",
+      "gemini": "Google Gemini",
+      "awsTextract": "AWS Textract",
+      "grok": "Grok (xAI)",
+      "tesseract": "Tesseract.js (Local)",
+      "openAi": "OpenAI",
+      "llamaCpp": "llama.cpp (Local)"
+    }
+  }
+}

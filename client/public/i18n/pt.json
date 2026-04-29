@@ -17,7 +17,7 @@
     "dashboard": "Painel",
     "ocrJobs": "Trabalhos OCR",
     "admin": "Admin",
-    "selfHosted": "Auto-hospedado",
+    "selfHosted": "Alojamento Próprio",
     "collapse": "Recolher",
     "expand": "Expandir"
   },
@@ -33,11 +33,14 @@
     "uploadSuccess": "Trabalho criado! As execuções OCR estão a iniciar.",
     "uploadFailed": "Falha no carregamento. Tente novamente.",
     "processing": "A carregar e a criar trabalho...",
-    "singleSelection": "Seleção Única"
+    "crop": "Recortar imagem",
+    "editCrop": "Editar recorte",
+    "resetCrop": "Repor original",
+    "cropApply": "Aplicar recorte"
   },
   "ocrJobs": {
     "title": "Trabalhos OCR",
-    "subtitle": "Gerencie o seu pipeline de processamento de documentos",
+    "subtitle": "Gerir o fluxo de processamento de documentos",
     "addJob": "Adicionar Trabalho OCR",
     "view": {
       "cards": "Cartões",
@@ -60,8 +63,8 @@
       "statusPlaceholder": "Todos os Estados",
       "statusAll": "Todos os Estados",
       "sortPlaceholder": "Ordenar por",
-      "latest": "Criados Mais Recentemente",
-      "oldest": "Criados Mais Antigamente"
+      "latest": "Mais recentes",
+      "oldest": "Mais antigos"
     },
     "home": {
       "welcome": "Bem-vindo de volta!",
@@ -88,9 +91,12 @@
       "noData": "Nenhum dado OCR disponível para esta execução.",
       "selectFile": "Selecione um ficheiro na barra lateral para ver os resultados",
       "copyToClipboard": "Copiar texto OCR",
+      "copyPlainText": "Copiar como Texto Simples",
       "downloadMarkdown": "Descarregar Markdown",
+      "refresh": "Atualizar",
       "copied": "Copiado",
       "copySuccess": "Conteúdo OCR copiado para a área de transferência",
+      "copyPlainTextSuccess": "Conteúdo OCR copiado como texto simples",
       "downloaded": "Descarregado",
       "downloadSuccess": "Markdown guardado"
     },
@@ -109,25 +115,59 @@
     "title": "Definições Padrão de OCR e Saída",
     "ocrProvider": "Fornecedor OCR",
     "outputTargets": "Destinos de Saída",
-    "singleSelection": "Seleção Única",
-    "multiSelection": "Seleção Múltipla",
     "input": "Entrada",
     "savePreferences": "Guardar Preferências",
+    "groups": {
+      "local": "Local",
+      "online": "Online"
+    },
     "providers": {
       "mistral": "Mistral OCR",
-      "tabscanner": "TabScanner"
+      "tabscanner": "TabScanner",
+      "paddleOcrLocal": "Paddle OCR Local",
+      "paddleOcrApi": "Paddle OCR API",
+      "gemini": "Google Gemini",
+      "awsTextract": "AWS Textract",
+      "grok": "Grok (xAI)",
+      "tesseract": "Tesseract.js",
+      "openAi": "OpenAI",
+      "llamaCpp": "llama.cpp",
+      "none": "Nenhum (Seleção Manual)"
     },
     "outputs": {
-      "markdown": "Descarregar Markdown",
-      "clipboard": "Copiar para Área de Transferência",
-      "n8n": "Enviar para n8n",
-      "api": "REST API"
+      "db": "Guardado na BD"
+    },
+    "defaultLanguage": "Idioma Padrão",
+    "defaultTheme": "Modo de Aparência",
+    "defaultSidebar": "Barra Lateral Padrão",
+    "sidebar": {
+      "expanded": "Expandida",
+      "collapsed": "Recolhida"
+    },
+    "themes": {
+      "light": "Claro",
+      "dark": "Escuro"
+    },
+    "resetToDefaults": "Repor Predefinições",
+    "languages": {
+      "en": "Inglês",
+      "pt": "Português",
+      "fr": "Francês",
+      "de": "Alemão"
     }
   },
   "ocr": {
     "providers": {
       "mistral": "Mistral OCR",
-      "tabscanner": "TabScanner (Rápido)"
+      "tabscanner": "TabScanner",
+      "paddleOcrLocal": "Paddle OCR Local (Alojamento próprio)",
+      "paddleOcrApi": "Paddle OCR API",
+      "gemini": "Google Gemini",
+      "awsTextract": "AWS Textract",
+      "grok": "Grok (xAI)",
+      "tesseract": "Tesseract.js (Local)",
+      "openAi": "OpenAI",
+      "llamaCpp": "llama.cpp (Local)"
     }
   }
 }

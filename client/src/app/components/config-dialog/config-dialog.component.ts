@@ -1,10 +1,11 @@
-import { Component, ElementRef, EventEmitter, Input, Output, ViewChild, effect, inject, signal } from '@angular/core';
+import { Component, ElementRef, EventEmitter, Input, OnChanges, Output, SimpleChanges, ViewChild, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DialogModule } from 'primeng/dialog';
 import { ButtonModule } from 'primeng/button';
 import { SelectModule } from 'primeng/select';
 import { ConfigService } from '@services/config.service';
+import { OCR_PROVIDER_ICONS, LOCAL_PROVIDERS } from '@services/ocr-job.service';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { OcrProvider } from '@open-receipt-ocr/types';
 
@@ -14,59 +15,62 @@ import { OcrProvider } from '@open-receipt-ocr/types';
   imports: [CommonModule, DialogModule, ButtonModule, SelectModule, FormsModule, TranslocoModule],
   templateUrl: './config-dialog.component.html',
 })
-export class ConfigDialogComponent {
+export class ConfigDialogComponent implements OnChanges {
   configService: ConfigService = inject(ConfigService);
   private translocoService = inject(TranslocoService);
 
-  // Expose visible as a signal so effect() can watch it
-  visibleSig = signal(false);
-
-  @Input() set visible(v: boolean) {
-    this.visibleSig.set(v);
-  }
-
-  get visible() {
-    return this.visibleSig();
-  }
-
+  @Input() visible = false;
   @Output() visibleChange = new EventEmitter<boolean>();
 
   @ViewChild('arrowContainer') containerEl!: ElementRef<HTMLElement>;
 
   arrows = signal<{ d: string; key: string }[]>([]);
 
-  constructor() {
-    effect(() => {
-      // Subscribe to signals that affect arrow positions
-      this.visibleSig();
-      this.configService.defaultOcrProvider();
-      this.configService.defaultOutputs();
-      // Schedule after DOM update
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['visible']?.currentValue) {
       setTimeout(() => this.updateArrows(), 60);
-    });
+    }
   }
 
-  get ocrOptions() {
+  get ocrOptionGroups() {
+    const local: { label: string; value: OcrProvider | undefined; icon: string }[] = [
+      { label: this.translocoService.translate('config.providers.none'), value: undefined, icon: 'pi pi-question-circle' },
+    ];
+    const online: { label: string; value: OcrProvider | undefined; icon: string }[] = [];
+    for (const p of Object.values(OcrProvider)) {
+      const opt = { label: this.translocoService.translate(`config.providers.${p}`), value: p, icon: OCR_PROVIDER_ICONS[p] };
+      (LOCAL_PROVIDERS.has(p) ? local : online).push(opt);
+    }
     return [
-      {
-        label: this.translocoService.translate('config.providers.mistral'),
-        value: OcrProvider.Mistral,
-        icon: 'pi pi-sparkles',
-      },
-      {
-        label: this.translocoService.translate('config.providers.tabscanner'),
-        value: OcrProvider.TabScanner,
-        icon: 'pi pi-bolt',
-      },
+      { label: this.translocoService.translate('config.groups.local'), items: local },
+      { label: this.translocoService.translate('config.groups.online'), items: online },
     ];
   }
 
   get outputOptions() {
+    return [{ label: this.translocoService.translate('config.outputs.db'), value: 'db', icon: 'pi pi-database' }];
+  }
+
+  get languageOptions() {
     return [
-      { label: this.translocoService.translate('config.outputs.markdown'), value: 'markdown', icon: 'pi pi-download' },
-      { label: this.translocoService.translate('config.outputs.clipboard'), value: 'clipboard', icon: 'pi pi-copy' },
-      { label: this.translocoService.translate('config.outputs.n8n'), value: 'n8n', icon: 'pi pi-send' },
-      { label: this.translocoService.translate('config.outputs.api'), value: 'api', icon: 'pi pi-code', disabled: true },
+      { label: this.translocoService.translate('config.languages.en'), value: 'en' },
+      { label: this.translocoService.translate('config.languages.pt'), value: 'pt' },
+      { label: this.translocoService.translate('config.languages.fr'), value: 'fr' },
+      { label: this.translocoService.translate('config.languages.de'), value: 'de' },
+    ];
+  }
+
+  get themeOptions() {
+    return [
+      { label: this.translocoService.translate('config.themes.light'), value: 'light', icon: 'pi pi-sun' },
+      { label: this.translocoService.translate('config.themes.dark'), value: 'dark', icon: 'pi pi-moon' },
+    ];
+  }
+
+  get sidebarOptions() {
+    return [
+      { label: this.translocoService.translate('config.sidebar.expanded'), value: false, icon: 'pi pi-window-maximize' },
+      { label: this.translocoService.translate('config.sidebar.collapsed'), value: true, icon: 'pi pi-window-minimize' },
     ];
   }
 
@@ -125,25 +129,21 @@ export class ConfigDialogComponent {
     this.arrows.set(allArrows);
   }
 
-  setOcrProvider(value: OcrProvider) {
+  setOcrProvider(value: OcrProvider | undefined) {
     this.configService.defaultOcrProvider.set(value);
-  }
-
-  toggleOutput(value: string) {
-    const current = this.configService.defaultOutputs() as string[];
-    if (current.includes(value)) {
-      this.configService.defaultOutputs.set(current.filter((v) => v !== value));
-    } else {
-      this.configService.defaultOutputs.set([...current, value]);
-    }
-  }
-
-  isOutputSelected(value: string): boolean {
-    return (this.configService.defaultOutputs() as string[]).includes(value);
+    setTimeout(() => this.updateArrows(), 60);
   }
 
   close() {
     this.visibleChange.emit(false);
+  }
+
+  resetToDefaults() {
+    this.configService.defaultOcrProvider.set(OcrProvider.Mistral);
+    this.configService.language.set('en');
+    this.configService.theme.set('light');
+    this.configService.sidebarCollapsed.set(false);
+    setTimeout(() => this.updateArrows(), 60);
   }
 
   save() {

@@ -128,19 +128,37 @@ describe('OCR Jobs Controller (e2e)', () => {
     });
   });
 
-  it('/ocr-jobs/upload (POST)', async () => {
-    const body = await TestHelpers.expectUpload<{ id: number }>(
-      app,
-      '/ocr-jobs/upload',
-      { ocrProvider_0: OcrProvider.Mistral, jobName: 'Test Job' },
-      { name: 'file', filename: 'test.jpg', content: fileData, contentType: MimeType.Jpeg },
-    );
+  describe('/ocr-jobs/upload (POST)', () => {
+    it('returns job id and queues the execution', async () => {
+      const body = await TestHelpers.expectUpload<{ id: number }>(
+        app,
+        '/ocr-jobs/upload',
+        { ocrProvider_0: OcrProvider.Mistral, jobName: 'Test Job' },
+        { name: 'file', filename: 'test.jpg', content: fileData, contentType: MimeType.Jpeg },
+      );
 
-    expect(body).toHaveProperty('id');
-    expect(queueServiceMock.addToOcrQueue).toHaveBeenCalledOnce();
-    // We can't easily check the execution ID here because it's auto-generated in DB
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    expect(queueServiceMock.addToOcrQueue).toHaveBeenCalledWith(expect.objectContaining({ executionId: expect.any(Number) }));
+      expect(body).toHaveProperty('id');
+      expect(queueServiceMock.addToOcrQueue).toHaveBeenCalledOnce();
+      expect(queueServiceMock.addToOcrQueue).toHaveBeenCalledWith(expect.objectContaining({ executionId: expect.any(Number) }));
+    });
+
+    it('creates an execution for the file and queues it with the correct id', async () => {
+      const body = await TestHelpers.expectUpload<{ id: number }>(
+        app,
+        '/ocr-jobs/upload',
+        { ocrProvider_0: OcrProvider.Mistral, jobName: 'Execution Verify Job' },
+        { name: 'file', filename: 'exec-verify.jpg', content: fileData, contentType: MimeType.Jpeg },
+      );
+
+      const job = await TestHelpers.expectOk<OcrJobEntity>(app, `/ocr-jobs/${body.id}`);
+      const execution = job.files[0].executions[0];
+
+      expect(execution).toMatchObject({
+        status: OcrExecutionStatus.Pending,
+        ocrProvider: OcrProvider.Mistral,
+      });
+      expect(queueServiceMock.addToOcrQueue).toHaveBeenCalledWith({ executionId: execution.id });
+    });
   });
 
   it('/ocr-jobs/:id (GET)', async () => {
@@ -223,19 +241,53 @@ describe('OCR Jobs Controller (e2e)', () => {
     expect(updatedJob.files[0].status).toBe(OcrFileStatus.Processing);
   });
 
-  it('/ocr-jobs/:id (DELETE)', async () => {
-    const uploadRes = await TestHelpers.expectUpload<{ id: number }>(
-      app,
-      '/ocr-jobs/upload',
-      { ocrProvider_0: OcrProvider.Mistral, jobName: 'Delete Job' },
-      { name: 'file', filename: 'delete-test.jpg', content: fileData, contentType: MimeType.Jpeg },
-    );
-    const id = uploadRes.id;
+  describe('/ocr-jobs/:id (DELETE)', () => {
+    it('/ocr-jobs/:id (DELETE)', async () => {
+      const uploadRes = await TestHelpers.expectUpload<{ id: number }>(
+        app,
+        '/ocr-jobs/upload',
+        { ocrProvider_0: OcrProvider.Mistral, jobName: 'Delete Job' },
+        { name: 'file', filename: 'delete-test.jpg', content: fileData, contentType: MimeType.Jpeg },
+      );
+      const id = uploadRes.id;
 
-    await TestHelpers.expectOk(app, `/ocr-jobs/${id}`);
-    await TestHelpers.expectDelete(app, `/ocr-jobs/${id}`);
+      await TestHelpers.expectOk(app, `/ocr-jobs/${id}`);
+      await TestHelpers.expectDelete(app, `/ocr-jobs/${id}`);
+      await TestHelpers.expectBadRequestGet(app, `/ocr-jobs/${id}`);
+    });
 
-    // TODO: OPR-3: Refactor test-helpers to make it generic (any type of endpoint GET/POST/DELETE)
-    // await TestHelpers.expectBadRequest(app, `/ocr-jobs/${id}`);
+    it('/ocr-jobs/:id (GET) - not found', async () => {
+      await TestHelpers.expectBadRequestGet(app, '/ocr-jobs/999999');
+    });
+  });
+
+  describe('/ocr-jobs/upload (POST)', () => {
+    it('/ocr-jobs/upload (POST) - invalid ocr provider returns 400', async () => {
+      await TestHelpers.expectBadRequestUpload(
+        app,
+        '/ocr-jobs/upload',
+        { ocrProvider_0: 'invalid-provider', jobName: 'Bad Provider Job' },
+        { name: 'file', filename: 'bad-provider.jpg', content: fileData, contentType: MimeType.Jpeg },
+      );
+    });
+
+    it('/ocr-jobs/upload (POST) - multiple files', async () => {
+      const body = await TestHelpers.expectMultiFileUpload<{ id: number }>(
+        app,
+        '/ocr-jobs/upload',
+        { ocrProvider_0: OcrProvider.Mistral, ocrProvider_1: OcrProvider.Mistral, jobName: 'Multi File Job' },
+        [
+          { name: 'file', filename: 'multi-file-1.jpg', content: fileData, contentType: MimeType.Jpeg },
+          { name: 'file', filename: 'multi-file-2.jpg', content: fileData, contentType: MimeType.Jpeg },
+        ],
+      );
+
+      expect(body).toHaveProperty('id');
+      expect(queueServiceMock.addToOcrQueue).toHaveBeenCalledTimes(2);
+
+      const job = await TestHelpers.expectOk<OcrJobEntity>(app, `/ocr-jobs/${body.id}`);
+      expect(job.files).toHaveLength(2);
+      expect(job.files.map((f) => f.originalName)).toEqual(expect.arrayContaining(['multi-file-1.jpg', 'multi-file-2.jpg']));
+    });
   });
 });

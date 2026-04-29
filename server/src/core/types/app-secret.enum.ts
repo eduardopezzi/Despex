@@ -19,11 +19,34 @@ export enum AppSecret {
   // ─── TabScanner OCR ─────────────────────────────────────────────────────────
   TabScannerApiKey = 'TAB_SCANNER_API_KEY',
 
+  // ─── PaddleOCR (API) ────────────────────────────────────────────────────────
+  PaddleOcrApiKey = 'PADDLE_OCR_API_KEY',
+  PaddleOcrEndpoint = 'PADDLE_OCR_ENDPOINT',
+
+  // ─── PaddleOCR (Local) ──────────────────────────────────────────────────────
+  PaddleOcrLocalEnabled = 'PADDLE_OCR_LOCAL_ENABLED',
+
+  // ─── Gemini ─────────────────────────────────────────────────────────────────
+  GeminiApiKey = 'GEMINI_API_KEY',
+
+  // ─── OpenAI ──────────────────────────────────────────────────────────────────
+  OpenAiApiKey = 'OPENAI_API_KEY',
+
+  // ─── xAI / Grok ─────────────────────────────────────────────────────────────
+  XaiApiKey = 'XAI_API_KEY',
+
+  // ─── Tesseract.js ────────────────────────────────────────────────────────────
+  TesseractLanguage = 'TESSERACT_LANGUAGE',
+
+  // ─── llama.cpp ───────────────────────────────────────────────────────────────
+  LlamaCppBaseUrl = 'LLAMA_CPP_BASE_URL',
+  LlamaCppModel = 'LLAMA_CPP_MODEL',
+
   // ─── Azure OCR ──────────────────────────────────────────────────────────────
   AzureOcrApiKey = 'AZURE_OCR_API_KEY',
   AzureOcrEndpoint = 'AZURE_OCR_ENDPOINT',
 
-  // ─── AWS TextExtract ───────────────────────────────────────────────────────
+  // ─── AWS Textract ───────────────────────────────────────────────────────────
   AwsAccessKeyId = 'AWS_ACCESS_KEY_ID',
   AwsSecretAccessKey = 'AWS_SECRET_ACCESS_KEY',
   AwsRegion = 'AWS_REGION',

@@ -6,8 +6,8 @@
   [closable]="true"
   [dismissableMask]="true"
   [header]="t('upload.title')"
-  [style]="{ width: '700px' }"
-  [contentStyle]="{ overflow: 'visible' }"
+  [style]="{ width: 'min(700px, 95vw)' }"
+  [contentStyle]="{ overflow: 'auto', maxHeight: '80vh' }"
 >
   <div class="flex flex-col gap-6">
     <div class="flex flex-col gap-2">
@@ -25,6 +25,7 @@
     </div>
 
     <p-fileUpload
+      #fileUpload
       name="files"
       [multiple]="true"
       [accept]="acceptTypes"
@@ -48,32 +49,81 @@
     </p-fileUpload>
 
     @if (filesWithProviders().length > 0) {
-      <div class="flex flex-col gap-3 max-h-[400px] overflow-y-auto pr-2">
+      <div class="flex flex-col gap-3">
         @for (item of filesWithProviders(); track item.file.name) {
-          <div class="flex items-center gap-4 p-3 bg-surface-50 dark:bg-surface-900/40 border border-surface-200 dark:border-surface-800 rounded-xl">
-            <div class="flex-none w-10 h-10 flex items-center justify-center bg-white dark:bg-surface-800 rounded-lg shadow-sm">
-              <i class="pi pi-file text-primary-500"></i>
+          <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 p-3 bg-surface-50 dark:bg-surface-900/40 border border-surface-200 dark:border-surface-800 rounded-xl">
+            <div class="flex items-center gap-3 min-w-0 flex-grow">
+              <div class="flex-none w-10 h-10 flex items-center justify-center bg-white dark:bg-surface-800 rounded-lg shadow-sm">
+                <i class="pi pi-file text-primary-500"></i>
+              </div>
+              <div class="min-w-0">
+                <p class="text-sm font-semibold truncate text-surface-900 dark:text-surface-100">{{ item.file.name }}</p>
+                <p class="text-xs text-surface-500">{{ formatSize(item.file.size) }}</p>
+              </div>
             </div>
 
-            <div class="flex-grow min-w-0">
-              <p class="text-sm font-semibold truncate text-surface-900 dark:text-surface-100">{{ item.file.name }}</p>
-              <p class="text-xs text-surface-500">{{ formatSize(item.file.size) }}</p>
-            </div>
-
-            <div class="flex-none w-48">
+            <div class="flex items-center gap-2">
               <p-select
-                [options]="ocrOptions"
-                [(ngModel)]="item.ocrProvider"
+                [options]="ocrOptionGroups"
+                [ngModel]="item.ocrProvider"
+                (ngModelChange)="setProvider(item, $event)"
+                [group]="true"
+                optionGroupLabel="label"
+                optionGroupChildren="items"
                 optionLabel="label"
                 optionValue="value"
-                styleClass="w-full"
+                styleClass="flex-1 sm:w-48"
                 appendTo="body"
                 size="small"
+                [placeholder]="t('upload.selectProvider')"
               >
+                <ng-template #selectedItem let-opt>
+                  <div class="flex items-center gap-2">
+                    <i [class]="opt.icon"></i>
+                    <span>{{ opt.label }}</span>
+                  </div>
+                </ng-template>
+                <ng-template #item let-opt>
+                  <div class="flex items-center gap-2">
+                    <i [class]="opt.icon"></i>
+                    <span>{{ opt.label }}</span>
+                  </div>
+                </ng-template>
               </p-select>
+              @if (isImage(item.file)) {
+                @if (item.croppedFile) {
+                  <p-button 
+                    icon="pi pi-pencil" 
+                    [text]="true" 
+                    severity="success" 
+                    styleClass="w-8 h-8 p-0" 
+                    [pTooltip]="t('upload.editCrop')" 
+                    tooltipPosition="top" 
+                    (onClick)="openCrop(item)" 
+                  />
+                  <p-button 
+                    icon="pi pi-refresh" 
+                    [text]="true" 
+                    severity="warn" 
+                    styleClass="w-8 h-8 p-0" 
+                    [pTooltip]="t('upload.resetCrop')" 
+                    tooltipPosition="top" 
+                    (onClick)="resetCrop(item)" 
+                  />
+                } @else {
+                  <p-button 
+                    icon="pi pi-crop" 
+                    [text]="true" 
+                    severity="secondary" 
+                    styleClass="text-primary-500 w-8 h-8 p-0" 
+                    [pTooltip]="t('upload.crop')" 
+                    tooltipPosition="top" 
+                    (onClick)="openCrop(item)" 
+                  />
+                }
+              }
+              <p-button icon="pi pi-times" [text]="true" severity="danger" (onClick)="removeFile(item)" />
             </div>
-
-            <p-button icon="pi pi-times" [text]="true" severity="danger" (onClick)="removeFile(item)" />
           </div>
         }
       </div>
@@ -91,17 +141,27 @@
     @if (message()) {
       <p-message [severity]="isError() ? 'error' : 'success'" [text]="t(message() || '')" class="w-full" />
     }
-  </div>
 
-  <ng-template pTemplate="footer">
-    <p-button [label]="t('common.cancel')" severity="secondary" [text]="true" (onClick)="close()" [disabled]="uploading()" />
-    <p-button
-      [label]="t('upload.uploadAndProcess')"
-      icon="pi pi-cloud-upload"
-      [loading]="uploading()"
-      [disabled]="filesWithProviders().length === 0"
-      (onClick)="doUpload()"
-    />
-  </ng-template>
+    <!-- Footer -->
+    <div class="flex justify-end gap-2 pt-4 border-t border-surface-200 dark:border-surface-700">
+      <p-button [label]="t('common.cancel')" severity="secondary" [text]="true" (onClick)="close()" [disabled]="uploading()" />
+      <p-button
+        [label]="t('upload.uploadAndProcess')"
+        icon="pi pi-cloud-upload"
+        [loading]="uploading()"
+        [disabled]="uploading() || !allProvidersSelected()"
+        (onClick)="doUpload()"
+      />
+    </div>
+  </div>
   <p-toast position="top-right" />
 </p-dialog>
+
+<app-image-crop-dialog
+  [visible]="!!cropTarget()"
+  (visibleChange)="!$event && closeCrop()"
+  [file]="cropTarget()?.file ?? null"
+  [initialTransform]="cropTarget()?.transform ?? null"
+  [initialCropper]="cropTarget()?.cropper ?? null"
+  (cropped)="applyCrop($event)"
+/>

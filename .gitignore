@@ -146,3 +146,5 @@ vite.config.ts.timestamp-*
 *.sqlite
 # TODO: OPR-1: Remove this
 server/uploads
+
+*.traineddata

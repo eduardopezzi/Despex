@@ -102,18 +102,27 @@ export class OneDriveStorageProvider extends StorageProvider {
     while (start < fileSize) {
       const end = Math.min(start + chunkSize, fileSize) - 1;
       const chunk = allChunks.slice(start, end + 1);
-      const res = await fetch(uploadUrl, {
-        method: 'PUT',
-        headers: {
-          'Content-Length': chunk.length.toString(),
-          'Content-Range': `bytes ${start}-${end}/${fileSize}`,
-        },
-        body: chunk,
-      });
-      if (!res.ok) {
-        const text = await res.text();
-        this.logger.error(`OneDrive upload chunk failed: ${text}`);
-        throw new InternalServerErrorException('OneDrive upload chunk failed');
+
+      try {
+        const res = await fetch(uploadUrl, {
+          method: 'PUT',
+          headers: {
+            'Content-Length': chunk.length.toString(),
+            'Content-Range': `bytes ${start}-${end}/${fileSize}`,
+          },
+          body: chunk,
+        });
+
+        if (!res.ok) {
+          const text = await res.text();
+          this.logger.error(`OneDrive upload chunk failed: ${text}`);
+          throw new InternalServerErrorException('OneDrive upload chunk failed');
+        }
+      } catch (err: unknown) {
+        const msg = OneDriveStorageProvider.extractErrorMessage(err);
+        this.logger.error(`OneDrive fetch error during chunk upload: ${msg}`);
+        // If it's a fetch error (like ECONNRESET), throw a specific exception that NestJS handles
+        throw new InternalServerErrorException(`Network error during OneDrive upload: ${msg}`);
       }
       start = end + 1;
     }

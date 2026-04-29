@@ -33,7 +33,15 @@
     "uploadSuccess": "Job created! OCR executions are starting.",
     "uploadFailed": "Upload failed. Please try again.",
     "processing": "Uploading and creating job...",
-    "singleSelection": "Single Selection"
+    "crop": "Crop image",
+    "editCrop": "Edit crop",
+    "resetCrop": "Reset crop",
+    "cropApply": "Apply crop",
+    "cropRotateLeft": "Rotate Left",
+    "cropRotateRight": "Rotate Right",
+    "cropZoomIn": "Zoom In",
+    "cropZoomOut": "Zoom Out",
+    "cropFlipH": "Flip Horizontal"
   },
   "ocrJobs": {
     "title": "OCR Jobs",
@@ -87,10 +95,13 @@
       "ocrInProgress": "OCR is running...",
       "noData": "No OCR data available for this execution.",
       "selectFile": "Select a file from the sidebar to view results",
-      "copyToClipboard": "Copy OCR text",
+      "copyToClipboard": "Copy text as Markdown",
+      "copyPlainText": "Copy as Plain Text",
       "downloadMarkdown": "Download Markdown",
+      "refresh": "Refresh",
       "copied": "Copied",
       "copySuccess": "OCR content copied to clipboard",
+      "copyPlainTextSuccess": "OCR content copied as plain text",
       "downloaded": "Downloaded",
       "downloadSuccess": "Markdown saved"
     },
@@ -109,25 +120,59 @@
     "title": "Default OCR and Output Settings",
     "ocrProvider": "OCR Provider",
     "outputTargets": "Output Targets",
-    "singleSelection": "Single Selection",
-    "multiSelection": "Multi Selection",
     "input": "Input",
     "savePreferences": "Save Preferences",
+    "groups": {
+      "local": "Local",
+      "online": "Online"
+    },
     "providers": {
       "mistral": "Mistral OCR",
-      "tabscanner": "TabScanner"
+      "tabscanner": "TabScanner",
+      "paddleOcrLocal": "Paddle OCR Local",
+      "paddleOcrApi": "Paddle OCR API",
+      "gemini": "Google Gemini",
+      "awsTextract": "AWS Textract",
+      "grok": "Grok (xAI)",
+      "tesseract": "Tesseract.js",
+      "openAi": "OpenAI",
+      "llamaCpp": "llama.cpp",
+      "none": "None (Manual Selection)"
     },
     "outputs": {
-      "markdown": "Download Markdown",
-      "clipboard": "Copy to Clipboard",
-      "n8n": "Send to n8n",
-      "api": "REST API"
+      "db": "Stored in DB"
+    },
+    "defaultLanguage": "Default Language",
+    "defaultTheme": "Appearance Mode",
+    "defaultSidebar": "Sidebar Default",
+    "sidebar": {
+      "expanded": "Expanded",
+      "collapsed": "Collapsed"
+    },
+    "themes": {
+      "light": "Light",
+      "dark": "Dark"
+    },
+    "resetToDefaults": "Reset to Defaults",
+    "languages": {
+      "en": "English",
+      "pt": "Portuguese",
+      "fr": "French",
+      "de": "German"
     }
   },
   "ocr": {
     "providers": {
       "mistral": "Mistral OCR",
-      "tabscanner": "TabScanner (Fast)"
+      "tabscanner": "TabScanner",
+      "paddleOcrLocal": "Paddle OCR Local (Self-hosted)",
+      "paddleOcrApi": "Paddle OCR API",
+      "gemini": "Google Gemini",
+      "awsTextract": "AWS Textract",
+      "grok": "Grok (xAI)",
+      "tesseract": "Tesseract.js (Local)",
+      "openAi": "OpenAI",
+      "llamaCpp": "llama.cpp (Local)"
     }
   }
 }
