@@ -4,7 +4,7 @@ import { extname } from 'path';
 import { AppSecret } from '@core/types/app-secret.enum';
 import { SecretProvider } from '@core/secrets/secret-provider.interface';
 import { StorageProvider } from '@core/storage/storage-provider.interface';
-import { MimeType, FileExtension } from '@open-receipt-ocr/types';
+import { FileExtension } from '@open-receipt-ocr/types';
 import { OcrFileEntity } from '@core/database/entities/ocr-file.entity';
 import { getMimeType } from '@worker/ocr/utils/mime-type.util';
 import { streamToBase64 } from '@worker/ocr/utils/stream.util';
@@ -40,5 +40,4 @@ export class MistralProcessor {
 
     return JSON.stringify(ocrResponse);
   }
-
 }

@@ -18,7 +18,7 @@ nav_order: 2
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/yourusername/open-receipt-ocr.git
+git clone https://github.com/iursevla/open-receipt-ocr.git
 cd open-receipt-ocr
 ```
 

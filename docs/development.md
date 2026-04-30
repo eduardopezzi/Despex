@@ -59,7 +59,7 @@ open-receipt-ocr/
 
 ```bash
 # Clone repository
-git clone https://github.com/yourusername/open-receipt-ocr.git
+git clone https://github.com/iursevla/open-receipt-ocr.git
 cd open-receipt-ocr
 
 # Install dependencies

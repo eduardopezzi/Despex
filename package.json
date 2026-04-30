@@ -14,7 +14,8 @@
     "lint": "turbo run lint",
     "format": "turbo run format",
     "test": "turbo run test",
-    "start": "turbo run start"
+    "start": "turbo run start",
+    "prepare": "husky"
   },
   "devDependencies": {
     "@angular/animations": "21.2.5",
@@ -23,6 +24,7 @@
     "@angular/compiler-cli": "21.2.5",
     "@angular/core": "21.2.5",
     "@angular/platform-browser": "21.2.5",
+    "husky": "^9.1.7",
     "turbo": "^2.8.20",
     "typescript": "5.9.3"
   },

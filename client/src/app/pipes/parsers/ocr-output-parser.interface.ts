@@ -6,4 +6,3 @@ export interface ParsedOcrOutput {
 export interface OcrOutputParser {
   parse(rawJson: unknown): ParsedOcrOutput;
 }
-

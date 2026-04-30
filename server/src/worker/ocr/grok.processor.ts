@@ -54,5 +54,4 @@ export class GrokProcessor {
 
     return JSON.stringify({ markdown, model: GROK_MODEL });
   }
-
 }

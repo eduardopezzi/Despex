@@ -12,7 +12,7 @@ Quick commands and snippets for common tasks.
 
 ```bash
 # Clone and install
-git clone https://github.com/yourusername/open-receipt-ocr.git
+git clone https://github.com/iursevla/open-receipt-ocr.git
 cd open-receipt-ocr
 npm install
 

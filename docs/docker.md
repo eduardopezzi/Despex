@@ -451,4 +451,4 @@ If you encounter issues:
 1. Check the [Troubleshooting](#troubleshooting) section
 2. Review container logs: `docker-compose logs app`
 3. Check [Development Guide](./development.md) for debugging tips
-4. Open an issue on [GitHub](https://github.com/yourusername/open-receipt-ocr/issues)
+4. Open an issue on [GitHub](https://github.com/iursevla/open-receipt-ocr/issues)

@@ -362,7 +362,7 @@ export class OcrJobsPageComponent implements OnInit, OnDestroy {
 
         // Detect if we are entering a table cell
         const isNewCell = ['td', 'th'].includes(tagName);
-        
+
         // Process children with the current or updated context
         const childText = this.recursiveExtractText(el, isInCell || isNewCell);
 
@@ -385,7 +385,7 @@ export class OcrJobsPageComponent implements OnInit, OnDestroy {
         }
       }
     }
-    
+
     // Final cleanup for the top-level call (where isInCell is false)
     if (!isInCell) {
       return text.replace(/\n{3,}/g, '\n\n');

@@ -25,9 +25,7 @@
         <div class="w-px h-4 bg-surface-200 dark:bg-surface-700 mx-1"></div>
         <p-button icon="pi pi-arrows-h" [text]="true" [pTooltip]="t('upload.cropFlipH')" tooltipPosition="bottom" (onClick)="flipH()" />
       </div>
-      <div class="text-xs font-medium text-surface-500">
-        {{ (transform().scale ?? 1) * 100 | number : '1.0-0' }}%
-      </div>
+      <div class="text-xs font-medium text-surface-500">{{ (transform().scale ?? 1) * 100 | number: '1.0-0' }}%</div>
     </div>
 
     <!-- Cropper -->

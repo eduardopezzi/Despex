@@ -15,7 +15,18 @@ import { TranslocoModule } from '@jsverse/transloco';
 @Component({
   selector: 'app-home-page',
   standalone: true,
-  imports: [CommonModule, DatePipe, CardModule, ButtonModule, TagModule, ProgressSpinnerModule, UploadDialogComponent, TranslocoModule, RouterModule, RouterLink],
+  imports: [
+    CommonModule,
+    DatePipe,
+    CardModule,
+    ButtonModule,
+    TagModule,
+    ProgressSpinnerModule,
+    UploadDialogComponent,
+    TranslocoModule,
+    RouterModule,
+    RouterLink,
+  ],
   templateUrl: './home.page.html',
 })
 export class HomePageComponent implements OnInit {
