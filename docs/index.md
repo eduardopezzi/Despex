@@ -23,7 +23,7 @@ A powerful, flexible, and extensible OCR (Optical Character Recognition) platfor
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/open-receipt-ocr.git
+git clone https://github.com/iursevla/open-receipt-ocr.git
 cd open-receipt-ocr
 
 # Setup environment
@@ -100,5 +100,5 @@ This project is open source. Check the repository for license details.
 ## 🆘 Support
 
 For issues and questions:
-- [GitHub Issues](https://github.com/yourusername/open-receipt-ocr/issues)
+- [GitHub Issues](https://github.com/iursevla/open-receipt-ocr/issues)
 - Check existing documentation for common questions

@@ -36,9 +36,9 @@ bundle exec jekyll build
 
 ## Publishing
 
-Documentation is automatically published to GitHub Pages when changes are pushed to the `main` branch (via `.github/workflows/pages.yml`).
+Documentation is automatically published to GitHub Pages when changes are pushed to the `main` branch (once configured in the repository settings to deploy from the `/docs` folder).
 
-Access at: `https://yourusername.github.io/open-receipt-ocr`
+Access at: `https://iursevla.github.io/open-receipt-ocr`
 
 ## Contributing to Docs
 
@@ -46,7 +46,8 @@ Access at: `https://yourusername.github.io/open-receipt-ocr`
 2. Test locally with `bundle exec jekyll serve`
 3. Commit changes: `git commit -m "docs: description"`
 4. Push to main branch
-5. GitHub Actions will automatically deploy
+5. Open a PR into open-receipt-ocr project
+6. GitHub Actions will automatically deploy
 
 ## Jekyll Configuration
 
