@@ -36,7 +36,6 @@
 /* You can add global styles to this file, and also import other style files */
 
 @layer components {
-
   /* ── OCR Markdown Output ── */
   .ocr-markdown-output {
     @apply leading-6;
@@ -99,7 +98,9 @@
 /* ── Customizing ngx-image-cropper ── */
 .ngx-ic-cropper {
   border: 2px dashed rgba(255, 255, 255, 0.8) !important;
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.3), 0 0 8px rgba(0, 0, 0, 0.4);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.3),
+    0 0 8px rgba(0, 0, 0, 0.4);
 }
 
 .ngx-ic-square {

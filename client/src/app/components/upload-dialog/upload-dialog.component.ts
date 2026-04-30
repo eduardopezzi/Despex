@@ -10,7 +10,7 @@ import { ProgressBarModule } from 'primeng/progressbar';
 import { OcrProvider } from '@open-receipt-ocr/types';
 import { SelectModule } from 'primeng/select';
 import { FormsModule } from '@angular/forms';
-import { FileUpload, FileUploadModule, FileSelectEvent } from 'primeng/fileupload';
+import { FileUpload, FileUploadModule } from 'primeng/fileupload';
 import { InputTextModule } from 'primeng/inputtext';
 import { TooltipModule } from 'primeng/tooltip';
 
@@ -102,7 +102,9 @@ export class UploadDialogComponent {
   }
 
   resetCrop(item: FileWithProvider) {
-    this.filesWithProviders.update((items) => items.map((i) => (i === item ? { ...i, croppedFile: undefined, transform: undefined, cropper: undefined } : i)));
+    this.filesWithProviders.update((items) =>
+      items.map((i) => (i === item ? { ...i, croppedFile: undefined, transform: undefined, cropper: undefined } : i)),
+    );
   }
 
   get ocrOptionGroups() {

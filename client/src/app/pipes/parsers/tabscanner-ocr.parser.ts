@@ -45,4 +45,3 @@ export class TabScannerOcrParser implements OcrOutputParser {
     };
   }
 }
-

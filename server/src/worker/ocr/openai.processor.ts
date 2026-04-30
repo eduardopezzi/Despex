@@ -53,5 +53,4 @@ export class OpenAiProcessor {
 
     return JSON.stringify({ markdown, model: OPENAI_MODEL });
   }
-
 }

@@ -17,7 +17,7 @@ async function bootstrap() {
     if (err.message && err.message.includes('ECONNRESET')) {
       return;
     }
-    // process.exit(1); 
+    // process.exit(1);
   });
 }
 

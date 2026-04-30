@@ -33,9 +33,7 @@ export abstract class SecretProvider {
   async getSecretAsIntOrThrow(name: AppSecret): Promise<number> {
     const value = await this.getSecretAsInt(name);
     if (value === undefined) {
-      throw new Error(
-        `Secret "${name}" is missing and has no default. This secret is required for the application to function properly.`,
-      );
+      throw new Error(`Secret "${name}" is missing and has no default. This secret is required for the application to function properly.`);
     }
     return value;
   }

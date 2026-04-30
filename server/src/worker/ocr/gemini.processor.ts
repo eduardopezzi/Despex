@@ -50,5 +50,4 @@ export class GeminiProcessor {
 
     return JSON.stringify({ markdown, model: GEMINI_MODEL });
   }
-
 }

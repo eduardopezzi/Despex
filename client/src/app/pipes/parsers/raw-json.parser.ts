@@ -7,4 +7,3 @@ export class RawJsonParser implements OcrOutputParser {
     };
   }
 }
-

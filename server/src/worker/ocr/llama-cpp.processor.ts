@@ -54,5 +54,4 @@ export class LlamaCppProcessor {
 
     return JSON.stringify({ markdown, model });
   }
-
 }
