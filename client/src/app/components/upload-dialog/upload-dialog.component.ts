@@ -127,7 +127,7 @@ export class UploadDialogComponent {
     this.fileUpload?.clear();
   }
 
-  readonly ALLOWED_TYPES = [MimeType.Pdf, MimeType.Jpeg, MimeType.Png, MimeType.Webp];
+  readonly ALLOWED_TYPES = [MimeType.Jpeg, MimeType.Png];
 
   get acceptTypes() {
     return this.ALLOWED_TYPES.join(',');
