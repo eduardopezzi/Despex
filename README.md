@@ -2,7 +2,26 @@
 
 Open Receipt OCR is a powerful, flexible, and extensible OCR (Optical Character Recognition) platform designed specifically for receipts and documents. It supports a wide range of OCR providers, from cloud-based AI models to local engines.
 
+## 📸 Screenshots
+
+| OCR Jobs (Card View) | OCR Jobs (Table View) |
+|:---:|:---:|
+| ![Card view](docs/assets/screenshots/ocr-jobs-card-view.png) | ![Table view](docs/assets/screenshots/ocr-jobs-table-view.png) |
+
+| Job Detail — Results | Job Detail — Failed |
+|:---:|:---:|
+| ![Job detail](docs/assets/screenshots/ocr-job-detail.png) | ![Failed execution](docs/assets/screenshots/ocr-job-failed.png) |
+
+| Dark Mode | French Localisation |
+|:---:|:---:|
+| ![Dark mode](docs/assets/screenshots/dashboard-dark-mode.png) | ![French UI](docs/assets/screenshots/dashboard-french.png) |
+
+![Settings dialog](docs/assets/screenshots/ocr-settings.png)
+
+---
+
 ## 🚀 OCR Providers
+
 
 This platform supports multiple OCR engines. You can configure which ones are available by setting the appropriate environment variables in your `server/.env` file.
 

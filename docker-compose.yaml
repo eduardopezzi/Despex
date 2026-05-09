@@ -1,7 +1,5 @@
-
 services:
   app:
-    build: .
     image: ghcr.io/iursevla/open-receipt-ocr:latest
     container_name: ocr-app
     restart: unless-stopped
@@ -13,8 +11,8 @@ services:
       - NODE_ENV=production
       - REDIS_HOST=redis
     env_file:
+      # Copy .env.simple.example to .env and fill in your API key(s)
       - .env
-
     volumes:
       - ./data/uploads:/app/data/uploads
       - ./data/db:/app/data/db
@@ -25,8 +23,6 @@ services:
     image: redis:alpine
     container_name: ocr-redis
     restart: unless-stopped
-    ports:
-      - "6379:6379"
     volumes:
       - redis_data:/data
     networks:

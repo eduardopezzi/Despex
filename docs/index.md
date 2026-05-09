@@ -37,9 +37,28 @@ npm run dev
 open http://localhost:3000
 ```
 
+## 📸 Screenshots
+
+| OCR Jobs (Card View) | OCR Jobs (Table View) |
+|:---:|:---:|
+| ![Card view](assets/screenshots/ocr-jobs-card-view.png) | ![Table view](assets/screenshots/ocr-jobs-table-view.png) |
+
+| Job Detail — Results | Job Detail — Failed |
+|:---:|:---:|
+| ![Job detail](assets/screenshots/ocr-job-detail.png) | ![Failed execution](assets/screenshots/ocr-job-failed.png) |
+
+| Dark Mode | French Localisation |
+|:---:|:---:|
+| ![Dark mode](assets/screenshots/dashboard-dark-mode.png) | ![French UI](assets/screenshots/dashboard-french.png) |
+
+![Settings dialog](assets/screenshots/ocr-settings.png)
+
+[→ See all screenshots](./screenshots.md)
+
 ## 📖 Documentation
 
 - [Getting Started](./getting-started.md) - Installation and basic setup
+- [Screenshots](./screenshots.md) - UI screenshots and feature tour
 - [Configuration](./configuration.md) - Configure OCR and storage providers
 - [API Usage](./api.md) - Integrate via REST API
 - [Development Guide](./development.md) - Code structure and development
