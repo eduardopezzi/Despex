@@ -54,6 +54,7 @@ export enum AppSecret {
   // ─── Storage ────────────────────────────────────────────────────────────────
   StorageProvider = 'STORAGE_PROVIDER',
   MaxFileSizeBytes = 'MAX_FILE_SIZE_BYTES',
+  StoragePartSize = 'STORAGE_PART_SIZE',
   // ─── Storage - Local ────────────────────────────────────────────────────────
   StorageLocalPath = 'STORAGE_LOCAL_PATH',
   // ─── Storage - OneDrive ─────────────────────────────────────────────────────
@@ -83,4 +84,5 @@ export const DefaultAppSecret: Partial<Record<AppSecret, string | number>> = {
   [AppSecret.StorageLocalPath]: 'data/uploads',
   [AppSecret.RedisHost]: 'localhost',
   [AppSecret.RedisPort]: 6379,
+  [AppSecret.StoragePartSize]: 5 * 1024 * 1024,
 };
