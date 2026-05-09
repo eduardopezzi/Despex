@@ -10,6 +10,12 @@ A visual tour of the Open Receipt OCR interface.
 
 ---
 
+## 🎥 Demo Video
+
+<video src="assets/screenshots/open-receipt-ocr.mp4" controls width="100%"></video>
+
+---
+
 ## Dashboard
 
 The dashboard gives an at-a-glance summary of your OCR activity: total jobs, completed, processing, and failed counts, plus a list of recent jobs.

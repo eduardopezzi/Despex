@@ -37,7 +37,9 @@ npm run dev
 open http://localhost:3000
 ```
 
-## 📸 Screenshots
+## 📸 Screenshots & Demo
+
+<video src="assets/screenshots/open-receipt-ocr.mp4" controls width="100%"></video>
 
 | Dashboard | OCR Jobs (Card View) | OCR Jobs (Table View) |
 |:---:|:---:|:---:|

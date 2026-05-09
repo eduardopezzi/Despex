@@ -2,7 +2,9 @@
 
 Open Receipt OCR is a powerful, flexible, and extensible OCR (Optical Character Recognition) platform designed specifically for receipts and documents. It supports a wide range of OCR providers, from cloud-based AI models to local engines.
 
-## 📸 Screenshots
+## 📸 Screenshots & Demo
+
+<video src="docs/assets/screenshots/open-receipt-ocr.mp4" controls width="100%"></video>
 
 | Dashboard | OCR Jobs (Card View) | OCR Jobs (Table View) |
 |:---:|:---:|:---:|
