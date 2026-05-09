@@ -14,7 +14,7 @@ A visual tour of the Open Receipt OCR interface.
 
 The main jobs listing in card view. Each card shows the job name, creation date, status badge, file thumbnails, and a delete button.
 
-![OCR Jobs card view](assets/screenshots/ocr-jobs-card-view.png)
+![OCR Jobs card view](assets/screenshots/dashboard-view.png)
 
 ---
 

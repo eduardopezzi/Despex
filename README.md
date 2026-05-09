@@ -6,7 +6,7 @@ Open Receipt OCR is a powerful, flexible, and extensible OCR (Optical Character 
 
 | OCR Jobs (Card View) | OCR Jobs (Table View) |
 |:---:|:---:|
-| ![Card view](docs/assets/screenshots/ocr-jobs-card-view.png) | ![Table view](docs/assets/screenshots/ocr-jobs-table-view.png) |
+| ![Card view](docs/assets/screenshots/dashboard-view.png) | ![Table view](docs/assets/screenshots/ocr-jobs-table-view.png) |
 
 | Job Detail — Results | Job Detail — Failed |
 |:---:|:---:|

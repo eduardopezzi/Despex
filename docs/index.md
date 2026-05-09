@@ -41,7 +41,7 @@ open http://localhost:3000
 
 | OCR Jobs (Card View) | OCR Jobs (Table View) |
 |:---:|:---:|
-| ![Card view](assets/screenshots/ocr-jobs-card-view.png) | ![Table view](assets/screenshots/ocr-jobs-table-view.png) |
+| ![Card view](assets/screenshots/dashboard-view.png) | ![Table view](assets/screenshots/ocr-jobs-table-view.png) |
 
 | Job Detail — Results | Job Detail — Failed |
 |:---:|:---:|
