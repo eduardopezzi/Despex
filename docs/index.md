@@ -39,21 +39,23 @@ open http://localhost:3000
 
 ## 📸 Screenshots
 
-| OCR Jobs (Card View) | OCR Jobs (Table View) |
+| Dashboard | OCR Jobs (Card View) | OCR Jobs (Table View) |
+|:---:|:---:|:---:|
+| ![Dashboard](assets/screenshots/dashboard-view.png) | ![Card view](assets/screenshots/ocr-jobs-card-view.png) | ![Table view](assets/screenshots/ocr-jobs-table-view.png) |
+
+| Create Job | Multiple Files | Image Crop |
+|:---:|:---:|:---:|
+| ![Create job](assets/screenshots/add-ocr-job-modal.png) | ![Multiple files](assets/screenshots/add-ocr-modal-multiple-files.png) | ![Crop](assets/screenshots/add-ocr-modal-apply-crop.png) |
+
+| Job Detail — Results | Job Detail — Failed | Settings |
+|:---:|:---:|:---:|
+| ![Results](assets/screenshots/ocr-job-modal.png) | ![Failed](assets/screenshots/ocr-job-modal-failed.png) | ![Settings](assets/screenshots/default-settings-modal.png) |
+
+| Dark Mode | Localisation (German) |
 |:---:|:---:|
-| ![Card view](assets/screenshots/dashboard-view.png) | ![Table view](assets/screenshots/ocr-jobs-table-view.png) |
+| ![Dark mode](assets/screenshots/dark-mode.png) | ![German UI](assets/screenshots/ocr-jobs-language-selector.png) |
 
-| Job Detail — Results | Job Detail — Failed |
-|:---:|:---:|
-| ![Job detail](assets/screenshots/ocr-job-detail.png) | ![Failed execution](assets/screenshots/ocr-job-failed.png) |
-
-| Dark Mode | French Localisation |
-|:---:|:---:|
-| ![Dark mode](assets/screenshots/dashboard-dark-mode.png) | ![French UI](assets/screenshots/dashboard-french.png) |
-
-![Settings dialog](assets/screenshots/ocr-settings.png)
-
-[→ See all screenshots](./screenshots.md)
+[→ See all screenshots with descriptions](./screenshots.md)
 
 ## 📖 Documentation
 

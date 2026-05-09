@@ -4,19 +4,21 @@ Open Receipt OCR is a powerful, flexible, and extensible OCR (Optical Character 
 
 ## 📸 Screenshots
 
-| OCR Jobs (Card View) | OCR Jobs (Table View) |
-|:---:|:---:|
-| ![Card view](docs/assets/screenshots/dashboard-view.png) | ![Table view](docs/assets/screenshots/ocr-jobs-table-view.png) |
+| Dashboard | OCR Jobs (Card View) | OCR Jobs (Table View) |
+|:---:|:---:|:---:|
+| ![Dashboard](docs/assets/screenshots/dashboard-view.png) | ![Card view](docs/assets/screenshots/ocr-jobs-card-view.png) | ![Table view](docs/assets/screenshots/ocr-jobs-table-view.png) |
 
-| Job Detail — Results | Job Detail — Failed |
-|:---:|:---:|
-| ![Job detail](docs/assets/screenshots/ocr-job-detail.png) | ![Failed execution](docs/assets/screenshots/ocr-job-failed.png) |
+| Create Job | Multiple Files | Image Crop |
+|:---:|:---:|:---:|
+| ![Create job](docs/assets/screenshots/add-ocr-job-modal.png) | ![Multiple files](docs/assets/screenshots/add-ocr-modal-multiple-files.png) | ![Crop](docs/assets/screenshots/add-ocr-modal-apply-crop.png) |
 
-| Dark Mode | French Localisation |
-|:---:|:---:|
-| ![Dark mode](docs/assets/screenshots/dashboard-dark-mode.png) | ![French UI](docs/assets/screenshots/dashboard-french.png) |
+| Job Detail — Results | Job Detail — Failed | Settings |
+|:---:|:---:|:---:|
+| ![Results](docs/assets/screenshots/ocr-job-modal.png) | ![Failed](docs/assets/screenshots/ocr-job-modal-failed.png) | ![Settings](docs/assets/screenshots/default-settings-modal.png) |
 
-![Settings dialog](docs/assets/screenshots/ocr-settings.png)
+| Dark Mode | Localisation (German) |
+|:---:|:---:|
+| ![Dark mode](docs/assets/screenshots/dark-mode.png) | ![German UI](docs/assets/screenshots/ocr-jobs-language-selector.png) |
 
 ---
 
