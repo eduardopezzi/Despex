@@ -2,7 +2,7 @@
 services:
   app:
     build: .
-    image: open-receipt-ocr:latest
+    image: ghcr.io/iursevla/open-receipt-ocr:latest
     container_name: ocr-app
     restart: unless-stopped
     depends_on:
