@@ -37,9 +37,32 @@ npm run dev
 open http://localhost:3000
 ```
 
+## 📸 Screenshots & Demo
+
+<video src="assets/screenshots/open-receipt-ocr.mp4" controls width="100%"></video>
+
+| Dashboard | OCR Jobs (Card View) | OCR Jobs (Table View) |
+|:---:|:---:|:---:|
+| ![Dashboard](assets/screenshots/dashboard-view.png) | ![Card view](assets/screenshots/ocr-jobs-card-view.png) | ![Table view](assets/screenshots/ocr-jobs-table-view.png) |
+
+| Create Job | Multiple Files | Image Crop |
+|:---:|:---:|:---:|
+| ![Create job](assets/screenshots/add-ocr-job-modal.png) | ![Multiple files](assets/screenshots/add-ocr-modal-multiple-files.png) | ![Crop](assets/screenshots/add-ocr-modal-apply-crop.png) |
+
+| Job Detail — Results | Job Detail — Failed | Settings |
+|:---:|:---:|:---:|
+| ![Results](assets/screenshots/ocr-job-modal.png) | ![Failed](assets/screenshots/ocr-job-modal-failed.png) | ![Settings](assets/screenshots/default-settings-modal.png) |
+
+| Dark Mode | Localisation (German) |
+|:---:|:---:|
+| ![Dark mode](assets/screenshots/dark-mode.png) | ![German UI](assets/screenshots/ocr-jobs-language-selector.png) |
+
+[→ See all screenshots with descriptions](./screenshots.md)
+
 ## 📖 Documentation
 
 - [Getting Started](./getting-started.md) - Installation and basic setup
+- [Screenshots](./screenshots.md) - UI screenshots and feature tour
 - [Configuration](./configuration.md) - Configure OCR and storage providers
 - [API Usage](./api.md) - Integrate via REST API
 - [Development Guide](./development.md) - Code structure and development

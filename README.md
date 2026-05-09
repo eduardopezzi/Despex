@@ -2,7 +2,30 @@
 
 Open Receipt OCR is a powerful, flexible, and extensible OCR (Optical Character Recognition) platform designed specifically for receipts and documents. It supports a wide range of OCR providers, from cloud-based AI models to local engines.
 
+## 📸 Screenshots & Demo
+
+<video src="docs/assets/screenshots/open-receipt-ocr.mp4" controls width="100%"></video>
+
+| Dashboard | OCR Jobs (Card View) | OCR Jobs (Table View) |
+|:---:|:---:|:---:|
+| ![Dashboard](docs/assets/screenshots/dashboard-view.png) | ![Card view](docs/assets/screenshots/ocr-jobs-card-view.png) | ![Table view](docs/assets/screenshots/ocr-jobs-table-view.png) |
+
+| Create Job | Multiple Files | Image Crop |
+|:---:|:---:|:---:|
+| ![Create job](docs/assets/screenshots/add-ocr-job-modal.png) | ![Multiple files](docs/assets/screenshots/add-ocr-modal-multiple-files.png) | ![Crop](docs/assets/screenshots/add-ocr-modal-apply-crop.png) |
+
+| Job Detail — Results | Job Detail — Failed | Settings |
+|:---:|:---:|:---:|
+| ![Results](docs/assets/screenshots/ocr-job-modal.png) | ![Failed](docs/assets/screenshots/ocr-job-modal-failed.png) | ![Settings](docs/assets/screenshots/default-settings-modal.png) |
+
+| Dark Mode | Localisation (German) |
+|:---:|:---:|
+| ![Dark mode](docs/assets/screenshots/dark-mode.png) | ![German UI](docs/assets/screenshots/ocr-jobs-language-selector.png) |
+
+---
+
 ## 🚀 OCR Providers
+
 
 This platform supports multiple OCR engines. You can configure which ones are available by setting the appropriate environment variables in your `server/.env` file.
 
