@@ -7,3 +7,8 @@ export * from './mime-type.enum';
 export * from './file-extension.enum';
 export * from './pagination.interface';
 export * from './sort-order.enum';
+export * from './payment-type.enum';
+export * from './fiscal-document-type.enum';
+export * from './expense-source-type.enum';
+export * from './fiscal-fetch-status.enum';
+export * from './expense.interface';

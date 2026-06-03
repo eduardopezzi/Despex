@@ -8,9 +8,18 @@ import { OcrProvider } from '@core/types/ocr-provider.enum';
 import { OcrExecutionsDao } from '@core/database/daos/ocr-executions.dao';
 import { OcrFilesDao } from '@core/database/daos/ocr-files.dao';
 import { OcrJobsDao } from '@core/database/daos/ocr-jobs.dao';
-import { OcrExecutionStatus, OcrFileStatus, OcrJobStatus } from '@open-receipt-ocr/types';
+import {
+  ExpenseSourceType,
+  FiscalDocumentType,
+  FiscalFetchStatus,
+  OcrExecutionStatus,
+  OcrFileStatus,
+  OcrJobStatus,
+  PaymentType,
+} from '@open-receipt-ocr/types';
 import { NoTxn, WithTxn } from '@core/database/txn-def.interface';
 import { DbService } from '@core/database/db.service';
+import { ExpensesDao } from '@core/database/daos/expenses.dao';
 import { MistralProcessor } from '@worker/ocr/mistral.processor';
 import { TabScannerProcessor } from '@worker/ocr/tabscanner.processor';
 import { PaddleOcrApiProcessor } from '@worker/ocr/paddle-ocr-api.processor';
@@ -30,6 +39,7 @@ export class OcrProcessor extends WorkerHost implements OnModuleInit {
     private readonly ocrExecutionsDao: OcrExecutionsDao,
     private readonly ocrFilesDao: OcrFilesDao,
     private readonly ocrJobsDao: OcrJobsDao,
+    private readonly expensesDao: ExpensesDao,
     private readonly storage: StorageProvider,
     private readonly db: DbService,
     private readonly mistralProcessor: MistralProcessor,
@@ -142,6 +152,22 @@ export class OcrProcessor extends WorkerHost implements OnModuleInit {
         await this.ocrFilesDao.updateByPk(txn, file.id, {
           status: OcrFileStatus.Completed,
         });
+
+        const existingExpense = await this.expensesDao.findByOcrExecutionId(txn, executionId);
+        if (!existingExpense) {
+          await this.expensesDao.create(txn, {
+            ocrJobId: file.jobId,
+            ocrFileId: file.id,
+            ocrExecutionId: executionId,
+            documentType: FiscalDocumentType.Unknown,
+            sourceType: ExpenseSourceType.OcrJson,
+            rawOcrJson: ocrData,
+            officialLookupStatus: FiscalFetchStatus.NotAttempted,
+            paymentType: PaymentType.Unknown,
+            isCompanyExpense: false,
+            isReimbursed: false,
+          });
+        }
 
         // Update Job status to Completed if all files are completed
         const job = await this.ocrJobsDao.findOneWithRelations(txn, file.jobId);

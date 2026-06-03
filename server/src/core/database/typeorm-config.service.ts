@@ -5,6 +5,7 @@ import { AppSecret } from '@core/types/app-secret.enum';
 import { OcrExecutionEntity } from '@core/database/entities/ocr-execution.entity';
 import { OcrFileEntity } from '@core/database/entities/ocr-file.entity';
 import { OcrJobEntity } from '@core/database/entities/ocr-job.entity';
+import { ExpenseEntity } from '@core/database/entities/expense.entity';
 import * as sqlite3 from 'sqlite3';
 
 @Injectable()
@@ -18,7 +19,7 @@ export class TypeOrmConfigService implements TypeOrmOptionsFactory {
       type: 'sqlite',
       driver: sqlite3, // Explicitly provide the driver to work correctly with Webpack bundling
       database: databasePath,
-      entities: [OcrExecutionEntity, OcrFileEntity, OcrJobEntity],
+      entities: [OcrExecutionEntity, OcrFileEntity, OcrJobEntity, ExpenseEntity],
       synchronize: true, // Auto-create tables (using synchronize for simplicity in v0.x)
       autoLoadEntities: true,
       extra: {

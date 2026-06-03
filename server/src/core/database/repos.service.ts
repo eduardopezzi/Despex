@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { OcrJobEntity } from '@core/database/entities/ocr-job.entity';
 import { OcrFileEntity } from '@core/database/entities/ocr-file.entity';
 import { OcrExecutionEntity } from '@core/database/entities/ocr-execution.entity';
+import { ExpenseEntity } from '@core/database/entities/expense.entity';
 
 @Injectable()
 export class ReposService {
@@ -14,5 +15,7 @@ export class ReposService {
     public readonly ocrFile: Repository<OcrFileEntity>,
     @InjectRepository(OcrExecutionEntity)
     public readonly ocrExecution: Repository<OcrExecutionEntity>,
+    @InjectRepository(ExpenseEntity)
+    public readonly expense: Repository<ExpenseEntity>,
   ) {}
 }

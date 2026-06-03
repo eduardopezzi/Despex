@@ -6,7 +6,7 @@
 | :--- | :---: | :---: | :--- |
 | Upload, storage e fila de OCR | 80% |  | Fluxo base ja existe com `ocr_jobs`, `ocr_files`, `ocr_executions`, storage local, Redis/BullMQ e worker. |
 | OCR bruto e providers | 70% |  | Projeto ja suporta multiplos providers e armazena OCR em `ocr_executions.ocr_data`; falta integrar com despesas. |
-| Dominio de despesas | 0% |  | Criar `expenses`, CRUD, filtros e relacoes com OCR/XML. |
+| Dominio de despesas | 100% | [x] | `expenses`, CRUD, filtros, tipos compartilhados, relacoes com OCR e criacao minima apos OCR concluido implementados. |
 | Consulta fiscal oficial e baixa de XML | 0% |  | Criar modulo fiscal, suporte a certificado/autorizacao, status de consulta e fallback para upload manual. |
 | Extracao estruturada XML/OCR | 0% |  | Extrair estabelecimento, valor, data e pagamento a partir de XML de NF-e 55 ou OCR JSON de cupom/recibo. |
 | Cadastros de clientes e tipos de gasto | 0% |  | Criar `records` com tipos `client` e `expense_type`. |
