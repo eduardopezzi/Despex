@@ -25,6 +25,9 @@ export enum AppSecret {
 
   // ─── PaddleOCR (Local) ──────────────────────────────────────────────────────
   PaddleOcrLocalEnabled = 'PADDLE_OCR_LOCAL_ENABLED',
+  PaddleOcrExecutionProvider = 'PADDLE_OCR_EXECUTION_PROVIDER',
+  PaddleOcrMaxImageSize = 'PADDLE_OCR_MAX_IMAGE_SIZE',
+  PaddleOcrWarmupEnabled = 'PADDLE_OCR_WARMUP_ENABLED',
 
   // ─── Gemini ─────────────────────────────────────────────────────────────────
   GeminiApiKey = 'GEMINI_API_KEY',
@@ -85,4 +88,8 @@ export const DefaultAppSecret: Partial<Record<AppSecret, string | number>> = {
   [AppSecret.RedisHost]: 'localhost',
   [AppSecret.RedisPort]: 6379,
   [AppSecret.StoragePartSize]: 5 * 1024 * 1024,
+  [AppSecret.PaddleOcrLocalEnabled]: 'true',
+  [AppSecret.PaddleOcrExecutionProvider]: 'cpu',
+  [AppSecret.PaddleOcrMaxImageSize]: 1280,
+  [AppSecret.PaddleOcrWarmupEnabled]: 'true',
 };

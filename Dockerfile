@@ -1,18 +1,18 @@
 # --- Stage 1: Bundler (JS Build) ---
-FROM node:24-bookworm AS js-builder
+FROM node:22-bookworm AS js-builder
 WORKDIR /app
 COPY . .
 # We only need devDependencies to build the bundles
 RUN npm install && npm run build
 
 # --- Stage 2: Native Driver Builder ---
-FROM node:24-bookworm AS native-builder
+FROM node:22-bookworm AS native-builder
 WORKDIR /app
 # Install ONLY sqlite3. Building from source ensures it works with our slim runtime.
 RUN npm install sqlite3 --omit=dev --build-from-source
 
 # --- Stage 3: Final Lightweight Runtime ---
-FROM node:24-bookworm-slim
+FROM node:22-bookworm-slim
 # Install only essential runtime system libs
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \

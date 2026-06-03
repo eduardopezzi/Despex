@@ -1,0 +1,14 @@
+node_modules
+client/node_modules
+server/node_modules
+packages/*/node_modules
+
+data
+.git
+.turbo
+dist
+client/dist
+server/dist
+
+.DS_Store
+npm-debug.log

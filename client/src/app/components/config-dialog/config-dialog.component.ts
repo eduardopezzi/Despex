@@ -139,7 +139,7 @@ export class ConfigDialogComponent implements OnChanges {
   }
 
   resetToDefaults() {
-    this.configService.defaultOcrProvider.set(OcrProvider.Mistral);
+    this.configService.defaultOcrProvider.set(OcrProvider.PaddleOcrLocal);
     this.configService.language.set('en');
     this.configService.theme.set('light');
     this.configService.sidebarCollapsed.set(false);

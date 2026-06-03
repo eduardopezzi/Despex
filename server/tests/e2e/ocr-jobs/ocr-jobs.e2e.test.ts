@@ -49,7 +49,7 @@ describe('OCR Jobs Controller (e2e)', () => {
         await TestHelpers.expectUpload<{ id: number }>(
           app,
           '/ocr-jobs/upload',
-          { ocrProvider_0: OcrProvider.Mistral, jobName: name },
+          { ocrProvider_0: OcrProvider.PaddleOcrLocal, jobName: name },
           { name: 'file', filename: `${name.replace(' ', '')}.jpg`, content: fileData, contentType: MimeType.Jpeg },
         );
       }
@@ -81,7 +81,7 @@ describe('OCR Jobs Controller (e2e)', () => {
       await TestHelpers.expectUpload<{ id: number }>(
         app,
         '/ocr-jobs/upload',
-        { ocrProvider_0: OcrProvider.Mistral, jobName: 'UniqueSearchableName' },
+        { ocrProvider_0: OcrProvider.PaddleOcrLocal, jobName: 'UniqueSearchableName' },
         { name: 'file', filename: 'unique-file-name.jpg', content: fileData, contentType: MimeType.Jpeg },
       );
 
@@ -105,13 +105,13 @@ describe('OCR Jobs Controller (e2e)', () => {
       await TestHelpers.expectUpload<{ id: number }>(
         app,
         '/ocr-jobs/upload',
-        { ocrProvider_0: OcrProvider.Mistral, jobName: 'AAA_Job' },
+        { ocrProvider_0: OcrProvider.PaddleOcrLocal, jobName: 'AAA_Job' },
         { name: 'file', filename: 'a_sort.jpg', content: fileData, contentType: MimeType.Jpeg },
       );
       await TestHelpers.expectUpload<{ id: number }>(
         app,
         '/ocr-jobs/upload',
-        { ocrProvider_0: OcrProvider.Mistral, jobName: 'ZZZ_Job' },
+        { ocrProvider_0: OcrProvider.PaddleOcrLocal, jobName: 'ZZZ_Job' },
         { name: 'file', filename: 'z_sort.jpg', content: fileData, contentType: MimeType.Jpeg },
       );
 
@@ -133,7 +133,7 @@ describe('OCR Jobs Controller (e2e)', () => {
       const body = await TestHelpers.expectUpload<{ id: number }>(
         app,
         '/ocr-jobs/upload',
-        { ocrProvider_0: OcrProvider.Mistral, jobName: 'Test Job' },
+        { ocrProvider_0: OcrProvider.PaddleOcrLocal, jobName: 'Test Job' },
         { name: 'file', filename: 'test.jpg', content: fileData, contentType: MimeType.Jpeg },
       );
 
@@ -146,7 +146,7 @@ describe('OCR Jobs Controller (e2e)', () => {
       const body = await TestHelpers.expectUpload<{ id: number }>(
         app,
         '/ocr-jobs/upload',
-        { ocrProvider_0: OcrProvider.Mistral, jobName: 'Execution Verify Job' },
+        { ocrProvider_0: OcrProvider.PaddleOcrLocal, jobName: 'Execution Verify Job' },
         { name: 'file', filename: 'exec-verify.jpg', content: fileData, contentType: MimeType.Jpeg },
       );
 
@@ -155,7 +155,7 @@ describe('OCR Jobs Controller (e2e)', () => {
 
       expect(execution).toMatchObject({
         status: OcrExecutionStatus.Pending,
-        ocrProvider: OcrProvider.Mistral,
+        ocrProvider: OcrProvider.PaddleOcrLocal,
       });
       expect(queueServiceMock.addToOcrQueue).toHaveBeenCalledWith({ executionId: execution.id });
     });
@@ -165,7 +165,7 @@ describe('OCR Jobs Controller (e2e)', () => {
     const uploadRes = await TestHelpers.expectUpload<{ id: number }>(
       app,
       '/ocr-jobs/upload',
-      { ocrProvider_0: OcrProvider.Mistral, jobName: 'Detail Job' },
+      { ocrProvider_0: OcrProvider.PaddleOcrLocal, jobName: 'Detail Job' },
       { name: 'file', filename: 'detail.jpg', content: fileData, contentType: MimeType.Jpeg },
     );
 
@@ -188,7 +188,7 @@ describe('OCR Jobs Controller (e2e)', () => {
     const uploadRes = await TestHelpers.expectUpload<{ id: number }>(
       app,
       '/ocr-jobs/upload',
-      { ocrProvider_0: OcrProvider.Mistral, jobName: 'Preview Job' },
+      { ocrProvider_0: OcrProvider.PaddleOcrLocal, jobName: 'Preview Job' },
       { name: 'file', filename: 'preview.jpg', content: 'dummy-image-contents', contentType: MimeType.Jpeg },
     );
 
@@ -208,7 +208,7 @@ describe('OCR Jobs Controller (e2e)', () => {
     const uploadRes = await TestHelpers.expectUpload<{ id: number }>(
       app,
       '/ocr-jobs/upload',
-      { ocrProvider_0: OcrProvider.Mistral, jobName: 'Retry Job' },
+      { ocrProvider_0: OcrProvider.PaddleOcrLocal, jobName: 'Retry Job' },
       { name: 'file', filename: 'retry-test.jpg', content: fileData, contentType: MimeType.Jpeg },
     );
     const jobId = uploadRes.id;
@@ -226,7 +226,7 @@ describe('OCR Jobs Controller (e2e)', () => {
 
     // 5. Call reprocess
     const reprocessRes = await TestHelpers.expectCreated<{ id: number; status: string }>(app, `/ocr-jobs/files/${fileId}/reprocess`, {
-      ocrProvider: OcrProvider.Mistral,
+      ocrProvider: OcrProvider.PaddleOcrLocal,
     });
 
     expect(reprocessRes).toHaveProperty('id');
@@ -246,7 +246,7 @@ describe('OCR Jobs Controller (e2e)', () => {
       const uploadRes = await TestHelpers.expectUpload<{ id: number }>(
         app,
         '/ocr-jobs/upload',
-        { ocrProvider_0: OcrProvider.Mistral, jobName: 'Delete Job' },
+        { ocrProvider_0: OcrProvider.PaddleOcrLocal, jobName: 'Delete Job' },
         { name: 'file', filename: 'delete-test.jpg', content: fileData, contentType: MimeType.Jpeg },
       );
       const id = uploadRes.id;
@@ -275,7 +275,7 @@ describe('OCR Jobs Controller (e2e)', () => {
       const body = await TestHelpers.expectMultiFileUpload<{ id: number }>(
         app,
         '/ocr-jobs/upload',
-        { ocrProvider_0: OcrProvider.Mistral, ocrProvider_1: OcrProvider.Mistral, jobName: 'Multi File Job' },
+        { ocrProvider_0: OcrProvider.PaddleOcrLocal, ocrProvider_1: OcrProvider.PaddleOcrLocal, jobName: 'Multi File Job' },
         [
           { name: 'file', filename: 'multi-file-1.jpg', content: fileData, contentType: MimeType.Jpeg },
           { name: 'file', filename: 'multi-file-2.jpg', content: fileData, contentType: MimeType.Jpeg },

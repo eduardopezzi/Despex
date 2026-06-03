@@ -1,0 +1,6 @@
+services:
+  app:
+    image: open-receipt-ocr:local
+    build:
+      context: .
+      dockerfile: Dockerfile

@@ -32,14 +32,14 @@ export class MockSecretProvider extends SecretProvider {
     if (key === AppSecret.DatabasePath) return this.dbPath;
     if (key === AppSecret.RedisHost) return 'localhost';
     if (key === AppSecret.RedisPort) return '6379';
-    if (key === AppSecret.UploadsDir) return path.join(os.tmpdir(), 'ocr-test-mocked-upload');
+    if (key === AppSecret.StorageLocalPath) return path.join(os.tmpdir(), 'ocr-test-mocked-upload');
     return undefined;
   });
 
   override getSecretOrThrow = vi.fn().mockImplementation((key: AppSecret) => {
     if (key === AppSecret.DatabasePath) return this.dbPath;
     if (key === AppSecret.RedisHost) return 'localhost';
-    if (key === AppSecret.UploadsDir) return path.join(os.tmpdir(), 'ocr-test-mocked-upload');
+    if (key === AppSecret.StorageLocalPath) return path.join(os.tmpdir(), 'ocr-test-mocked-upload');
     return 'mocked';
   });
 

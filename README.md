@@ -59,40 +59,133 @@ This platform supports multiple OCR engines. You can configure which ones are av
 
 ## 🛠️ Setup & Configuration
 
-1. **Clone the repository.**
-2. **Configure the Server:**
-   - Navigate to the `server` directory.
-   - Copy `.env.example` to `.env`.
-   - Fill in the API keys for the providers you wish to use.
-3. **Run the application:**
-   - In the root directory, run `npm run dev` to start both client and server.
-4. **Using the UI:**
-   - When uploading a receipt, you will see a dropdown to select your preferred OCR provider among those you have configured.
+### Prerequisites
 
-## 🐳 Docker Deployment
+| Requirement | Version | Notes |
+| :--- | :--- | :--- |
+| **Node.js** | ≥ 22 | Required for the server, worker, and client |
+| **Redis** | ≥ 6 | Required for BullMQ job queue |
+| **npm** | ≥ 10 | Monorepo workspace support |
 
-You can run the entire stack (Client, Server, Worker, and Redis) using Docker Compose.
+> **Note:** [Docker](#-docker-deployment) is the easiest way to run everything without installing Node.js or Redis manually.
 
-1. **Prepare Environment Variables:**
-   Create a `.env` file in the root directory with your API keys:
-   ```bash
-   MISTRAL_API_KEY=your_key
-   TAB_SCANNER_API_KEY=your_key
-   # Add others as needed...
-   ```
+---
 
-2. **Build and Start:**
-   ```bash
-   docker-compose up -d --build
-   ```
+### Option 1: Docker Compose (Recommended — Simplest)
 
-3. **Access the App:**
-   The application will be available at `http://localhost:9999`. The client is automatically served by the backend.
+The fastest way to get started. No Node.js or Redis installation needed.
 
-4. **Persistence:**
-   - Database: `./data/db/ocr.sqlite`
-   - Uploaded Files: `./data/uploads/`
-   - Redis Data: Docker volume `redis_data`
+```bash
+# 1. Clone the repository
+git clone https://github.com/iursevla/open-receipt-ocr.git
+cd open-receipt-ocr
+
+# 2. Create your .env file from the simple example
+cp .env.simple.example .env
+
+# 3. Start the application
+docker compose up -d
+
+# 4. Access the app at http://localhost:9191
+```
+
+That's it! The default configuration uses **PaddleOCR Local** (no API key needed).
+
+**Persistence:**
+- Database: `./data/db/ocr.sqlite`
+- Uploaded Files: `./data/uploads/`
+- Redis Data: Docker volume `redis_data`
+
+To stop: `docker compose down`
+
+---
+
+### Option 2: Local Development (Manual)
+
+Run the server, worker, and client separately for development.
+
+```bash
+# 1. Clone and install dependencies
+git clone https://github.com/iursevla/open-receipt-ocr.git
+cd open-receipt-ocr
+npm install
+
+# 2. Make sure Redis is running
+# macOS:  brew services start redis
+# Linux:  sudo systemctl start redis
+# Or:     redis-server
+
+# 3. Configure the server
+cp server/.env.example server/.env
+# Edit server/.env — minimum required:
+#   PADDLE_OCR_LOCAL_ENABLED=true
+#   REDIS_HOST=localhost
+#   REDIS_PORT=6379
+
+# 4. Start the server (Terminal 1)
+cd server && npm run start:dev
+
+# 5. Start the worker (Terminal 2)
+cd server && npm run start:dev:worker
+
+# 6. Start the client (Terminal 3)
+cd client && npm run start
+
+# 7. Access the app:
+#    - Frontend: http://localhost:4200
+#    - API:      http://localhost:9999
+```
+
+---
+
+### Option 3: Local Development (tmux — All-in-One)
+
+Use the included tmux script that opens a pre-configured development environment with 5 panes.
+
+```bash
+# 1. Clone, install, and configure (same as Option 2, steps 1-3)
+git clone https://github.com/iursevla/open-receipt-ocr.git
+cd open-receipt-ocr
+npm install
+cp server/.env.example server/.env
+# Make sure Redis is running!
+
+# 2. Launch the tmux development environment
+./local-env/start-local.sh
+```
+
+This opens a tmux session with:
+
+| Pane | Command | Description |
+| :--- | :--- | :--- |
+| **Server** | `npm run start:dev` | NestJS API (auto-starts) |
+| **Worker** | `npm run start:dev:worker` | OCR job processor (auto-starts) |
+| **Client** | `npm run start` | Angular dev server (auto-starts) |
+| **Seed** | `npm run seed` | Load sample data (press Enter to run) |
+| **Unseed** | `npm run unseed` | Clear sample data (press Enter to run) |
+
+> **Tip:** Detach from tmux with `Ctrl+B` then `D`. Reattach with `tmux attach -t ocr_project`.
+
+---
+
+### PaddleOCR Local — Performance Tips
+
+PaddleOCR Local runs **100% offline** with no API keys. On Apple M1/M2/M3/M4 it processes a receipt in ~1 second.
+
+| Environment Variable | Default | Description |
+| :--- | :--- | :--- |
+| `PADDLE_OCR_LOCAL_ENABLED` | `true` | Enable PaddleOCR Local |
+| `PADDLE_OCR_EXECUTION_PROVIDER` | auto | `cpu` (recommended), `coreml`, `cuda` |
+| `PADDLE_OCR_MAX_IMAGE_SIZE` | `1280` | Max image dimension before OCR (px). Set `0` to disable |
+| `PADDLE_OCR_WARMUP_ENABLED` | `true` | Warm up ONNX engine on startup (avoids slow first request) |
+
+> **⚠️ Apple Silicon users:** `cpu` is the recommended provider — it's 7x faster than `coreml` for PaddleOCR models (~1s vs ~7s) because CoreML doesn't support all required ONNX operators.
+
+---
+
+### Using the UI
+
+When uploading a receipt, you'll see a dropdown to select your preferred OCR provider among those you have configured in your `.env` file.
 
 ---
 

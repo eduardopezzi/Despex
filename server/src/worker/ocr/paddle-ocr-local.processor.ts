@@ -3,6 +3,9 @@ import { AppSecret } from '@core/types/app-secret.enum';
 import { SecretProvider } from '@core/secrets/secret-provider.interface';
 import { StorageProvider } from '@core/storage/storage-provider.interface';
 import { OcrFileEntity } from '@core/database/entities/ocr-file.entity';
+import * as os from 'os';
+import { createRequire } from 'module';
+import { deflateSync } from 'zlib';
 
 /** Native PaddleOCR result structure (isolated from library types) */
 interface PaddleOcrResult {
@@ -19,6 +22,48 @@ interface PaddleOcrServiceType {
   isInitialized(): boolean;
   recognize(image: ArrayBuffer, options?: Record<string, unknown>): Promise<PaddleOcrResult>;
   destroy(): Promise<void>;
+}
+
+interface SharpInstance {
+  metadata(): Promise<{ width?: number; height?: number }>;
+  resize(
+    width: number,
+    height: number,
+    options: { fit: string; withoutEnlargement: boolean },
+  ): {
+    png(): { toBuffer(): Promise<Buffer> };
+  };
+}
+
+type SharpFactory = (input: Buffer) => SharpInstance;
+type SharpModule = SharpFactory | { default: SharpFactory };
+
+const requireOptional = createRequire(__filename) as (id: string) => unknown;
+
+/**
+ * Detects the best execution provider for the current platform.
+ * CPU is generally faster and more reliable for PaddleOCR models because:
+ * - CoreML doesn't support all ONNX operators (causes expensive fallbacks)
+ * - CUDA may not be available
+ * CPU with optimized threading on Apple M1 is very fast (~700ms per image).
+ */
+function detectBestExecutionProvider(): string {
+  // CPU is the best default for PaddleOCR on all platforms
+  return 'cpu';
+}
+
+/**
+ * Detects optimal thread count based on available CPU cores.
+ * Uses performance cores (half of total on big.LITTLE architectures like M1).
+ */
+function detectOptimalThreads(): number {
+  const totalCpus = os.cpus().length;
+  // On Apple Silicon, half the cores are performance cores
+  // On other architectures, use 3/4 of cores to leave headroom
+  if (process.platform === 'darwin' && (os.machine?.() || process.arch) === 'arm64') {
+    return Math.max(Math.floor(totalCpus / 2), 2);
+  }
+  return Math.max(Math.floor(totalCpus * 0.75), 2);
 }
 
 @Injectable()
@@ -55,18 +100,23 @@ export class PaddleOcrLocalProcessor implements OnModuleInit, OnModuleDestroy {
       this.logger.log('Loading PaddleOCR local engine...');
       try {
         const { PaddleOcrService } = await import('ppu-paddle-ocr');
-        // Use a single cast to our local strictly-typed interface to satisfy the compiler
-        // while maintaining internal type safety without 'any'.
+
+        // Determine execution provider from config or auto-detect
+        const configProvider = await this.secretProvider.getSecret(AppSecret.PaddleOcrExecutionProvider);
+        const executionProvider = configProvider || detectBestExecutionProvider();
+        const optimalThreads = detectOptimalThreads();
+
+        this.logger.log(`Execution provider: ${executionProvider} | Threads: ${optimalThreads} | CPUs: ${os.cpus().length}`);
+
         this.paddleOcr = new (PaddleOcrService as unknown as { new (options: unknown): PaddleOcrServiceType })({
           session: {
-            executionProviders: ['cpu'],
-            // Use CPU-only for consistent performance
-            graphOptimizationLevel: 'all', // Enable all optimizations
-            enableCpuMemArena: true, // Better memory management
-            enableMemPattern: true, // Memory pattern optimization
-            executionMode: 'sequential', // Better for single-threaded performance
-            interOpNumThreads: 0, // Let ONNX decide optimal thread count
-            intraOpNumThreads: 0, // Let ONNX decide optimal thread count
+            executionProviders: [executionProvider],
+            graphOptimizationLevel: 'all',
+            enableCpuMemArena: true,
+            enableMemPattern: true,
+            executionMode: 'parallel',
+            interOpNumThreads: optimalThreads,
+            intraOpNumThreads: optimalThreads,
           },
         });
       } catch {
@@ -89,10 +139,21 @@ export class PaddleOcrLocalProcessor implements OnModuleInit, OnModuleDestroy {
           this.logger.log(`Initializing PaddleOCR for execution #${executionId}...`);
         }
 
-        this.initializationPromise = this.paddleOcr.initialize().catch((err: unknown) => {
-          this.logger.error('Failed to initialize PaddleOCR', err);
-          this.initializationPromise = null;
-        });
+        this.initializationPromise = this.paddleOcr
+          .initialize()
+          .then(async () => {
+            this.initializationPromise = null;
+
+            // Warm-up: run a dummy inference to trigger ONNX JIT compilation
+            const warmupEnabled = await this.secretProvider.getSecret(AppSecret.PaddleOcrWarmupEnabled);
+            if (warmupEnabled?.toLowerCase() !== 'false') {
+              await this.warmUp();
+            }
+          })
+          .catch((err: unknown) => {
+            this.logger.error('Failed to initialize PaddleOCR', err);
+            this.initializationPromise = null;
+          });
       }
 
       if (!isBackground) {
@@ -108,6 +169,30 @@ export class PaddleOcrLocalProcessor implements OnModuleInit, OnModuleDestroy {
     }
   }
 
+  /**
+   * Warm-up: runs a small dummy inference to trigger ONNX JIT compilation
+   * so the first real request isn't slow.
+   */
+  private async warmUp(): Promise<void> {
+    if (!this.paddleOcr?.isInitialized()) return;
+
+    try {
+      this.logger.log('🔥 Warming up PaddleOCR engine...');
+      const start = performance.now();
+
+      // Create a tiny 1x1 white PNG image as ArrayBuffer
+      // Minimal valid PNG: 8-byte signature + IHDR + IDAT + IEND
+      const dummyImage = createMinimalPng(64, 64);
+      await this.paddleOcr.recognize(dummyImage);
+
+      const elapsed = (performance.now() - start).toFixed(0);
+      this.logger.log(`🔥 Warm-up completed in ${elapsed}ms`);
+    } catch {
+      // Warm-up failure is non-critical
+      this.logger.warn('Warm-up inference failed (non-critical)');
+    }
+  }
+
   async process(file: OcrFileEntity, executionId: number): Promise<string> {
     await this.ensureInitialized(executionId);
 
@@ -117,15 +202,63 @@ export class PaddleOcrLocalProcessor implements OnModuleInit, OnModuleDestroy {
     this.logger.log(`Processing with local PaddleOCR for execution #${executionId}`);
 
     try {
-      const arrayBuffer = fileBuffer.buffer.slice(fileBuffer.byteOffset, fileBuffer.byteOffset + fileBuffer.byteLength) as ArrayBuffer;
+      let arrayBuffer = fileBuffer.buffer.slice(fileBuffer.byteOffset, fileBuffer.byteOffset + fileBuffer.byteLength) as ArrayBuffer;
 
+      // Optionally resize large images to speed up OCR
+      const maxSizeStr = await this.secretProvider.getSecret(AppSecret.PaddleOcrMaxImageSize);
+      const maxSize = maxSizeStr ? parseInt(maxSizeStr, 10) : 1280;
+      if (maxSize > 0) {
+        arrayBuffer = await this.resizeIfNeeded(arrayBuffer, maxSize);
+      }
+
+      const start = performance.now();
       const results = await this.paddleOcr!.recognize(arrayBuffer);
+      const elapsed = (performance.now() - start).toFixed(0);
+      this.logger.log(`PaddleOCR inference for execution #${executionId} took ${elapsed}ms`);
+
       const formattedResults = this.formatPaddleOcrResults(results);
       return JSON.stringify(formattedResults);
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : String(error);
       throw new Error(`PaddleOCR local processing failed: ${message}`);
     }
+  }
+
+  /**
+   * Resizes an image if its dimensions exceed maxSize.
+   * Uses sharp if installed, otherwise skips resizing gracefully.
+   */
+
+  private async resizeIfNeeded(arrayBuffer: ArrayBuffer, maxSize: number): Promise<ArrayBuffer> {
+    // Dynamic require to avoid TS import errors when sharp is not installed
+    let sharpFn: SharpFactory | null = null;
+    try {
+      const sharpModule = requireOptional('sharp') as SharpModule;
+      sharpFn = typeof sharpModule === 'function' ? sharpModule : sharpModule.default;
+    } catch {
+      this.logger.debug('sharp not available, skipping image resize');
+      return arrayBuffer;
+    }
+
+    try {
+      const buffer = Buffer.from(arrayBuffer);
+      const metadata = await sharpFn(buffer).metadata();
+      const width = metadata.width || 0;
+      const height = metadata.height || 0;
+
+      if (width > maxSize || height > maxSize) {
+        this.logger.log(`Resizing image from ${width}x${height} to max ${maxSize}px`);
+        const resizedBuffer = await sharpFn(buffer)
+          .resize(maxSize, maxSize, { fit: 'inside' as const, withoutEnlargement: true })
+          .png()
+          .toBuffer();
+        return resizedBuffer.buffer.slice(resizedBuffer.byteOffset, resizedBuffer.byteOffset + resizedBuffer.byteLength) as ArrayBuffer;
+      }
+    } catch {
+      this.logger.debug('Image resize failed, using original');
+    }
+
+    return arrayBuffer;
   }
 
   private async streamToBuffer(stream: NodeJS.ReadableStream): Promise<Buffer> {
@@ -161,4 +294,62 @@ export class PaddleOcrLocalProcessor implements OnModuleInit, OnModuleDestroy {
       provider: 'paddle-ocr-local',
     };
   }
+}
+
+/**
+ * Creates a minimal valid PNG image (white pixels only).
+ * Used for warm-up inference.
+ */
+function createMinimalPng(width: number, height: number): ArrayBuffer {
+  // PNG signature
+  const signature = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
+
+  // IHDR chunk
+  const ihdrData = Buffer.alloc(13);
+  ihdrData.writeUInt32BE(width, 0);
+  ihdrData.writeUInt32BE(height, 4);
+  ihdrData[8] = 8; // bit depth
+  ihdrData[9] = 2; // color type (RGB)
+  ihdrData[10] = 0; // compression
+  ihdrData[11] = 0; // filter
+  ihdrData[12] = 0; // interlace
+  const ihdr = createChunk('IHDR', ihdrData);
+
+  // IDAT chunk (white image: filter byte 0 + RGB bytes per pixel per row)
+  const rowSize = 1 + width * 3; // filter byte + RGB
+  const rawData = Buffer.alloc(rowSize * height, 255); // all white
+  const compressed = deflateSync(rawData);
+  const idat = createChunk('IDAT', compressed);
+
+  // IEND chunk
+  const iend = createChunk('IEND', Buffer.alloc(0));
+
+  return Buffer.concat([signature, ihdr, idat, iend]).buffer.slice(
+    Buffer.concat([signature, ihdr, idat, iend]).byteOffset,
+    Buffer.concat([signature, ihdr, idat, iend]).byteOffset + Buffer.concat([signature, ihdr, idat, iend]).byteLength,
+  );
+}
+
+function createChunk(type: string, data: Buffer): Buffer {
+  const length = Buffer.alloc(4);
+  length.writeUInt32BE(data.length, 0);
+
+  const typeBuffer = Buffer.from(type, 'ascii');
+  const crcInput = Buffer.concat([typeBuffer, data]);
+
+  const crc = Buffer.alloc(4);
+  crc.writeUInt32BE(crc32(crcInput), 0);
+
+  return Buffer.concat([length, typeBuffer, data, crc]);
+}
+
+function crc32(buf: Buffer): number {
+  let crc = 0xffffffff;
+  for (let i = 0; i < buf.length; i++) {
+    crc ^= buf[i];
+    for (let j = 0; j < 8; j++) {
+      crc = crc & 1 ? (crc >>> 1) ^ 0xedb88320 : crc >>> 1;
+    }
+  }
+  return (crc ^ 0xffffffff) >>> 0;
 }

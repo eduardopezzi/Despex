@@ -8,7 +8,7 @@ if [ "$PADDLE_OCR_LOCAL_ENABLED" = "true" ]; then
     if [ ! -d "/app/node_modules/ppu-paddle-ocr" ]; then
         echo "🚨 PADDLE_OCR_LOCAL_ENABLED=true: Installing heavy OCR dependencies (onnxruntime, ppu-paddle-ocr)..."
         echo "   Note: This may take a minute and requires internet access."
-        npm install --no-save ppu-paddle-ocr onnxruntime-node
+        npm install --no-save ppu-paddle-ocr onnxruntime-node sqlite3
     fi
 fi
 

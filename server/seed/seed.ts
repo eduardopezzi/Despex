@@ -78,7 +78,7 @@ async function seed() {
         // Add a default execution
         await ocrExecutionsDao.create(txn, {
           fileId: ocrFile.id,
-          ocrProvider: OcrProvider.Mistral,
+          ocrProvider: OcrProvider.PaddleOcrLocal,
           status: OcrExecutionStatus.Pending,
         });
       }
