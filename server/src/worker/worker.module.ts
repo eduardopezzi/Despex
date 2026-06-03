@@ -4,6 +4,7 @@ import { DatabaseModule } from '@core/database/database.module';
 import { SecretsModule } from '@core/secrets/secrets.module';
 import { StorageModule } from '@core/storage/storage.module';
 import { OcrJobsModule } from '@app/ocr-jobs/ocr-jobs.module';
+import { FiscalDocumentsModule } from '@app/fiscal-documents/fiscal-documents.module';
 import { SecretProvider } from '@core/secrets/secret-provider.interface';
 import { AppSecret } from '@core/types/app-secret.enum';
 import { QueueName } from '@core/types/queue-name.enum';
@@ -35,6 +36,7 @@ import { LlamaCppProcessor } from '@worker/ocr/llama-cpp.processor';
       }),
     }),
     OcrJobsModule,
+    FiscalDocumentsModule,
     BullModule.registerQueue({ name: QueueName.Ocr }),
   ],
   providers: [

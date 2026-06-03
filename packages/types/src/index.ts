@@ -11,4 +11,5 @@ export * from './payment-type.enum';
 export * from './fiscal-document-type.enum';
 export * from './expense-source-type.enum';
 export * from './fiscal-fetch-status.enum';
+export * from './fiscal-lookup-provider.enum';
 export * from './expense.interface';

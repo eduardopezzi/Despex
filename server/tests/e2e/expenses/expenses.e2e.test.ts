@@ -4,7 +4,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { DatabaseModule } from '@core/database/database.module';
 import { ExpensesModule } from '@app/expenses/expenses.module';
 import { ExpenseEntity } from '@core/database/entities/expense.entity';
-import { ExpenseSourceType, FiscalDocumentType, PaginatedResponse, PaymentType } from '@open-receipt-ocr/types';
+import { ExpenseSourceType, FiscalDocumentType, FiscalFetchStatus, PaginatedResponse, PaymentType } from '@open-receipt-ocr/types';
 import { TestContextHelpers } from '@tests/test-context.helpers';
 import { TestHelpers } from '@tests/test-helpers';
 
@@ -92,5 +92,21 @@ describe('Expenses Controller (e2e)', () => {
     const june = await TestHelpers.expectOk<PaginatedResponse<ExpenseEntity>>(app, '/expenses?expenseDateFrom=2026-06-01&expenseDateTo=2026-06-30');
     expect(june.total).toBe(1);
     expect(june.data[0].merchantName).toBe('Hotel Alpha');
+  });
+
+  it('/expenses (POST) - detects fiscal access key and records lookup status', async () => {
+    const accessKey = '35260612345678000195550010000000011000000010';
+
+    const created = await TestHelpers.expectCreated<ExpenseEntity>(app, '/expenses', {
+      rawOcrJson: `OCR result with chave de acesso ${accessKey}`,
+      sourceType: ExpenseSourceType.OcrJson,
+    });
+
+    expect(created).toMatchObject({
+      xmlAccessKey: accessKey,
+      documentType: FiscalDocumentType.NfeModel55,
+      officialLookupStatus: FiscalFetchStatus.NotAttempted,
+    });
+    expect(created.officialLookupMessage).toContain('Fiscal lookup is disabled');
   });
 });

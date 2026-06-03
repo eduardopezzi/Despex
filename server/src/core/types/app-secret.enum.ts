@@ -54,6 +54,14 @@ export enum AppSecret {
   AwsSecretAccessKey = 'AWS_SECRET_ACCESS_KEY',
   AwsRegion = 'AWS_REGION',
 
+  // ─── Fiscal lookup / DF-e ─────────────────────────────────────────────────
+  FiscalLookupEnabled = 'FISCAL_LOOKUP_ENABLED',
+  FiscalProvider = 'FISCAL_PROVIDER',
+  FiscalCertPath = 'FISCAL_CERT_PATH',
+  FiscalCertPassword = 'FISCAL_CERT_PASSWORD',
+  FiscalCnpj = 'FISCAL_CNPJ',
+  FiscalUf = 'FISCAL_UF',
+
   // ─── Storage ────────────────────────────────────────────────────────────────
   StorageProvider = 'STORAGE_PROVIDER',
   MaxFileSizeBytes = 'MAX_FILE_SIZE_BYTES',
@@ -92,4 +100,6 @@ export const DefaultAppSecret: Partial<Record<AppSecret, string | number>> = {
   [AppSecret.PaddleOcrExecutionProvider]: 'cpu',
   [AppSecret.PaddleOcrMaxImageSize]: 1280,
   [AppSecret.PaddleOcrWarmupEnabled]: 'true',
+  [AppSecret.FiscalLookupEnabled]: 'false',
+  [AppSecret.FiscalProvider]: 'sefaz_dfe',
 };

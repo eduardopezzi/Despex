@@ -7,10 +7,14 @@ import { CreateExpenseDto } from '@app/expenses/dto/create-expense.dto';
 import { ExpenseQueryParams } from '@app/expenses/dto/expense-query.params';
 import { UpdateExpenseDto } from '@app/expenses/dto/update-expense.dto';
 import { ExpenseSourceType, FiscalDocumentType, FiscalFetchStatus, PaymentType, SortOrder } from '@open-receipt-ocr/types';
+import { FiscalDocumentsService } from '@app/fiscal-documents/fiscal-documents.service';
 
 @Injectable()
 export class ExpensesService {
-  constructor(private readonly expensesDao: ExpensesDao) {}
+  constructor(
+    private readonly expensesDao: ExpensesDao,
+    private readonly fiscalDocumentsService: FiscalDocumentsService,
+  ) {}
 
   findAll(params: ExpenseQueryParams): Promise<[ExpenseEntity[], number]> {
     const { page, pageSize } = params;
@@ -25,12 +29,18 @@ export class ExpensesService {
     });
   }
 
-  create(dto: CreateExpenseDto): Promise<ExpenseEntity> {
+  async create(dto: CreateExpenseDto): Promise<ExpenseEntity> {
+    const fiscalLookup = await this.lookupFiscalSource(dto);
+
     return this.expensesDao.create(NoTxn, {
       ...this.toEntityData(dto),
-      documentType: dto.documentType ?? FiscalDocumentType.Unknown,
-      sourceType: dto.sourceType ?? ExpenseSourceType.Manual,
-      officialLookupStatus: dto.officialLookupStatus ?? FiscalFetchStatus.NotAttempted,
+      documentType: dto.documentType ?? fiscalLookup?.documentType ?? FiscalDocumentType.Unknown,
+      sourceType: fiscalLookup?.rawXml ? ExpenseSourceType.Xml : (dto.sourceType ?? ExpenseSourceType.Manual),
+      rawXml: fiscalLookup?.rawXml ?? dto.rawXml,
+      xmlAccessKey: dto.xmlAccessKey ?? fiscalLookup?.accessKey,
+      officialLookupStatus: fiscalLookup?.status ?? dto.officialLookupStatus ?? FiscalFetchStatus.NotAttempted,
+      officialLookupMessage: fiscalLookup?.message ?? dto.officialLookupMessage,
+      officialLookupAt: fiscalLookup ? new Date() : dto.officialLookupAt ? new Date(dto.officialLookupAt) : dto.officialLookupAt,
       paymentType: dto.paymentType ?? PaymentType.Unknown,
       isCompanyExpense: dto.isCompanyExpense ?? false,
       isReimbursed: dto.isReimbursed ?? false,
@@ -47,6 +57,13 @@ export class ExpensesService {
 
   delete(id: number): Promise<void> {
     return this.expensesDao.deleteByPk(NoTxn, id);
+  }
+
+  private async lookupFiscalSource(dto: CreateExpenseDto) {
+    const explicitAccessKey =
+      dto.xmlAccessKey || this.fiscalDocumentsService.extractAccessKey(dto.rawXml) || this.fiscalDocumentsService.extractAccessKey(dto.rawOcrJson);
+    if (!explicitAccessKey) return null;
+    return this.fiscalDocumentsService.lookupByAccessKey(explicitAccessKey);
   }
 
   private toEntityData(dto: CreateExpenseDto | UpdateExpenseDto): DeepPartial<ExpenseEntity> {
