@@ -109,4 +109,51 @@ describe('Expenses Controller (e2e)', () => {
     });
     expect(created.officialLookupMessage).toContain('Fiscal lookup is disabled');
   });
+
+  it('/expenses (POST) - extracts business fields from NF-e XML', async () => {
+    const created = await TestHelpers.expectCreated<ExpenseEntity>(app, '/expenses', {
+      rawXml: `
+        <nfeProc>
+          <NFe>
+            <infNFe Id="NFe35260612345678000195550010000000011000000010">
+              <ide><mod>55</mod><dhEmi>2026-06-03T10:15:00-03:00</dhEmi></ide>
+              <emit><xNome>ACME COMERCIO LTDA</xNome></emit>
+              <total><ICMSTot><vNF>123.45</vNF></ICMSTot></total>
+              <pag><detPag><tPag>01</tPag></detPag></pag>
+            </infNFe>
+          </NFe>
+        </nfeProc>
+      `,
+    });
+
+    expect(created).toMatchObject({
+      documentType: FiscalDocumentType.NfeModel55,
+      sourceType: ExpenseSourceType.Xml,
+      merchantName: 'ACME COMERCIO LTDA',
+      totalAmount: 123.45,
+      expenseDate: '2026-06-03',
+      paymentType: PaymentType.Cash,
+      xmlAccessKey: '35260612345678000195550010000000011000000010',
+    });
+  });
+
+  it('/expenses (POST) - extracts business fields from receipt OCR JSON', async () => {
+    const created = await TestHelpers.expectCreated<ExpenseEntity>(app, '/expenses', {
+      rawOcrJson: JSON.stringify({
+        pages: [
+          { blocks: [{ text: 'POSTO AVENIDA LTDA' }, { text: 'Data 04/06/2026' }, { text: 'TOTAL R$ 89,90' }, { text: 'Pagamento dinheiro' }] },
+        ],
+      }),
+      sourceType: ExpenseSourceType.OcrJson,
+    });
+
+    expect(created).toMatchObject({
+      documentType: FiscalDocumentType.Unknown,
+      sourceType: ExpenseSourceType.OcrJson,
+      merchantName: 'POSTO AVENIDA LTDA',
+      totalAmount: 89.9,
+      expenseDate: '2026-06-04',
+      paymentType: PaymentType.Cash,
+    });
+  });
 });

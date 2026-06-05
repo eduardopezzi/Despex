@@ -31,6 +31,7 @@ import { TesseractProcessor } from '@worker/ocr/tesseract.processor';
 import { OpenAiProcessor } from '@worker/ocr/openai.processor';
 import { LlamaCppProcessor } from '@worker/ocr/llama-cpp.processor';
 import { FiscalDocumentsService } from '@app/fiscal-documents/fiscal-documents.service';
+import { ExpenseExtractionService } from '@app/expense-extraction/expense-extraction.service';
 
 @Processor(QueueName.Ocr)
 export class OcrProcessor extends WorkerHost implements OnModuleInit {
@@ -54,6 +55,7 @@ export class OcrProcessor extends WorkerHost implements OnModuleInit {
     private readonly openAiProcessor: OpenAiProcessor,
     private readonly llamaCppProcessor: LlamaCppProcessor,
     private readonly fiscalDocumentsService: FiscalDocumentsService,
+    private readonly expenseExtractionService: ExpenseExtractionService,
   ) {
     super();
   }
@@ -146,6 +148,10 @@ export class OcrProcessor extends WorkerHost implements OnModuleInit {
       await this.db.transaction(async (em) => {
         const txn = WithTxn(em);
         const fiscalLookup = await this.fiscalDocumentsService.lookupFromText(ocrData);
+        const extracted = fiscalLookup?.rawXml
+          ? this.expenseExtractionService.extractFromXml(fiscalLookup.rawXml)
+          : this.expenseExtractionService.extractFromOcrJson(ocrData);
+        const canUseExtractedBusinessData = extracted.documentType !== FiscalDocumentType.NfeModel55 || !!fiscalLookup?.rawXml;
 
         await this.ocrExecutionsDao.updateByPk(txn, executionId, {
           status: OcrExecutionStatus.Completed,
@@ -162,15 +168,18 @@ export class OcrProcessor extends WorkerHost implements OnModuleInit {
             ocrJobId: file.jobId,
             ocrFileId: file.id,
             ocrExecutionId: executionId,
-            documentType: fiscalLookup?.documentType ?? FiscalDocumentType.Unknown,
+            documentType: extracted.documentType ?? fiscalLookup?.documentType ?? FiscalDocumentType.Unknown,
             sourceType: fiscalLookup?.rawXml ? ExpenseSourceType.Xml : ExpenseSourceType.OcrJson,
             rawOcrJson: ocrData,
             rawXml: fiscalLookup?.rawXml,
-            xmlAccessKey: fiscalLookup?.accessKey,
+            xmlAccessKey: extracted.xmlAccessKey ?? fiscalLookup?.accessKey,
             officialLookupStatus: fiscalLookup?.status ?? FiscalFetchStatus.NotAttempted,
             officialLookupMessage: fiscalLookup?.message,
             officialLookupAt: fiscalLookup ? new Date() : undefined,
-            paymentType: PaymentType.Unknown,
+            merchantName: canUseExtractedBusinessData ? extracted.merchantName : undefined,
+            totalAmount: canUseExtractedBusinessData ? extracted.totalAmount : undefined,
+            expenseDate: canUseExtractedBusinessData ? extracted.expenseDate : undefined,
+            paymentType: canUseExtractedBusinessData ? (extracted.paymentType ?? PaymentType.Unknown) : PaymentType.Unknown,
             isCompanyExpense: false,
             isReimbursed: false,
           });
