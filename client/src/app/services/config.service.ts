@@ -7,18 +7,19 @@ import { OcrProvider } from '@open-receipt-ocr/types';
 export class ConfigService {
   defaultOcrProvider = signal<OcrProvider | undefined>(undefined);
   defaultOutputs = signal<string[]>(['db']);
-  language = signal<string>('en');
+  language = signal<string>('pt');
   theme = signal<'light' | 'dark'>('light');
   sidebarCollapsed = signal<boolean>(false);
 
-  private storageKey = 'open-receipt-ocr-config';
+  private storageKey = 'despex-config';
+  private legacyStorageKey = 'open-receipt-ocr-config';
 
   constructor() {
     this.loadConfig();
   }
 
   loadConfig() {
-    const data = localStorage.getItem(this.storageKey);
+    const data = localStorage.getItem(this.storageKey) || localStorage.getItem(this.legacyStorageKey);
     if (data) {
       try {
         const config = JSON.parse(data) as {
@@ -30,7 +31,7 @@ export class ConfigService {
         };
         if (config.defaultOcrProvider) this.defaultOcrProvider.set(config.defaultOcrProvider);
         if (config.defaultOutputs) this.defaultOutputs.set(config.defaultOutputs);
-        if (config.language) this.language.set(config.language);
+        if (localStorage.getItem(this.storageKey) && config.language) this.language.set(config.language);
         if (config.theme) this.theme.set(config.theme);
         if (config.sidebarCollapsed !== undefined) this.sidebarCollapsed.set(config.sidebarCollapsed);
       } catch (err) {
