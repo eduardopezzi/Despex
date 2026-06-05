@@ -1,0 +1,112 @@
+<p-toast />
+
+<div class="p-3 sm:p-6 lg:p-10 max-w-[1600px] mx-auto min-h-screen">
+  <header class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+    <div>
+      <h1 class="text-3xl font-bold tracking-tight text-surface-900 dark:text-surface-0 flex items-center gap-3">
+        <i class="pi pi-tags text-2xl text-primary-500"></i>
+        Cadastros
+      </h1>
+      <p class="text-surface-500 dark:text-surface-400 font-medium">Clientes e tipos de gasto usados na classificacao das despesas.</p>
+    </div>
+    <p-button label="Novo cadastro" icon="pi pi-plus" (onClick)="openCreateDialog()" />
+  </header>
+
+  <div class="mb-5 flex flex-col lg:flex-row lg:items-center gap-3 p-3 sm:p-4 rounded-lg border border-surface-200 dark:border-surface-800">
+    <p-iconField class="flex-grow">
+      <p-inputIcon styleClass="pi pi-search" />
+      <input
+        type="text"
+        pInputText
+        [(ngModel)]="search"
+        (ngModelChange)="onFilterChange()"
+        placeholder="Buscar cadastro"
+        class="w-full border-none bg-surface-50/50 dark:bg-surface-800/30 py-3"
+      />
+    </p-iconField>
+
+    <p-select
+      [(ngModel)]="filterType"
+      (ngModelChange)="onFilterChange()"
+      [options]="typeOptions"
+      optionLabel="label"
+      optionValue="value"
+      appendTo="body"
+      styleClass="w-full lg:w-48 border-none bg-surface-50/50 dark:bg-surface-800/30"
+    />
+
+    <p-select
+      [(ngModel)]="filterActive"
+      (ngModelChange)="onFilterChange()"
+      [options]="activeOptions"
+      optionLabel="label"
+      optionValue="value"
+      appendTo="body"
+      styleClass="w-full lg:w-40 border-none bg-surface-50/50 dark:bg-surface-800/30"
+    />
+  </div>
+
+  <div class="rounded-lg border border-surface-200 dark:border-surface-800 overflow-hidden bg-surface-0 dark:bg-surface-900">
+    <p-table [value]="recordService.records()" [loading]="recordService.loading()" [rowHover]="true" styleClass="border-none">
+      <ng-template #header>
+        <tr>
+          <th class="text-xs uppercase tracking-widest text-surface-400">Nome</th>
+          <th class="text-xs uppercase tracking-widest text-surface-400">Tipo</th>
+          <th class="text-xs uppercase tracking-widest text-surface-400">Status</th>
+          <th class="text-xs uppercase tracking-widest text-surface-400 text-right">Acoes</th>
+        </tr>
+      </ng-template>
+      <ng-template #body let-record>
+        <tr>
+          <td class="font-semibold text-surface-900 dark:text-surface-100">{{ record.name }}</td>
+          <td>{{ typeLabel(record.type) }}</td>
+          <td>
+            <p-tag [value]="record.isActive ? 'Ativo' : 'Inativo'" [severity]="record.isActive ? 'success' : 'secondary'" />
+          </td>
+          <td class="text-right">
+            <p-button icon="pi pi-pencil" [text]="true" (onClick)="openEditDialog(record)" />
+            <p-button icon="pi pi-ban" [text]="true" severity="danger" [disabled]="!record.isActive" (onClick)="deactivate(record)" />
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template #emptymessage>
+        <tr>
+          <td colspan="4" class="text-center py-12 text-surface-500">Nenhum cadastro encontrado.</td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+
+  <p-paginator
+    [first]="first"
+    [rows]="rows"
+    [totalRecords]="recordService.totalCount()"
+    [rowsPerPageOptions]="[10, 20, 50]"
+    (onPageChange)="onPageChange($event)"
+  />
+</div>
+
+<p-dialog
+  [(visible)]="showDialog"
+  [modal]="true"
+  [draggable]="false"
+  [style]="{ width: 'min(520px, 92vw)' }"
+  [header]="editingRecord ? 'Editar cadastro' : 'Novo cadastro'"
+>
+  <div class="grid gap-4">
+    <label class="grid gap-2">
+      <span class="text-sm font-semibold text-surface-700 dark:text-surface-200">Nome</span>
+      <input pInputText [(ngModel)]="form.name" />
+    </label>
+
+    <div class="grid gap-2">
+      <span class="text-sm font-semibold text-surface-700 dark:text-surface-200">Tipo</span>
+      <p-select [(ngModel)]="form.type" [options]="typeOptions.slice(1)" optionLabel="label" optionValue="value" appendTo="body" />
+    </div>
+  </div>
+
+  <ng-template #footer>
+    <p-button label="Cancelar" [text]="true" (onClick)="showDialog = false" />
+    <p-button label="Salvar" icon="pi pi-save" [disabled]="!form.name.trim()" (onClick)="saveRecord()" />
+  </ng-template>
+</p-dialog>

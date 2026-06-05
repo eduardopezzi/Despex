@@ -13,7 +13,7 @@
 | Usuarios, login e permissoes | 0% |  | Criar autenticacao, roles, admin e regras de acesso por usuario. |
 | Frontend de autenticacao | 0% |  | Criar login, criar usuario, alterar senha, guards e sessao. |
 | Importacao de despesas | 20% |  | Upload/crop OCR ja existe parcialmente; falta fluxo orientado a despesa, XML e pendencia fiscal. |
-| Tela de despesas | 0% |  | Criar listagem, filtros, edicao, selecao e atribuicao por admin. |
+| Tela de despesas | 60% |  | Listagem, filtros, edicao, selecao, cliente e tipo de gasto implementados; falta regras por usuario/admin e relatorio. |
 | Relatorios de despesas | 0% |  | Gerar relatorio por filtros ou selecionadas, total geral e total por tipo. |
 | Migrations, seguranca e producao | 15% |  | Docker/Compose existem e dados runtime foram removidos do versionamento; falta migrations, indices, config validada e hardening fiscal. |
 

@@ -1,0 +1,208 @@
+<p-toast />
+
+<div class="p-3 sm:p-6 lg:p-10 max-w-[1600px] mx-auto min-h-screen">
+  <header class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+    <div>
+      <h1 class="text-3xl font-bold tracking-tight text-surface-900 dark:text-surface-0 flex items-center gap-3">
+        <i class="pi pi-wallet text-2xl text-primary-500"></i>
+        Despesas
+      </h1>
+      <p class="text-surface-500 dark:text-surface-400 font-medium">Edite, filtre e acompanhe despesas extraidas das notas.</p>
+    </div>
+    <div class="flex items-center gap-2">
+      @if (selectedExpenses.length > 0) {
+        <span class="text-sm font-semibold text-surface-600 dark:text-surface-300">
+          {{ selectedExpenses.length }} selecionadas · {{ totalSelected() | currency: 'BRL' }}
+        </span>
+      }
+      <p-button label="Nova despesa" icon="pi pi-plus" (onClick)="openCreateDialog()" />
+    </div>
+  </header>
+
+  <div class="mb-5 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-6 gap-3 p-3 sm:p-4 rounded-lg border border-surface-200 dark:border-surface-800">
+    <p-iconField class="xl:col-span-2">
+      <p-inputIcon styleClass="pi pi-search" />
+      <input
+        type="text"
+        pInputText
+        [(ngModel)]="search"
+        (ngModelChange)="onFilterChange()"
+        placeholder="Buscar estabelecimento ou descricao"
+        class="w-full border-none bg-surface-50/50 dark:bg-surface-800/30 py-3"
+      />
+    </p-iconField>
+
+    <input pInputText type="date" [(ngModel)]="expenseDateFrom" (ngModelChange)="onFilterChange()" class="bg-surface-50/50 dark:bg-surface-800/30" />
+    <input pInputText type="date" [(ngModel)]="expenseDateTo" (ngModelChange)="onFilterChange()" class="bg-surface-50/50 dark:bg-surface-800/30" />
+
+    <p-select
+      [(ngModel)]="isReimbursed"
+      (ngModelChange)="onFilterChange()"
+      [options]="reimbursementOptions"
+      optionLabel="label"
+      optionValue="value"
+      appendTo="body"
+      styleClass="w-full border-none bg-surface-50/50 dark:bg-surface-800/30"
+    />
+
+    <p-select
+      [(ngModel)]="clientRecordId"
+      (ngModelChange)="onFilterChange()"
+      [options]="clients"
+      optionLabel="name"
+      optionValue="id"
+      [showClear]="true"
+      placeholder="Cliente"
+      appendTo="body"
+      styleClass="w-full border-none bg-surface-50/50 dark:bg-surface-800/30"
+    />
+
+    <p-select
+      [(ngModel)]="expenseTypeRecordId"
+      (ngModelChange)="onFilterChange()"
+      [options]="expenseTypes"
+      optionLabel="name"
+      optionValue="id"
+      [showClear]="true"
+      placeholder="Tipo de gasto"
+      appendTo="body"
+      styleClass="w-full border-none bg-surface-50/50 dark:bg-surface-800/30"
+    />
+  </div>
+
+  <div class="rounded-lg border border-surface-200 dark:border-surface-800 overflow-hidden bg-surface-0 dark:bg-surface-900">
+    <p-table
+      [value]="expenseService.expenses()"
+      [(selection)]="selectedExpenses"
+      dataKey="id"
+      [loading]="expenseService.loading()"
+      [rowHover]="true"
+      styleClass="border-none"
+    >
+      <ng-template #header>
+        <tr>
+          <th class="w-12"><p-tableHeaderCheckbox /></th>
+          <th class="text-xs uppercase tracking-widest text-surface-400">Data</th>
+          <th class="text-xs uppercase tracking-widest text-surface-400">Estabelecimento</th>
+          <th class="text-xs uppercase tracking-widest text-surface-400">Cliente</th>
+          <th class="text-xs uppercase tracking-widest text-surface-400">Tipo</th>
+          <th class="text-xs uppercase tracking-widest text-surface-400 text-right">Valor</th>
+          <th class="text-xs uppercase tracking-widest text-surface-400">Pagamento</th>
+          <th class="text-xs uppercase tracking-widest text-surface-400">Reembolso</th>
+          <th class="text-xs uppercase tracking-widest text-surface-400 text-right">Acoes</th>
+        </tr>
+      </ng-template>
+      <ng-template #body let-expense>
+        <tr>
+          <td><p-tableCheckbox [value]="expense" /></td>
+          <td>{{ expense.expenseDate ? (expense.expenseDate | date: 'dd/MM/yyyy') : '-' }}</td>
+          <td>
+            <div class="font-semibold text-surface-900 dark:text-surface-100">{{ expense.merchantName || '-' }}</div>
+            <div class="text-xs text-surface-500 truncate max-w-72">{{ expense.description || expense.xmlAccessKey || '' }}</div>
+          </td>
+          <td>{{ clientName(expense.clientRecordId) }}</td>
+          <td>{{ expenseTypeName(expense.expenseTypeRecordId) }}</td>
+          <td class="text-right font-semibold">{{ expense.totalAmount || 0 | currency: 'BRL' }}</td>
+          <td>{{ paymentLabel(expense.paymentType) }}</td>
+          <td>
+            <p-tag [value]="expense.isReimbursed ? 'Reembolsada' : 'Pendente'" [severity]="expense.isReimbursed ? 'success' : 'warn'" />
+          </td>
+          <td class="text-right">
+            <p-button icon="pi pi-pencil" [text]="true" (onClick)="openEditDialog(expense)" />
+            <p-button icon="pi pi-trash" [text]="true" severity="danger" (onClick)="deleteExpense(expense)" />
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template #emptymessage>
+        <tr>
+          <td colspan="9" class="text-center py-12 text-surface-500">Nenhuma despesa encontrada.</td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+
+  <p-paginator
+    [first]="first"
+    [rows]="rows"
+    [totalRecords]="expenseService.totalCount()"
+    [rowsPerPageOptions]="[10, 20, 50]"
+    (onPageChange)="onPageChange($event)"
+  />
+</div>
+
+<p-dialog
+  [(visible)]="showDialog"
+  [modal]="true"
+  [draggable]="false"
+  [style]="{ width: 'min(720px, 94vw)' }"
+  [header]="editingExpense ? 'Editar despesa' : 'Nova despesa'"
+>
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <label class="grid gap-2 md:col-span-2">
+      <span class="text-sm font-semibold text-surface-700 dark:text-surface-200">Estabelecimento</span>
+      <input pInputText [(ngModel)]="form.merchantName" />
+    </label>
+
+    <div class="grid gap-2">
+      <span class="text-sm font-semibold text-surface-700 dark:text-surface-200">Valor</span>
+      <p-inputNumber [(ngModel)]="form.totalAmount" mode="currency" currency="BRL" locale="pt-BR" />
+    </div>
+
+    <label class="grid gap-2">
+      <span class="text-sm font-semibold text-surface-700 dark:text-surface-200">Data da despesa</span>
+      <input pInputText type="date" [(ngModel)]="form.expenseDate" />
+    </label>
+
+    <div class="grid gap-2">
+      <span class="text-sm font-semibold text-surface-700 dark:text-surface-200">Pagamento</span>
+      <p-select [(ngModel)]="form.paymentType" [options]="paymentOptions" optionLabel="label" optionValue="value" appendTo="body" />
+    </div>
+
+    <div class="grid gap-2">
+      <span class="text-sm font-semibold text-surface-700 dark:text-surface-200">Documento</span>
+      <p-select [(ngModel)]="form.documentType" [options]="documentOptions" optionLabel="label" optionValue="value" appendTo="body" />
+    </div>
+
+    <div class="grid gap-2">
+      <span class="text-sm font-semibold text-surface-700 dark:text-surface-200">Cliente</span>
+      <p-select [(ngModel)]="form.clientRecordId" [options]="clients" optionLabel="name" optionValue="id" [showClear]="true" appendTo="body" />
+    </div>
+
+    <div class="grid gap-2">
+      <span class="text-sm font-semibold text-surface-700 dark:text-surface-200">Tipo de gasto</span>
+      <p-select
+        [(ngModel)]="form.expenseTypeRecordId"
+        [options]="expenseTypes"
+        optionLabel="name"
+        optionValue="id"
+        [showClear]="true"
+        appendTo="body"
+      />
+    </div>
+
+    <div class="flex items-center gap-3">
+      <p-checkbox [(ngModel)]="form.isCompanyExpense" [binary]="true" />
+      <span class="text-sm font-semibold text-surface-700 dark:text-surface-200">Despesa da empresa</span>
+    </div>
+
+    <div class="flex items-center gap-3">
+      <p-checkbox [(ngModel)]="form.isReimbursed" [binary]="true" />
+      <span class="text-sm font-semibold text-surface-700 dark:text-surface-200">Reembolsada</span>
+    </div>
+
+    <label class="grid gap-2">
+      <span class="text-sm font-semibold text-surface-700 dark:text-surface-200">Data de reembolso</span>
+      <input pInputText type="date" [(ngModel)]="form.reimbursementDate" />
+    </label>
+
+    <label class="grid gap-2 md:col-span-2">
+      <span class="text-sm font-semibold text-surface-700 dark:text-surface-200">Descricao</span>
+      <textarea pTextarea rows="4" [(ngModel)]="form.description"></textarea>
+    </label>
+  </div>
+
+  <ng-template #footer>
+    <p-button label="Cancelar" [text]="true" (onClick)="showDialog = false" />
+    <p-button label="Salvar" icon="pi pi-save" (onClick)="saveExpense()" />
+  </ng-template>
+</p-dialog>
