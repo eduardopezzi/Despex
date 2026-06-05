@@ -36,7 +36,12 @@
     "crop": "Recortar imagem",
     "editCrop": "Editar recorte",
     "resetCrop": "Repor original",
-    "cropApply": "Aplicar recorte"
+    "cropApply": "Aplicar recorte",
+    "cropRotateLeft": "Rodar para a esquerda",
+    "cropRotateRight": "Rodar para a direita",
+    "cropZoomIn": "Aproximar",
+    "cropZoomOut": "Afastar",
+    "cropFlipH": "Inverter horizontalmente"
   },
   "ocrJobs": {
     "title": "Trabalhos OCR",
@@ -114,6 +119,7 @@
   "config": {
     "title": "Definições Padrão de OCR e Saída",
     "ocrProvider": "Fornecedor OCR",
+    "singleSelection": "Seleção única",
     "outputTargets": "Destinos de Saída",
     "input": "Entrada",
     "savePreferences": "Guardar Preferências",

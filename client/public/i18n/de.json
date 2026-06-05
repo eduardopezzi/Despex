@@ -119,6 +119,7 @@
   "config": {
     "title": "Standard-OCR und Ausgabeeinstellungen",
     "ocrProvider": "OCR-Anbieter",
+    "singleSelection": "Einzelauswahl",
     "outputTargets": "Ausgabestatue",
     "input": "Eingabe",
     "savePreferences": "Einstellungen speichern",
