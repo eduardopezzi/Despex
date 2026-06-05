@@ -5,6 +5,7 @@ import { OcrJobEntity } from '@core/database/entities/ocr-job.entity';
 import { OcrFileEntity } from '@core/database/entities/ocr-file.entity';
 import { OcrExecutionEntity } from '@core/database/entities/ocr-execution.entity';
 import { ExpenseEntity } from '@core/database/entities/expense.entity';
+import { RecordEntity } from '@core/database/entities/record.entity';
 import { ReposService } from '@core/database/repos.service';
 import { DbService } from '@core/database/db.service';
 import { SecretsModule } from '@core/secrets/secrets.module';
@@ -12,10 +13,11 @@ import { OcrJobsDao } from '@core/database/daos/ocr-jobs.dao';
 import { OcrFilesDao } from '@core/database/daos/ocr-files.dao';
 import { OcrExecutionsDao } from '@core/database/daos/ocr-executions.dao';
 import { ExpensesDao } from '@core/database/daos/expenses.dao';
+import { RecordsDao } from '@core/database/daos/records.dao';
 
-const entitiesModule = TypeOrmModule.forFeature([OcrJobEntity, OcrFileEntity, OcrExecutionEntity, ExpenseEntity]);
+const entitiesModule = TypeOrmModule.forFeature([OcrJobEntity, OcrFileEntity, OcrExecutionEntity, ExpenseEntity, RecordEntity]);
 
-const DAOs = [OcrJobsDao, OcrFilesDao, OcrExecutionsDao, ExpensesDao];
+const DAOs = [OcrJobsDao, OcrFilesDao, OcrExecutionsDao, ExpensesDao, RecordsDao];
 
 @Global()
 @Module({

@@ -4,6 +4,7 @@ import { WithModificationDates } from '@core/database/entities/with-modification
 import { OcrExecutionEntity } from '@core/database/entities/ocr-execution.entity';
 import { OcrFileEntity } from '@core/database/entities/ocr-file.entity';
 import { OcrJobEntity } from '@core/database/entities/ocr-job.entity';
+import { RecordEntity } from '@core/database/entities/record.entity';
 
 @Entity('expenses')
 export class ExpenseEntity extends WithModificationDates {
@@ -69,12 +70,18 @@ export class ExpenseEntity extends WithModificationDates {
 
   @Column({ name: 'client_record_id', type: 'integer', nullable: true })
   clientRecordId?: number | null;
+  @ManyToOne(() => RecordEntity, { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'client_record_id' })
+  clientRecord?: RecordEntity | null;
 
   @Column({ name: 'is_company_expense', type: 'boolean', default: false })
   isCompanyExpense!: boolean;
 
   @Column({ name: 'expense_type_record_id', type: 'integer', nullable: true })
   expenseTypeRecordId?: number | null;
+  @ManyToOne(() => RecordEntity, { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'expense_type_record_id' })
+  expenseTypeRecord?: RecordEntity | null;
 
   @Column({ name: 'reimbursement_date', type: 'date', nullable: true })
   reimbursementDate?: string | null;

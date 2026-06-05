@@ -9,13 +9,13 @@
 | Dominio de despesas | 100% | [x] | `expenses`, CRUD, filtros, tipos compartilhados, relacoes com OCR e criacao minima apos OCR concluido implementados. |
 | Consulta fiscal oficial e baixa de XML | 60% |  | Modulo fiscal, deteccao de chave, configs, provider SEFAZ preparado/stub seguro, status de consulta e integracao com despesas/OCR implementados; falta SOAP/mTLS real. |
 | Extracao estruturada XML/OCR | 80% |  | Parser XML NF-e 55 e heuristicas OCR JSON extraem estabelecimento, valor, data e pagamento; falta ampliar cobertura com notas reais e confidencia por campo. |
-| Cadastros de clientes e tipos de gasto | 0% |  | Criar `records` com tipos `client` e `expense_type`. |
+| Cadastros de clientes e tipos de gasto | 100% | [x] | `records` com tipos `client` e `expense_type`, CRUD, filtros, soft delete e validacao nas despesas implementados. |
 | Usuarios, login e permissoes | 0% |  | Criar autenticacao, roles, admin e regras de acesso por usuario. |
 | Frontend de autenticacao | 0% |  | Criar login, criar usuario, alterar senha, guards e sessao. |
 | Importacao de despesas | 20% |  | Upload/crop OCR ja existe parcialmente; falta fluxo orientado a despesa, XML e pendencia fiscal. |
 | Tela de despesas | 0% |  | Criar listagem, filtros, edicao, selecao e atribuicao por admin. |
 | Relatorios de despesas | 0% |  | Gerar relatorio por filtros ou selecionadas, total geral e total por tipo. |
-| Migrations, seguranca e producao | 10% |  | Docker/Compose existem; falta migrations, indices, config validada e hardening fiscal. |
+| Migrations, seguranca e producao | 15% |  | Docker/Compose existem e dados runtime foram removidos do versionamento; falta migrations, indices, config validada e hardening fiscal. |
 
 Este documento organiza a evolucao do projeto Open Receipt OCR para um sistema de despesas baseado em notas fiscais, com OCR, extracao estruturada, armazenamento, edicao, usuarios, permissoes e relatorios.
 

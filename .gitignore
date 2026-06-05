@@ -144,6 +144,10 @@ vite.config.ts.timestamp-*
 **/.turbo
 
 *.sqlite
+*.sqlite-shm
+*.sqlite-wal
+data/
+server/data/
 # TODO: OPR-1: Remove this
 server/uploads
 

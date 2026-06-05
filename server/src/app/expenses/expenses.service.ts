@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { DeepPartial } from 'typeorm';
 import { ExpensesDao } from '@core/database/daos/expenses.dao';
 import { ExpenseEntity } from '@core/database/entities/expense.entity';
@@ -6,10 +6,11 @@ import { NoTxn } from '@core/database/txn-def.interface';
 import { CreateExpenseDto } from '@app/expenses/dto/create-expense.dto';
 import { ExpenseQueryParams } from '@app/expenses/dto/expense-query.params';
 import { UpdateExpenseDto } from '@app/expenses/dto/update-expense.dto';
-import { ExpenseSourceType, FiscalDocumentType, FiscalFetchStatus, PaymentType, SortOrder } from '@open-receipt-ocr/types';
+import { ExpenseSourceType, FiscalDocumentType, FiscalFetchStatus, PaymentType, RecordType, SortOrder } from '@open-receipt-ocr/types';
 import { FiscalDocumentsService } from '@app/fiscal-documents/fiscal-documents.service';
 import { ExpenseExtractionService } from '@app/expense-extraction/expense-extraction.service';
 import { ExtractedExpenseData } from '@app/expense-extraction/expense-extraction.types';
+import { RecordsService } from '@app/records/records.service';
 
 @Injectable()
 export class ExpensesService {
@@ -17,6 +18,7 @@ export class ExpensesService {
     private readonly expensesDao: ExpensesDao,
     private readonly fiscalDocumentsService: FiscalDocumentsService,
     private readonly expenseExtractionService: ExpenseExtractionService,
+    private readonly recordsService: RecordsService,
   ) {}
 
   findAll(params: ExpenseQueryParams): Promise<[ExpenseEntity[], number]> {
@@ -33,6 +35,7 @@ export class ExpensesService {
   }
 
   async create(dto: CreateExpenseDto): Promise<ExpenseEntity> {
+    await this.validateRecordRelations(dto);
     const fiscalLookup = await this.lookupFiscalSource(dto);
     const extracted = this.extractExpenseData(dto, fiscalLookup?.rawXml);
 
@@ -58,7 +61,8 @@ export class ExpensesService {
     return this.expensesDao.getOneByPkOrFail(NoTxn, id);
   }
 
-  update(id: number, dto: UpdateExpenseDto): Promise<ExpenseEntity> {
+  async update(id: number, dto: UpdateExpenseDto): Promise<ExpenseEntity> {
+    await this.validateRecordRelations(dto);
     return this.expensesDao.updateByPk(NoTxn, id, this.toEntityData(dto));
   }
 
@@ -71,6 +75,25 @@ export class ExpensesService {
       dto.xmlAccessKey || this.fiscalDocumentsService.extractAccessKey(dto.rawXml) || this.fiscalDocumentsService.extractAccessKey(dto.rawOcrJson);
     if (!explicitAccessKey) return null;
     return this.fiscalDocumentsService.lookupByAccessKey(explicitAccessKey);
+  }
+
+  private async validateRecordRelations(dto: Pick<CreateExpenseDto, 'clientRecordId' | 'expenseTypeRecordId'>): Promise<void> {
+    if (dto.clientRecordId !== undefined && dto.clientRecordId !== null) {
+      await this.assertRecord(dto.clientRecordId, RecordType.Client, 'clientRecordId');
+    }
+    if (dto.expenseTypeRecordId !== undefined && dto.expenseTypeRecordId !== null) {
+      await this.assertRecord(dto.expenseTypeRecordId, RecordType.ExpenseType, 'expenseTypeRecordId');
+    }
+  }
+
+  private async assertRecord(id: number, expectedType: RecordType, fieldName: string): Promise<void> {
+    const record = await this.recordsService.getRecord(id);
+    if (record.type !== expectedType) {
+      throw new BadRequestException(`${fieldName} must reference a ${expectedType} record.`);
+    }
+    if (!record.isActive) {
+      throw new BadRequestException(`${fieldName} must reference an active record.`);
+    }
   }
 
   private extractExpenseData(dto: CreateExpenseDto, officialXml?: string): ExtractedExpenseData {

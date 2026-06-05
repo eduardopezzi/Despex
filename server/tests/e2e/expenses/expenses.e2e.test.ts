@@ -3,8 +3,9 @@ import request from 'supertest';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { DatabaseModule } from '@core/database/database.module';
 import { ExpensesModule } from '@app/expenses/expenses.module';
+import { RecordsModule } from '@app/records/records.module';
 import { ExpenseEntity } from '@core/database/entities/expense.entity';
-import { ExpenseSourceType, FiscalDocumentType, FiscalFetchStatus, PaginatedResponse, PaymentType } from '@open-receipt-ocr/types';
+import { ExpenseSourceType, FiscalDocumentType, FiscalFetchStatus, PaginatedResponse, PaymentType, RecordType } from '@open-receipt-ocr/types';
 import { TestContextHelpers } from '@tests/test-context.helpers';
 import { TestHelpers } from '@tests/test-helpers';
 
@@ -13,7 +14,7 @@ describe('Expenses Controller (e2e)', () => {
 
   beforeAll(async () => {
     const context = await TestContextHelpers.createTestContext({
-      imports: [DatabaseModule, ExpensesModule],
+      imports: [DatabaseModule, ExpensesModule, RecordsModule],
     });
     app = context.app;
   });
@@ -154,6 +155,29 @@ describe('Expenses Controller (e2e)', () => {
       totalAmount: 89.9,
       expenseDate: '2026-06-04',
       paymentType: PaymentType.Cash,
+    });
+  });
+
+  it('/expenses (POST) - accepts valid client and expense type records', async () => {
+    const client = await TestHelpers.expectCreated<{ id: number }>(app, '/records', {
+      name: 'Cliente Despex',
+      type: RecordType.Client,
+    });
+    const expenseType = await TestHelpers.expectCreated<{ id: number }>(app, '/records', {
+      name: 'Transporte',
+      type: RecordType.ExpenseType,
+    });
+
+    const created = await TestHelpers.expectCreated<ExpenseEntity>(app, '/expenses', {
+      merchantName: 'Taxi Gamma',
+      clientRecordId: client.id,
+      expenseTypeRecordId: expenseType.id,
+    });
+
+    expect(created).toMatchObject({
+      merchantName: 'Taxi Gamma',
+      clientRecordId: client.id,
+      expenseTypeRecordId: expenseType.id,
     });
   });
 });

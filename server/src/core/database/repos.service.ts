@@ -5,6 +5,7 @@ import { OcrJobEntity } from '@core/database/entities/ocr-job.entity';
 import { OcrFileEntity } from '@core/database/entities/ocr-file.entity';
 import { OcrExecutionEntity } from '@core/database/entities/ocr-execution.entity';
 import { ExpenseEntity } from '@core/database/entities/expense.entity';
+import { RecordEntity } from '@core/database/entities/record.entity';
 
 @Injectable()
 export class ReposService {
@@ -17,5 +18,7 @@ export class ReposService {
     public readonly ocrExecution: Repository<OcrExecutionEntity>,
     @InjectRepository(ExpenseEntity)
     public readonly expense: Repository<ExpenseEntity>,
+    @InjectRepository(RecordEntity)
+    public readonly record: Repository<RecordEntity>,
   ) {}
 }

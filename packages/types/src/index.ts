@@ -13,3 +13,5 @@ export * from './expense-source-type.enum';
 export * from './fiscal-fetch-status.enum';
 export * from './fiscal-lookup-provider.enum';
 export * from './expense.interface';
+export * from './record-type.enum';
+export * from './record.interface';
