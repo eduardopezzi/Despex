@@ -130,20 +130,7 @@ export class ExpensesPageComponent implements OnInit {
   }
 
   openEditDialog(expense: Expense) {
-    this.editingExpense = expense;
-    this.form = {
-      merchantName: expense.merchantName,
-      totalAmount: expense.totalAmount,
-      expenseDate: expense.expenseDate,
-      paymentType: expense.paymentType,
-      clientRecordId: expense.clientRecordId,
-      isCompanyExpense: expense.isCompanyExpense,
-      expenseTypeRecordId: expense.expenseTypeRecordId,
-      reimbursementDate: expense.reimbursementDate,
-      isReimbursed: expense.isReimbursed,
-      description: expense.description,
-      documentType: expense.documentType,
-    };
+    this.applyExpenseToForm(expense);
     this.showDialog = true;
   }
 
@@ -172,6 +159,19 @@ export class ExpensesPageComponent implements OnInit {
     });
   }
 
+  reextractExpense() {
+    if (!this.editingExpense) return;
+
+    this.expenseService.reextractExpense(this.editingExpense.id).subscribe({
+      next: (expense) => {
+        this.applyExpenseToForm(expense);
+        this.messageService.add({ severity: 'success', summary: 'Leitura atualizada' });
+        this.fetchExpenses(false);
+      },
+      error: () => this.messageService.add({ severity: 'error', summary: 'Erro ao atualizar leitura' }),
+    });
+  }
+
   clientName(id?: number | null): string {
     return this.clients.find((item) => item.id === id)?.name || '-';
   }
@@ -182,6 +182,34 @@ export class ExpensesPageComponent implements OnInit {
 
   paymentLabel(value?: PaymentType): string {
     return this.paymentOptions.find((item) => item.value === value)?.label || 'Desconhecido';
+  }
+
+  sourceLabel(expense?: Expense | null): string {
+    if (!expense) return '-';
+    if (expense.rawXml) return 'XML fiscal';
+    if (expense.rawOcrJson) return 'OCR';
+    return 'Manual';
+  }
+
+  formattedRawOcr(expense?: Expense | null): string {
+    if (!expense?.rawOcrJson) return '';
+    try {
+      return JSON.stringify(JSON.parse(expense.rawOcrJson), null, 2);
+    } catch {
+      return expense.rawOcrJson;
+    }
+  }
+
+  rawTextPreview(expense?: Expense | null): string {
+    const rawOcr = this.formattedRawOcr(expense);
+    if (!rawOcr) return '';
+
+    try {
+      const parsed = JSON.parse(rawOcr) as unknown;
+      return this.collectText(parsed).join('\n');
+    } catch {
+      return rawOcr;
+    }
   }
 
   totalSelected(): number {
@@ -219,5 +247,36 @@ export class ExpensesPageComponent implements OnInit {
       description: '',
       documentType: FiscalDocumentType.Unknown,
     };
+  }
+
+  private applyExpenseToForm(expense: Expense) {
+    this.editingExpense = expense;
+    this.form = {
+      merchantName: expense.merchantName,
+      totalAmount: expense.totalAmount,
+      expenseDate: expense.expenseDate,
+      paymentType: expense.paymentType,
+      clientRecordId: expense.clientRecordId,
+      isCompanyExpense: expense.isCompanyExpense,
+      expenseTypeRecordId: expense.expenseTypeRecordId,
+      reimbursementDate: expense.reimbursementDate,
+      isReimbursed: expense.isReimbursed,
+      description: expense.description,
+      documentType: expense.documentType,
+    };
+  }
+
+  private collectText(value: unknown): string[] {
+    if (typeof value === 'string') return value.trim() ? [value.trim()] : [];
+    if (typeof value !== 'object' || value === null) return [];
+    if (Array.isArray(value)) return value.flatMap((item) => this.collectText(item));
+
+    const record = value as Record<string, unknown>;
+    const preferredKeys = ['text', 'content', 'markdown', 'rawText', 'description'];
+    const preferred = preferredKeys.flatMap((key) => this.collectText(record[key]));
+    const nested = Object.entries(record)
+      .filter(([key]) => !preferredKeys.includes(key))
+      .flatMap(([, item]) => this.collectText(item));
+    return [...preferred, ...nested];
   }
 }

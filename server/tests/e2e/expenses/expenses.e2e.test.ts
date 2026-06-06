@@ -158,6 +158,60 @@ describe('Expenses Controller (e2e)', () => {
     });
   });
 
+  it('/expenses/:id/reextract (PATCH) - recalculates stored OCR fields', async () => {
+    const created = await TestHelpers.expectCreated<ExpenseEntity>(app, '/expenses', {
+      rawOcrJson: JSON.stringify({
+        pages: [
+          {
+            blocks: [
+              { text: 'Docmento Auxiliar a Nota Fiscal de' },
+              { text: 'Consumidor Eletronica' },
+              { text: 'Coc ten.Unit .' },
+              { text: '387 BUFFET' },
+              { text: 'VALOR TOTAL R$ 102,00' },
+              { text: 'PAGAMENTODINHEIROAVALOR TOTAL' },
+            ],
+          },
+        ],
+      }),
+      merchantName: 'Docmento Auxiliar a Nota Fiscal de',
+      paymentType: PaymentType.Unknown,
+    });
+
+    const patchRes = await request(app.getHttpServer()).patch(`/expenses/${created.id}/reextract`).send({});
+    expect(patchRes.status).toBe(200);
+    expect(patchRes.body).toMatchObject({
+      merchantName: null,
+      totalAmount: 102,
+      paymentType: PaymentType.Cash,
+    });
+  });
+
+  it('/expenses/extraction-feedback (GET) - records manual corrections for extracted fields', async () => {
+    const created = await TestHelpers.expectCreated<ExpenseEntity>(app, '/expenses', {
+      rawOcrJson: JSON.stringify({
+        pages: [{ blocks: [{ text: 'PADARIA CENTRAL LTDA' }, { text: 'TOTAL R$ 42,50' }, { text: 'Pagamento dinheiro' }] }],
+      }),
+      sourceType: ExpenseSourceType.OcrJson,
+    });
+
+    const patchRes = await request(app.getHttpServer()).patch(`/expenses/${created.id}`).send({
+      merchantName: 'Padaria Central Corrigida',
+      totalAmount: 43.5,
+    });
+    expect(patchRes.status).toBe(200);
+
+    const feedback = await TestHelpers.expectOk<PaginatedResponse<Record<string, unknown>>>(app, '/expenses/extraction-feedback?page=1&pageSize=10');
+    expect(feedback.total).toBeGreaterThan(0);
+    expect(feedback.data[0]).toMatchObject({
+      expenseId: created.id,
+      predictedMerchantName: 'PADARIA CENTRAL LTDA',
+      correctedMerchantName: 'Padaria Central Corrigida',
+      predictedTotalAmount: 42.5,
+      correctedTotalAmount: 43.5,
+    });
+  });
+
   it('/expenses (POST) - accepts valid client and expense type records', async () => {
     const client = await TestHelpers.expectCreated<{ id: number }>(app, '/records', {
       name: 'Cliente Despex',

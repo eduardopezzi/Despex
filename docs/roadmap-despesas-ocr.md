@@ -8,7 +8,8 @@
 | OCR bruto e providers | 70% |  | Projeto ja suporta multiplos providers e armazena OCR em `ocr_executions.ocr_data`; falta integrar com despesas. |
 | Dominio de despesas | 100% | [x] | `expenses`, CRUD, filtros, tipos compartilhados, relacoes com OCR e criacao minima apos OCR concluido implementados. |
 | Consulta fiscal oficial e baixa de XML | 60% |  | Modulo fiscal, deteccao de chave, configs, provider SEFAZ preparado/stub seguro, status de consulta e integracao com despesas/OCR implementados; falta SOAP/mTLS real. |
-| Extracao estruturada XML/OCR | 80% |  | Parser XML NF-e 55 e heuristicas OCR JSON extraem estabelecimento, valor, data e pagamento; falta ampliar cobertura com notas reais e confidencia por campo. |
+| Extracao estruturada XML/OCR | 85% |  | Parser XML NF-e 55 e heuristicas OCR JSON extraem estabelecimento, valor, data e pagamento; inclui agrupamento visual por bbox e busca tolerante a erro de OCR; falta ampliar cobertura com notas reais e confidencia por campo. |
+| Aprendizado por correcoes e melhoria continua | 20% |  | Planejado no roadmap e inicio implementado com tabela de feedback de extracao, registro de correcoes manuais e endpoint de consulta da base corrigida. |
 | Cadastros de clientes e tipos de gasto | 100% | [x] | `records` com tipos `client` e `expense_type`, CRUD, filtros, soft delete e validacao nas despesas implementados. |
 | Usuarios, login e permissoes | 0% |  | Criar autenticacao, roles, admin e regras de acesso por usuario. |
 | Frontend de autenticacao | 0% |  | Criar login, criar usuario, alterar senha, guards e sessao. |
@@ -62,6 +63,7 @@ Criar entidades novas:
 - `RecordEntity`
 - `ReportSnapshotEntity` opcional, se for necessario historico de relatorios gerados
 - `FiscalDocumentFetchEntity` opcional, para registrar tentativas de consulta/baixa oficial
+- `ExpenseExtractionFeedbackEntity`, para registrar diferencas entre campos extraidos automaticamente e correcoes manuais do usuario
 
 Criar tipos compartilhados em `packages/types`:
 
@@ -184,6 +186,37 @@ Campos:
 - `created_at`
 - `updated_at`
 
+### Tabela `expense_extraction_feedback`
+
+Base de aprendizado para melhoria continua da leitura.
+
+Campos:
+
+- `id`
+- `expense_id`
+- `ocr_file_id`
+- `ocr_execution_id`
+- `document_type`
+- `raw_ocr_json`
+- `raw_xml`
+- `predicted_merchant_name`
+- `corrected_merchant_name`
+- `predicted_total_amount`
+- `corrected_total_amount`
+- `predicted_expense_date`
+- `corrected_expense_date`
+- `predicted_payment_type`
+- `corrected_payment_type`
+- `created_by_user_id`
+- `created_at`
+- `updated_at`
+
+Regras:
+
+- Criar um registro quando o usuario editar estabelecimento, valor, data ou pagamento de uma despesa gerada por OCR/XML.
+- Preservar o bruto usado na extracao para permitir reavaliar heuristicas futuras.
+- Usar essa base primeiro para melhorar regras e aliases; depois, se houver volume suficiente, avaliar extracao por LLM/fine-tuning.
+
 ## Fases de Implementacao
 
 ### Fase 1: Dominio de Despesas
@@ -302,6 +335,8 @@ Tarefas:
    - totalAmount: priorizar termos como "valor total", "total", "valor a pagar".
    - expenseDate: reconhecer formatos dd/mm/yyyy, dd/mm/yy e datas ISO.
    - paymentType: detectar dinheiro, cartao de credito, cartao empresa/pessoal quando houver texto indicativo; usar unknown se incerto.
+   - Quando o provider retornar bounding boxes, agrupar palavras/blocos por proximidade no eixo Y e ordenar pelo eixo X antes da extracao.
+   - Usar similaridade de texto/distancia de edicao para detectar ancoras com erros comuns de OCR, como "VAL0R T0TAL" ou "T0TAL".
 5. Integrar a criacao de ExpenseEntity quando uma OcrExecution for concluida com sucesso para fontes OCR.
 6. Integrar com FiscalDocumentsService para usar XML baixado/importado antes do OCR quando documentType for nfe_model_55.
 7. Criar fluxo para criar ExpenseEntity a partir de upload/importacao de XML.
@@ -312,11 +347,65 @@ Tarefas:
 
 Regras:
 - Nao usar regex fragil isolada quando for melhor normalizar texto primeiro.
+- Preferir pos-processamento local com geometria do OCR e matching tolerante antes de recorrer a modelos mais caros.
 - Para XML, use parser XML e trate namespaces/estruturas comuns da NF-e.
 - Se a extracao OCR falhar, ainda criar a despesa com rawOcrJson e campos nulos/unknown.
 - Se uma NF-e modelo 55 for identificada sem XML, sinalize que falta o documento fiscal valido em vez de salvar OCR como fonte canonica.
 - Documentar no codigo apenas os pontos de heuristica nao obvios.
 ```
+
+### Fase 3.1: Aprendizado por Correcoes e Melhoria Continua
+
+Criar um ciclo de feedback para usar a base de notas importadas, OCR bruto, XMLs e correcoes manuais como fonte de melhoria progressiva.
+
+Resultado esperado:
+
+- Toda correcao manual relevante fica registrada como dado de treinamento/avaliacao.
+- O sistema consegue comparar o valor extraido automaticamente com o valor corrigido pelo usuario.
+- A equipe consegue identificar erros recorrentes, como cabeçalhos usados como estabelecimento, formas de pagamento grudadas pelo OCR ou chaves fiscais capturadas incorretamente.
+- A reextracao passa a usar regras calibradas por casos reais.
+- Futuramente, a base corrigida pode alimentar um extrator baseado em LLM ou fine-tuning, sem depender de treinar OCR proprio no inicio.
+
+Prompt para agente LLM:
+
+```text
+Implemente o ciclo de aprendizado por correcoes no projeto de despesas OCR.
+
+Contexto:
+- ExpenseEntity ja armazena rawOcrJson e rawXml.
+- O usuario pode editar campos extraidos: merchantName, totalAmount, expenseDate e paymentType.
+- O objetivo e criar uma base de feedback para melhorar heuristicas e permitir avaliacao futura com LLM/fine-tuning.
+
+Tarefas:
+1. Criar ExpenseExtractionFeedbackEntity com: id, expenseId, ocrFileId, ocrExecutionId, documentType, rawOcrJson, rawXml, predictedMerchantName, correctedMerchantName, predictedTotalAmount, correctedTotalAmount, predictedExpenseDate, correctedExpenseDate, predictedPaymentType, correctedPaymentType, createdByUserId, createdAt e updatedAt.
+2. Criar DAO correspondente e registrar a entidade no DatabaseModule, ReposService e TypeOrmConfigService.
+3. Ao executar PATCH /api/expenses/:id, comparar os valores atuais da despesa com os valores enviados pelo usuario.
+4. Se pelo menos um campo extraido tiver sido alterado e a despesa tiver rawOcrJson ou rawXml, criar um registro em expense_extraction_feedback.
+5. Criar endpoint de consulta GET /api/expenses/extraction-feedback com paginacao.
+6. Adicionar testes e2e cobrindo a criacao de feedback apos edicao manual.
+7. Adicionar testes unitarios para casos reais recorrentes de OCR, por exemplo:
+   - pagamento grudado como PAGAMENTODINHEIROAVALOR TOTAL;
+   - cabecalho Documento Auxiliar usado incorretamente como estabelecimento;
+   - chave de acesso capturada com numeros soltos antes da chave real.
+8. No frontend, mostrar dados brutos do OCR/XML na edicao da despesa para facilitar a correcao pelo usuario.
+9. Adicionar acao de reextrair campos da despesa a partir do rawOcrJson/rawXml armazenado.
+10. Documentar no roadmap que a proxima evolucao sera criar painel de erros recorrentes, aliases de estabelecimento e avaliacao automatica de acuracia.
+
+Regras:
+- Nao sobrescrever correcoes manuais sem acao explicita do usuario.
+- Nao treinar OCR proprio nesta fase; priorize melhoria da extracao pos-OCR.
+- Para NF-e modelo 55, usar XML como fonte canonica quando existir.
+- Preservar dados brutos para auditoria e reavaliacao futura.
+- Evitar armazenar segredos, senhas de certificado ou dados sensiveis desnecessarios em logs.
+```
+
+Proximas tarefas desta fase:
+
+- Criar painel administrativo de feedbacks e erros recorrentes.
+- Criar tabela de aliases/regras aprendidas por estabelecimento.
+- Medir acuracia por campo antes e depois das melhorias.
+- Criar rotina batch para reextrair despesas antigas.
+- Avaliar uso de LLM para extracao JSON estruturada quando OCR bruto estiver completo, mas as heuristicas falharem.
 
 ### Fase 4: Cadastros Genericos
 
@@ -598,12 +687,13 @@ A deteccao automatica do corpo da nota e uma feature mais complexa. O projeto ja
 1. Dominio de despesas.
 2. Consulta fiscal oficial e baixa de XML quando possivel.
 3. Extracao estruturada.
-4. Cadastros genericos.
-5. Usuarios e permissoes.
-6. Login no frontend.
-7. Importacao de despesas.
-8. Listagem e edicao de despesas.
-9. Relatorios.
-10. Migrations, seguranca e producao.
+4. Aprendizado por correcoes e melhoria continua.
+5. Cadastros genericos.
+6. Usuarios e permissoes.
+7. Login no frontend.
+8. Importacao de despesas.
+9. Listagem e edicao de despesas.
+10. Relatorios.
+11. Migrations, seguranca e producao.
 
 Essa ordem reduz risco porque primeiro cria o dado central do produto, depois define a fonte fiscal valida, melhora extracao, aplica regras de acesso e por fim entrega a experiencia completa no frontend.

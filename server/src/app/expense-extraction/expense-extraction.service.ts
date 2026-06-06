@@ -4,6 +4,11 @@ import { ExpenseSourceType, FiscalDocumentType, PaymentType } from '@open-receip
 import { extractFiscalAccessKey, getFiscalDocumentTypeFromAccessKey } from '@app/fiscal-documents/utils/access-key.util';
 import { ExtractedExpenseData } from '@app/expense-extraction/expense-extraction.types';
 
+interface OcrTextBlock {
+  text: string;
+  bbox?: unknown;
+}
+
 @Injectable()
 export class ExpenseExtractionService {
   private readonly xmlParser = new XMLParser({
@@ -60,10 +65,89 @@ export class ExpenseExtractionService {
   private extractTextFromOcr(rawOcrJson: string): string {
     try {
       const parsed = JSON.parse(rawOcrJson) as unknown;
-      return this.collectText(parsed).join('\n');
+      const visualLines = this.extractVisualLines(parsed);
+      return visualLines.length > 0 ? visualLines.join('\n') : this.collectText(parsed).join('\n');
     } catch {
       return rawOcrJson;
     }
+  }
+
+  private extractVisualLines(value: unknown): string[] {
+    const blocks = this.collectOcrTextBlocks(value).filter((block) => block.text.trim());
+    const positionedBlocks = blocks
+      .map((block) => {
+        const box = this.normalizeBBox(block.bbox);
+        if (!box) return null;
+        const y = box.reduce((sum, point) => sum + point.y, 0) / box.length;
+        const x = Math.min(...box.map((point) => point.x));
+        const height = Math.max(...box.map((point) => point.y)) - Math.min(...box.map((point) => point.y));
+        return { text: block.text.trim(), x, y, height };
+      })
+      .filter((block): block is { text: string; x: number; y: number; height: number } => !!block)
+      .sort((a, b) => a.y - b.y || a.x - b.x);
+
+    if (positionedBlocks.length === 0) return [];
+
+    const lines: Array<Array<{ text: string; x: number; y: number; height: number }>> = [];
+    for (const block of positionedBlocks) {
+      const lastLine = lines[lines.length - 1];
+      const tolerance = Math.max(12, block.height * 0.55);
+      const lastY = lastLine ? lastLine.reduce((sum, item) => sum + item.y, 0) / lastLine.length : 0;
+
+      if (lastLine && Math.abs(block.y - lastY) <= tolerance) {
+        lastLine.push(block);
+      } else {
+        lines.push([block]);
+      }
+    }
+
+    return lines.map((line) =>
+      line
+        .sort((a, b) => a.x - b.x)
+        .map((block) => block.text)
+        .join(' ')
+        .replace(/\s+/g, ' ')
+        .trim(),
+    );
+  }
+
+  private collectOcrTextBlocks(value: unknown): OcrTextBlock[] {
+    if (typeof value !== 'object' || value === null) return [];
+    if (Array.isArray(value)) return value.flatMap((item) => this.collectOcrTextBlocks(item));
+
+    const record = value as Record<string, unknown>;
+    const text = record.text;
+    if (typeof text === 'string') {
+      return [{ text, bbox: record.bbox }];
+    }
+
+    return Object.values(record).flatMap((item) => this.collectOcrTextBlocks(item));
+  }
+
+  private normalizeBBox(value: unknown): Array<{ x: number; y: number }> | null {
+    if (!Array.isArray(value)) return null;
+
+    if (value.length === 4 && value.every((item) => typeof item === 'number')) {
+      const [x1, y1, x2, y2] = value;
+      return [
+        { x: x1, y: y1 },
+        { x: x2, y: y1 },
+        { x: x2, y: y2 },
+        { x: x1, y: y2 },
+      ];
+    }
+
+    const points = value
+      .map((item) => {
+        if (!Array.isArray(item) || item.length < 2) return null;
+        const tuple = item as unknown[];
+        const x = tuple[0];
+        const y = tuple[1];
+        return typeof x === 'number' && typeof y === 'number' ? { x, y } : null;
+      })
+      .filter((item): item is { x: number; y: number } => !!item);
+
+    return points.length >= 2 ? points : null;
   }
 
   private collectText(value: unknown): string[] {
@@ -82,16 +166,24 @@ export class ExpenseExtractionService {
 
   private extractMerchantNameFromText(text: string): string | null {
     const lines = this.normalizeLines(text);
-    const rejected = /\b(cnpj|cpf|endereco|ender[eé]co|telefone|chave|cupom|extrato|sat|nfc-e|nf-e|danfe|valor|total)\b/i;
-    const merchant = lines.find((line) => line.length >= 3 && !rejected.test(line) && !/^\d/.test(line));
+    const tableStartIndex = lines.findIndex((line) => this.isItemsOrPaymentSectionLine(line));
+    const headerLines = tableStartIndex >= 0 ? lines.slice(0, tableStartIndex) : lines;
+    const merchant = headerLines.find((line) => this.isMerchantCandidate(line)) ?? lines.find((line) => this.isMerchantCandidate(line));
     return this.cleanMerchantName(merchant);
   }
 
   private extractTotalAmountFromText(text: string): number | null {
     const lines = this.normalizeLines(text);
-    const candidates = lines.filter((line) => /\b(valor\s+total|total|valor\s+a\s+pagar|vlr\s+total)\b/i.test(line));
-    const values = candidates.flatMap((line) => this.extractAmounts(line));
-    if (values.length > 0) return values[values.length - 1];
+    const anchors = ['total', 'valor total', 'valor a pagar', 'valor liquido', 'vlr total', 'pagar'];
+    for (let index = 0; index < lines.length; index += 1) {
+      if (!this.hasApproximateAnchor(lines[index], anchors)) continue;
+
+      const values = this.extractAmounts(lines[index]);
+      if (values.length > 0) return values[values.length - 1];
+
+      const nextValues = lines[index + 1] ? this.extractAmounts(lines[index + 1]) : [];
+      if (nextValues.length > 0) return nextValues[0];
+    }
 
     const allValues = lines.flatMap((line) => this.extractAmounts(line));
     return allValues.length > 0 ? Math.max(...allValues) : null;
@@ -101,7 +193,7 @@ export class ExpenseExtractionService {
     const isoMatch = text.match(/\b\d{4}-\d{2}-\d{2}\b/);
     if (isoMatch) return isoMatch[0];
 
-    const brMatch = text.match(/\b(\d{2})\/(\d{2})\/(\d{2}|\d{4})\b/);
+    const brMatch = text.match(/\b(\d{2})[/.\-\s](\d{2})[/.\-\s](\d{2}|\d{4})\b/);
     if (!brMatch) return null;
     const [, day, month, rawYear] = brMatch;
     const year = rawYear.length === 2 ? `20${rawYear}` : rawYear;
@@ -110,10 +202,10 @@ export class ExpenseExtractionService {
 
   private extractPaymentTypeFromText(text: string): PaymentType {
     const normalized = this.removeAccents(text).toLowerCase();
-    if (/\b(dinheiro|especie)\b/.test(normalized)) return PaymentType.Cash;
-    if (/cartao.*credito.*empresa|credito.*empresa|corporativo/.test(normalized)) return PaymentType.CompanyCreditCard;
-    if (/cartao.*credito.*pessoal|credito.*pessoal/.test(normalized)) return PaymentType.PersonalCreditCard;
-    if (/cartao.*credito|credito/.test(normalized)) return PaymentType.PersonalCreditCard;
+    if (/dinheiro|especie|pagamento\s*em\s*dinheiro/.test(normalized)) return PaymentType.Cash;
+    if (/cart[aã]o.*credito.*empresa|credito.*empresa|corporativo/.test(normalized)) return PaymentType.CompanyCreditCard;
+    if (/cart[aã]o.*credito.*pessoal|credito.*pessoal/.test(normalized)) return PaymentType.PersonalCreditCard;
+    if (/cart[aã]o.*credito|credito/.test(normalized)) return PaymentType.PersonalCreditCard;
     return PaymentType.Unknown;
   }
 
@@ -132,9 +224,82 @@ export class ExpenseExtractionService {
       .filter(Boolean);
   }
 
+  private isItemsOrPaymentSectionLine(line: string): boolean {
+    const normalized = this.removeAccents(line).toLowerCase();
+    return /cod|codigo|descri|qtd|qtde|quant|un\.?|unit|valor\s+total|forma\s*pagamento|valor\s+pago|pagamento/.test(normalized);
+  }
+
+  private isMerchantCandidate(line: string): boolean {
+    const normalized = this.removeAccents(line).toLowerCase().replace(/\s+/g, ' ').trim();
+    const letters = normalized.replace(/[^a-z]/g, '');
+
+    if (letters.length < 3) return false;
+    if (/^\d/.test(normalized)) return false;
+    if ((normalized.match(/\d/g) ?? []).length > letters.length) return false;
+
+    const rejected =
+      /cnpj|cpf|endereco|telefone|chave|acesso|consulta|consulte|cupom|extrato|sat|nfc\s*-?\s*e|nf\s*-?\s*e|danfe|nota fiscal|documento auxiliar|docmento auxiliar|consumidor eletron|consumidor nao identificado|valor|total|forma|pagamento|dinheiro|cartao|credito|debito|protocolo|serie|data|hora|http|www|sefaz|receita|tribut|fisco|qtd|qtde|unit|un\b|buffet|refrigerante|coca|janta/;
+
+    return !rejected.test(normalized);
+  }
+
   private extractAmounts(text: string): number[] {
     const matches: string[] = Array.from(text.matchAll(/\d{1,3}(?:\.\d{3})*,\d{2}|\d+\.\d{2}|\d+,\d{2}/g), (match) => match[0]);
     return matches.map((match) => this.parseAmount(match)).filter((value): value is number => value !== null);
+  }
+
+  private hasApproximateAnchor(line: string, anchors: string[]): boolean {
+    const normalized = this.normalizeForSimilarity(line);
+    if (!normalized) return false;
+
+    return anchors.some((anchor) => {
+      const normalizedAnchor = this.normalizeForSimilarity(anchor);
+      if (normalized.includes(normalizedAnchor)) return true;
+
+      const words = normalized.split(/\s+/);
+      const anchorWords = normalizedAnchor.split(/\s+/);
+      if (anchorWords.length === 1) {
+        return words.some((word) => this.similarity(word, normalizedAnchor) >= 0.75);
+      }
+
+      return words.some((_, index) => this.similarity(words.slice(index, index + anchorWords.length).join(' '), normalizedAnchor) >= 0.75);
+    });
+  }
+
+  private normalizeForSimilarity(value: string): string {
+    return this.removeAccents(value)
+      .toLowerCase()
+      .replace(/[0]/g, 'o')
+      .replace(/[1]/g, 'i')
+      .replace(/[^a-z\s]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  private similarity(left: string, right: string): number {
+    if (left === right) return 1;
+    if (!left || !right) return 0;
+    const distance = this.levenshteinDistance(left, right);
+    return 1 - distance / Math.max(left.length, right.length);
+  }
+
+  private levenshteinDistance(left: string, right: string): number {
+    const previous = Array.from({ length: right.length + 1 }, (_, index) => index);
+
+    for (let leftIndex = 0; leftIndex < left.length; leftIndex += 1) {
+      let diagonal = previous[0];
+      previous[0] = leftIndex + 1;
+
+      for (let rightIndex = 0; rightIndex < right.length; rightIndex += 1) {
+        const deletion = previous[rightIndex + 1] + 1;
+        const insertion = previous[rightIndex] + 1;
+        const substitution = diagonal + (left[leftIndex] === right[rightIndex] ? 0 : 1);
+        diagonal = previous[rightIndex + 1];
+        previous[rightIndex + 1] = Math.min(deletion, insertion, substitution);
+      }
+    }
+
+    return previous[right.length];
   }
 
   private parseAmount(value?: string | null): number | null {

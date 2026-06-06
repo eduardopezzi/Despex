@@ -11,6 +11,12 @@ describe('access-key.util', () => {
     expect(extractFiscalAccessKey(text)).toBe(nfeAccessKey);
   });
 
+  it('prefers a plausible NF-e/NFC-e key when OCR text has unrelated numbers before it', () => {
+    const text = `1 425 VALOR TOTAL R$ 102,00 chave 4226 0580 9863 9100 0102 6500 1000 2078 0417 9428 4779`;
+
+    expect(extractFiscalAccessKey(text)).toBe('42260580986391000102650010002078041794284779');
+  });
+
   it('detects NF-e model 55 from the access key model segment', () => {
     expect(getFiscalDocumentTypeFromAccessKey(nfeAccessKey)).toBe(FiscalDocumentType.NfeModel55);
   });

@@ -134,7 +134,7 @@
   [(visible)]="showDialog"
   [modal]="true"
   [draggable]="false"
-  [style]="{ width: 'min(720px, 94vw)' }"
+  [style]="{ width: 'min(960px, 94vw)' }"
   [header]="editingExpense ? 'Editar despesa' : 'Nova despesa'"
 >
   <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -199,10 +199,62 @@
       <span class="text-sm font-semibold text-surface-700 dark:text-surface-200">Descricao</span>
       <textarea pTextarea rows="4" [(ngModel)]="form.description"></textarea>
     </label>
+
+    @if (editingExpense?.rawOcrJson || editingExpense?.rawXml) {
+      <section class="md:col-span-2 rounded-lg border border-surface-200 dark:border-surface-800 bg-surface-50/60 dark:bg-surface-950/40">
+        <details class="group">
+          <summary class="cursor-pointer list-none px-4 py-3 flex items-center justify-between gap-3">
+            <span class="font-semibold text-surface-800 dark:text-surface-100">Dados capturados pelo OCR</span>
+            <span class="text-xs font-semibold uppercase tracking-widest text-surface-500">{{ sourceLabel(editingExpense) }}</span>
+          </summary>
+
+          <div class="px-4 pb-4 grid gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+              <div>
+                <div class="text-xs uppercase tracking-widest text-surface-400">Chave fiscal</div>
+                <div class="font-medium break-all">{{ editingExpense?.xmlAccessKey || '-' }}</div>
+              </div>
+              <div>
+                <div class="text-xs uppercase tracking-widest text-surface-400">Consulta oficial</div>
+                <div class="font-medium">{{ editingExpense?.officialLookupStatus || '-' }}</div>
+              </div>
+              <div>
+                <div class="text-xs uppercase tracking-widest text-surface-400">Origem</div>
+                <div class="font-medium">{{ sourceLabel(editingExpense) }}</div>
+              </div>
+            </div>
+
+            @if (rawTextPreview(editingExpense)) {
+              <label class="grid gap-2">
+                <span class="text-sm font-semibold text-surface-700 dark:text-surface-200">Texto reconhecido</span>
+                <textarea pTextarea rows="8" readonly [ngModel]="rawTextPreview(editingExpense)" class="font-mono text-xs"></textarea>
+              </label>
+            }
+
+            @if (editingExpense?.rawXml) {
+              <label class="grid gap-2">
+                <span class="text-sm font-semibold text-surface-700 dark:text-surface-200">XML armazenado</span>
+                <textarea pTextarea rows="8" readonly [ngModel]="editingExpense?.rawXml" class="font-mono text-xs"></textarea>
+              </label>
+            }
+
+            @if (editingExpense?.rawOcrJson) {
+              <label class="grid gap-2">
+                <span class="text-sm font-semibold text-surface-700 dark:text-surface-200">JSON bruto do OCR</span>
+                <textarea pTextarea rows="8" readonly [ngModel]="formattedRawOcr(editingExpense)" class="font-mono text-xs"></textarea>
+              </label>
+            }
+          </div>
+        </details>
+      </section>
+    }
   </div>
 
   <ng-template #footer>
     <p-button label="Cancelar" [text]="true" (onClick)="showDialog = false" />
+    @if (editingExpense?.rawOcrJson || editingExpense?.rawXml) {
+      <p-button label="Atualizar leitura" icon="pi pi-refresh" [outlined]="true" (onClick)="reextractExpense()" />
+    }
     <p-button label="Salvar" icon="pi pi-save" (onClick)="saveExpense()" />
   </ng-template>
 </p-dialog>

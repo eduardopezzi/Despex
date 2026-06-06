@@ -72,6 +72,10 @@ export class ExpenseService {
     return this.http.patch<Expense>(`${this.apiUrl}/${id}`, payload);
   }
 
+  reextractExpense(id: number): Observable<Expense> {
+    return this.http.patch<Expense>(`${this.apiUrl}/${id}/reextract`, {});
+  }
+
   deleteExpense(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }

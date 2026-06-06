@@ -67,4 +67,79 @@ describe('ExpenseExtractionService', () => {
       paymentType: PaymentType.PersonalCreditCard,
     });
   });
+
+  it('does not use fiscal document headers as merchant and detects glued cash payment text', () => {
+    const rawOcrJson = JSON.stringify({
+      pages: [
+        {
+          blocks: [
+            { text: 'Docmento Auxiliar a Nota Fiscal de' },
+            { text: 'Consumidor Eletronica' },
+            { text: 'Coc ten.Unit .' },
+            { text: '387 BUFFET' },
+            { text: 'VALOR TOTAL R$ 102,00' },
+            { text: 'PAGAMENTODINHEIROAVALOR TOTAL' },
+          ],
+        },
+      ],
+    });
+
+    expect(service.extractFromOcrJson(rawOcrJson)).toMatchObject({
+      merchantName: null,
+      totalAmount: 102,
+      paymentType: PaymentType.Cash,
+    });
+  });
+
+  it('groups Paddle OCR blocks by visual line before extracting totals', () => {
+    const rawOcrJson = JSON.stringify({
+      pages: [
+        {
+          blocks: [
+            {
+              text: '102,00',
+              bbox: [
+                [190, 100],
+                [240, 100],
+                [240, 118],
+                [190, 118],
+              ],
+            },
+            {
+              text: 'R$',
+              bbox: [
+                [150, 101],
+                [170, 101],
+                [170, 118],
+                [150, 118],
+              ],
+            },
+            {
+              text: 'TOTAL',
+              bbox: [
+                [20, 99],
+                [80, 99],
+                [80, 118],
+                [20, 118],
+              ],
+            },
+          ],
+        },
+      ],
+    });
+
+    expect(service.extractFromOcrJson(rawOcrJson)).toMatchObject({
+      totalAmount: 102,
+    });
+  });
+
+  it('finds total anchors with OCR character mistakes', () => {
+    const rawOcrJson = JSON.stringify({
+      pages: [{ blocks: [{ text: 'VAL0R T0TAL R$ 87,65' }] }],
+    });
+
+    expect(service.extractFromOcrJson(rawOcrJson)).toMatchObject({
+      totalAmount: 87.65,
+    });
+  });
 });

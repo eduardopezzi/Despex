@@ -5,6 +5,7 @@ import { OcrJobEntity } from '@core/database/entities/ocr-job.entity';
 import { OcrFileEntity } from '@core/database/entities/ocr-file.entity';
 import { OcrExecutionEntity } from '@core/database/entities/ocr-execution.entity';
 import { ExpenseEntity } from '@core/database/entities/expense.entity';
+import { ExpenseExtractionFeedbackEntity } from '@core/database/entities/expense-extraction-feedback.entity';
 import { RecordEntity } from '@core/database/entities/record.entity';
 import { ReposService } from '@core/database/repos.service';
 import { DbService } from '@core/database/db.service';
@@ -13,11 +14,19 @@ import { OcrJobsDao } from '@core/database/daos/ocr-jobs.dao';
 import { OcrFilesDao } from '@core/database/daos/ocr-files.dao';
 import { OcrExecutionsDao } from '@core/database/daos/ocr-executions.dao';
 import { ExpensesDao } from '@core/database/daos/expenses.dao';
+import { ExpenseExtractionFeedbackDao } from '@core/database/daos/expense-extraction-feedback.dao';
 import { RecordsDao } from '@core/database/daos/records.dao';
 
-const entitiesModule = TypeOrmModule.forFeature([OcrJobEntity, OcrFileEntity, OcrExecutionEntity, ExpenseEntity, RecordEntity]);
+const entitiesModule = TypeOrmModule.forFeature([
+  OcrJobEntity,
+  OcrFileEntity,
+  OcrExecutionEntity,
+  ExpenseEntity,
+  ExpenseExtractionFeedbackEntity,
+  RecordEntity,
+]);
 
-const DAOs = [OcrJobsDao, OcrFilesDao, OcrExecutionsDao, ExpensesDao, RecordsDao];
+const DAOs = [OcrJobsDao, OcrFilesDao, OcrExecutionsDao, ExpensesDao, ExpenseExtractionFeedbackDao, RecordsDao];
 
 @Global()
 @Module({

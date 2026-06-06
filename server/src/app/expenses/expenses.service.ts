@@ -1,6 +1,8 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { DeepPartial } from 'typeorm';
 import { ExpensesDao } from '@core/database/daos/expenses.dao';
+import { ExpenseExtractionFeedbackDao } from '@core/database/daos/expense-extraction-feedback.dao';
+import { ExpenseExtractionFeedbackEntity } from '@core/database/entities/expense-extraction-feedback.entity';
 import { ExpenseEntity } from '@core/database/entities/expense.entity';
 import { NoTxn } from '@core/database/txn-def.interface';
 import { CreateExpenseDto } from '@app/expenses/dto/create-expense.dto';
@@ -16,6 +18,7 @@ import { RecordsService } from '@app/records/records.service';
 export class ExpensesService {
   constructor(
     private readonly expensesDao: ExpensesDao,
+    private readonly expenseExtractionFeedbackDao: ExpenseExtractionFeedbackDao,
     private readonly fiscalDocumentsService: FiscalDocumentsService,
     private readonly expenseExtractionService: ExpenseExtractionService,
     private readonly recordsService: RecordsService,
@@ -32,6 +35,17 @@ export class ExpensesService {
       sortField: params.sortField || 'createdAt',
       sortOrder: params.sortOrder || SortOrder.DESC,
     });
+  }
+
+  findExtractionFeedback(page = 1, pageSize = 50): Promise<[ExpenseExtractionFeedbackEntity[], number]> {
+    return Promise.all([
+      this.expenseExtractionFeedbackDao.getAll(NoTxn, {
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+        order: { createdAt: 'DESC', id: 'DESC' },
+      }),
+      this.expenseExtractionFeedbackDao.count(NoTxn),
+    ]);
   }
 
   async create(dto: CreateExpenseDto): Promise<ExpenseEntity> {
@@ -63,7 +77,37 @@ export class ExpensesService {
 
   async update(id: number, dto: UpdateExpenseDto): Promise<ExpenseEntity> {
     await this.validateRecordRelations(dto);
+    const current = await this.getExpense(id);
+    await this.recordExtractionFeedback(current, dto);
     return this.expensesDao.updateByPk(NoTxn, id, this.toEntityData(dto));
+  }
+
+  async reextract(id: number): Promise<ExpenseEntity> {
+    const expense = await this.getExpense(id);
+    const source = {
+      rawXml: expense.rawXml,
+      rawOcrJson: expense.rawOcrJson,
+      xmlAccessKey: expense.xmlAccessKey,
+      sourceType: expense.sourceType,
+      documentType: expense.documentType,
+    };
+    const fiscalLookup = await this.lookupFiscalSource(source);
+    const extracted = this.extractExpenseData(source, fiscalLookup?.rawXml);
+    const canUseExtractedBusinessData = extracted.documentType !== FiscalDocumentType.NfeModel55 || !!fiscalLookup?.rawXml || !!expense.rawXml;
+
+    return this.expensesDao.updateByPk(NoTxn, id, {
+      documentType: extracted.documentType ?? fiscalLookup?.documentType ?? expense.documentType,
+      sourceType: fiscalLookup?.rawXml ? ExpenseSourceType.Xml : (extracted.sourceType ?? expense.sourceType),
+      rawXml: fiscalLookup?.rawXml ?? expense.rawXml,
+      xmlAccessKey: extracted.xmlAccessKey ?? fiscalLookup?.accessKey ?? expense.xmlAccessKey,
+      officialLookupStatus: fiscalLookup?.status ?? expense.officialLookupStatus,
+      officialLookupMessage: fiscalLookup?.message ?? expense.officialLookupMessage,
+      officialLookupAt: fiscalLookup ? new Date() : expense.officialLookupAt,
+      merchantName: canUseExtractedBusinessData ? (extracted.merchantName ?? null) : expense.merchantName,
+      totalAmount: canUseExtractedBusinessData ? (extracted.totalAmount ?? null) : expense.totalAmount,
+      expenseDate: canUseExtractedBusinessData ? (extracted.expenseDate ?? null) : expense.expenseDate,
+      paymentType: canUseExtractedBusinessData ? (extracted.paymentType ?? PaymentType.Unknown) : expense.paymentType,
+    });
   }
 
   delete(id: number): Promise<void> {
@@ -118,5 +162,46 @@ export class ExpensesService {
       ...dto,
       officialLookupAt: dto.officialLookupAt ? new Date(dto.officialLookupAt) : dto.officialLookupAt,
     };
+  }
+
+  private async recordExtractionFeedback(current: ExpenseEntity, dto: UpdateExpenseDto): Promise<void> {
+    if (!current.rawOcrJson && !current.rawXml) return;
+
+    const correctedMerchantName = this.changedValue(current.merchantName, dto.merchantName);
+    const correctedTotalAmount = this.changedValue(current.totalAmount, dto.totalAmount);
+    const correctedExpenseDate = this.changedValue(current.expenseDate, dto.expenseDate);
+    const correctedPaymentType = this.changedValue(current.paymentType, dto.paymentType);
+
+    if (
+      correctedMerchantName === undefined &&
+      correctedTotalAmount === undefined &&
+      correctedExpenseDate === undefined &&
+      correctedPaymentType === undefined
+    ) {
+      return;
+    }
+
+    await this.expenseExtractionFeedbackDao.create(NoTxn, {
+      expenseId: current.id,
+      ocrFileId: current.ocrFileId,
+      ocrExecutionId: current.ocrExecutionId,
+      documentType: current.documentType,
+      rawOcrJson: current.rawOcrJson,
+      rawXml: current.rawXml,
+      predictedMerchantName: current.merchantName,
+      correctedMerchantName: correctedMerchantName !== undefined ? correctedMerchantName : current.merchantName,
+      predictedTotalAmount: current.totalAmount,
+      correctedTotalAmount: correctedTotalAmount !== undefined ? correctedTotalAmount : current.totalAmount,
+      predictedExpenseDate: current.expenseDate,
+      correctedExpenseDate: correctedExpenseDate !== undefined ? correctedExpenseDate : current.expenseDate,
+      predictedPaymentType: current.paymentType,
+      correctedPaymentType: correctedPaymentType !== undefined ? correctedPaymentType : current.paymentType,
+      createdByUserId: dto.updatedByUserId ?? null,
+    });
+  }
+
+  private changedValue<T>(currentValue: T | null | undefined, nextValue: T | null | undefined): T | null | undefined {
+    if (nextValue === undefined) return undefined;
+    return currentValue === nextValue ? undefined : nextValue;
   }
 }
