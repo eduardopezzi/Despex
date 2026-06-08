@@ -1,11 +1,16 @@
-import { Injectable, signal } from '@angular/core';
-import { OcrProvider } from '@open-receipt-ocr/types';
+import { Injectable, inject, signal } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { OcrProvider, OcrProviderAvailability } from '@open-receipt-ocr/types';
+import { environment } from '@environments/environment';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ConfigService {
+  private readonly http = inject(HttpClient);
+
   defaultOcrProvider = signal<OcrProvider | undefined>(undefined);
+  availableOcrProviders = signal<OcrProvider[]>([]);
   defaultOutputs = signal<string[]>(['db']);
   language = signal<string>('pt');
   theme = signal<'light' | 'dark'>('light');
@@ -16,6 +21,7 @@ export class ConfigService {
 
   constructor() {
     this.loadConfig();
+    this.loadAvailableOcrProviders();
   }
 
   loadConfig() {
@@ -51,5 +57,23 @@ export class ConfigService {
         sidebarCollapsed: this.sidebarCollapsed(),
       }),
     );
+  }
+
+  loadAvailableOcrProviders() {
+    this.http.get<OcrProviderAvailability>(`${environment.apiUrl}/config/ocr-providers`).subscribe({
+      next: (config) => {
+        const providers = config.availableProviders || [];
+        this.availableOcrProviders.set(providers);
+        const currentDefault = this.defaultOcrProvider();
+        if (currentDefault && !providers.includes(currentDefault)) {
+          this.defaultOcrProvider.set(providers[0]);
+          this.saveConfig();
+        }
+      },
+      error: () => {
+        this.availableOcrProviders.set([]);
+        this.defaultOcrProvider.set(undefined);
+      },
+    });
   }
 }

@@ -212,6 +212,57 @@ describe('Expenses Controller (e2e)', () => {
     });
   });
 
+  it('/expenses (POST/PATCH) - learns merchant aliases from corrected OCR data', async () => {
+    const first = await TestHelpers.expectCreated<ExpenseEntity>(app, '/expenses', {
+      rawOcrJson: JSON.stringify({
+        pages: [
+          {
+            blocks: [
+              { text: 'F0SCRESIDENCIA' },
+              { text: 'CNPJ: 30.986.391/0001-02' },
+              { text: 'VALOR TOTAL R$ 102,00' },
+              { text: 'PAGAMENTODINHEIROAVALOR TOTAL' },
+            ],
+          },
+        ],
+      }),
+      sourceType: ExpenseSourceType.OcrJson,
+    });
+
+    expect(first).toMatchObject({
+      merchantName: null,
+      merchantTaxId: '30986391000102',
+      totalAmount: 102,
+      paymentType: PaymentType.Cash,
+    });
+
+    const patchRes = await request(app.getHttpServer()).patch(`/expenses/${first.id}`).send({
+      merchantName: 'CHURRASCARIA E LANCHERIA CAXIAS LTDA',
+    });
+    expect(patchRes.status).toBe(200);
+
+    const second = await TestHelpers.expectCreated<ExpenseEntity>(app, '/expenses', {
+      rawOcrJson: JSON.stringify({
+        pages: [
+          {
+            blocks: [
+              { text: 'SCRESIDENCIA' },
+              { text: 'CNPJ: 30.986.391/0001-02' },
+              { text: 'TOTAL R$ 58,00' },
+            ],
+          },
+        ],
+      }),
+      sourceType: ExpenseSourceType.OcrJson,
+    });
+
+    expect(second).toMatchObject({
+      merchantName: 'CHURRASCARIA E LANCHERIA CAXIAS LTDA',
+      merchantTaxId: '30986391000102',
+      totalAmount: 58,
+    });
+  });
+
   it('/expenses (POST) - accepts valid client and expense type records', async () => {
     const client = await TestHelpers.expectCreated<{ id: number }>(app, '/records', {
       name: 'Cliente Despex',

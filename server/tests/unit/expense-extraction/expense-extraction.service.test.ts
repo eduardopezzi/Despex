@@ -36,6 +36,7 @@ describe('ExpenseExtractionService', () => {
       documentType: FiscalDocumentType.NfeModel55,
       sourceType: ExpenseSourceType.Xml,
       merchantName: 'ACME COMERCIO LTDA',
+      merchantTaxId: null,
       totalAmount: 123.45,
       expenseDate: '2026-06-03',
       paymentType: PaymentType.PersonalCreditCard,
@@ -62,6 +63,7 @@ describe('ExpenseExtractionService', () => {
       documentType: FiscalDocumentType.Unknown,
       sourceType: ExpenseSourceType.OcrJson,
       merchantName: 'PADARIA CENTRAL LTDA',
+      merchantTaxId: '12345678000195',
       totalAmount: 42.5,
       expenseDate: '2026-06-03',
       paymentType: PaymentType.PersonalCreditCard,
@@ -133,6 +135,24 @@ describe('ExpenseExtractionService', () => {
     });
   });
 
+  it('groups OCR blocks when bbox is an object with x, y, width and height', () => {
+    const rawOcrJson = JSON.stringify({
+      pages: [
+        {
+          blocks: [
+            { text: '102,00', bbox: { x: 190, y: 100, width: 50, height: 18 } },
+            { text: 'R$', bbox: { x: 150, y: 101, width: 20, height: 17 } },
+            { text: 'TOTAL', bbox: { x: 20, y: 99, width: 60, height: 19 } },
+          ],
+        },
+      ],
+    });
+
+    expect(service.extractFromOcrJson(rawOcrJson)).toMatchObject({
+      totalAmount: 102,
+    });
+  });
+
   it('finds total anchors with OCR character mistakes', () => {
     const rawOcrJson = JSON.stringify({
       pages: [{ blocks: [{ text: 'VAL0R T0TAL R$ 87,65' }] }],
@@ -140,6 +160,46 @@ describe('ExpenseExtractionService', () => {
 
     expect(service.extractFromOcrJson(rawOcrJson)).toMatchObject({
       totalAmount: 87.65,
+    });
+  });
+
+  it('uses fiscal QR Code URL stored in OCR JSON as an extraction source', () => {
+    const accessKey = '42260580986391000102650010002078041794284779';
+    const fiscalQrCodeUrl = `https://sat.sef.sc.gov.br/nfce/consulta?p=${accessKey}|2|1|abc`;
+    const rawOcrJson = JSON.stringify({
+      fiscalQrCodeUrl,
+      pages: [{ blocks: [{ text: 'TOTAL R$ 18,90' }] }],
+    });
+
+    expect(service.extractFromOcrJson(rawOcrJson)).toMatchObject({
+      documentType: FiscalDocumentType.ConsumerInvoice,
+      fiscalQrCodeUrl,
+      xmlAccessKey: accessKey,
+      totalAmount: 18.9,
+    });
+  });
+
+  it('extracts NFC-e tax id, payment and avoids broken merchant fragments from the provided receipt pattern', () => {
+    const rawOcrJson = JSON.stringify({
+      pages: [
+        {
+          blocks: [
+            { text: 'F0SCRESIDENCIA', bbox: { x: 20, y: 20, width: 130, height: 18 } },
+            { text: 'CNPJ: 30.986.391/0001-02 IE: 251760090', bbox: { x: 20, y: 42, width: 360, height: 18 } },
+            { text: 'VALOR TOTAL R$ 102,00', bbox: { x: 20, y: 110, width: 220, height: 18 } },
+            { text: 'PAGAMENTODINHEIROAVALOR TOTAL', bbox: { x: 20, y: 135, width: 300, height: 18 } },
+            { text: 'Data de autorizacao 17/05/2026 19:28:33', bbox: { x: 20, y: 160, width: 360, height: 18 } },
+          ],
+        },
+      ],
+    });
+
+    expect(service.extractFromOcrJson(rawOcrJson)).toMatchObject({
+      merchantName: null,
+      merchantTaxId: '30986391000102',
+      totalAmount: 102,
+      expenseDate: '2026-05-17',
+      paymentType: PaymentType.Cash,
     });
   });
 });

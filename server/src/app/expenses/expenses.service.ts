@@ -2,6 +2,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { DeepPartial } from 'typeorm';
 import { ExpensesDao } from '@core/database/daos/expenses.dao';
 import { ExpenseExtractionFeedbackDao } from '@core/database/daos/expense-extraction-feedback.dao';
+import { MerchantAliasesDao } from '@core/database/daos/merchant-aliases.dao';
 import { ExpenseExtractionFeedbackEntity } from '@core/database/entities/expense-extraction-feedback.entity';
 import { ExpenseEntity } from '@core/database/entities/expense.entity';
 import { NoTxn } from '@core/database/txn-def.interface';
@@ -19,6 +20,7 @@ export class ExpensesService {
   constructor(
     private readonly expensesDao: ExpensesDao,
     private readonly expenseExtractionFeedbackDao: ExpenseExtractionFeedbackDao,
+    private readonly merchantAliasesDao: MerchantAliasesDao,
     private readonly fiscalDocumentsService: FiscalDocumentsService,
     private readonly expenseExtractionService: ExpenseExtractionService,
     private readonly recordsService: RecordsService,
@@ -51,7 +53,7 @@ export class ExpensesService {
   async create(dto: CreateExpenseDto): Promise<ExpenseEntity> {
     await this.validateRecordRelations(dto);
     const fiscalLookup = await this.lookupFiscalSource(dto);
-    const extracted = this.extractExpenseData(dto, fiscalLookup?.rawXml);
+    const extracted = await this.extractExpenseData(dto, fiscalLookup?.rawXml);
 
     return this.expensesDao.create(NoTxn, {
       ...this.toEntityData(dto),
@@ -59,10 +61,12 @@ export class ExpensesService {
       sourceType: fiscalLookup?.rawXml ? ExpenseSourceType.Xml : (dto.sourceType ?? extracted.sourceType ?? ExpenseSourceType.Manual),
       rawXml: fiscalLookup?.rawXml ?? dto.rawXml,
       xmlAccessKey: dto.xmlAccessKey ?? extracted.xmlAccessKey ?? fiscalLookup?.accessKey,
+      fiscalQrCodeUrl: dto.fiscalQrCodeUrl ?? extracted.fiscalQrCodeUrl,
       officialLookupStatus: fiscalLookup?.status ?? dto.officialLookupStatus ?? FiscalFetchStatus.NotAttempted,
       officialLookupMessage: fiscalLookup?.message ?? dto.officialLookupMessage,
       officialLookupAt: fiscalLookup ? new Date() : dto.officialLookupAt ? new Date(dto.officialLookupAt) : dto.officialLookupAt,
       merchantName: dto.merchantName ?? extracted.merchantName,
+      merchantTaxId: dto.merchantTaxId ?? extracted.merchantTaxId,
       totalAmount: dto.totalAmount ?? extracted.totalAmount,
       expenseDate: dto.expenseDate ?? extracted.expenseDate,
       paymentType: dto.paymentType ?? extracted.paymentType ?? PaymentType.Unknown,
@@ -88,11 +92,12 @@ export class ExpensesService {
       rawXml: expense.rawXml,
       rawOcrJson: expense.rawOcrJson,
       xmlAccessKey: expense.xmlAccessKey,
+      fiscalQrCodeUrl: expense.fiscalQrCodeUrl,
       sourceType: expense.sourceType,
       documentType: expense.documentType,
     };
     const fiscalLookup = await this.lookupFiscalSource(source);
-    const extracted = this.extractExpenseData(source, fiscalLookup?.rawXml);
+    const extracted = await this.extractExpenseData(source, fiscalLookup?.rawXml);
     const canUseExtractedBusinessData = extracted.documentType !== FiscalDocumentType.NfeModel55 || !!fiscalLookup?.rawXml || !!expense.rawXml;
 
     return this.expensesDao.updateByPk(NoTxn, id, {
@@ -100,10 +105,12 @@ export class ExpensesService {
       sourceType: fiscalLookup?.rawXml ? ExpenseSourceType.Xml : (extracted.sourceType ?? expense.sourceType),
       rawXml: fiscalLookup?.rawXml ?? expense.rawXml,
       xmlAccessKey: extracted.xmlAccessKey ?? fiscalLookup?.accessKey ?? expense.xmlAccessKey,
+      fiscalQrCodeUrl: extracted.fiscalQrCodeUrl ?? expense.fiscalQrCodeUrl,
       officialLookupStatus: fiscalLookup?.status ?? expense.officialLookupStatus,
       officialLookupMessage: fiscalLookup?.message ?? expense.officialLookupMessage,
       officialLookupAt: fiscalLookup ? new Date() : expense.officialLookupAt,
       merchantName: canUseExtractedBusinessData ? (extracted.merchantName ?? null) : expense.merchantName,
+      merchantTaxId: extracted.merchantTaxId ?? expense.merchantTaxId,
       totalAmount: canUseExtractedBusinessData ? (extracted.totalAmount ?? null) : expense.totalAmount,
       expenseDate: canUseExtractedBusinessData ? (extracted.expenseDate ?? null) : expense.expenseDate,
       paymentType: canUseExtractedBusinessData ? (extracted.paymentType ?? PaymentType.Unknown) : expense.paymentType,
@@ -116,7 +123,10 @@ export class ExpensesService {
 
   private async lookupFiscalSource(dto: CreateExpenseDto) {
     const explicitAccessKey =
-      dto.xmlAccessKey || this.fiscalDocumentsService.extractAccessKey(dto.rawXml) || this.fiscalDocumentsService.extractAccessKey(dto.rawOcrJson);
+      dto.xmlAccessKey ||
+      this.fiscalDocumentsService.extractAccessKey(dto.fiscalQrCodeUrl) ||
+      this.fiscalDocumentsService.extractAccessKey(dto.rawXml) ||
+      this.fiscalDocumentsService.extractAccessKey(dto.rawOcrJson);
     if (!explicitAccessKey) return null;
     return this.fiscalDocumentsService.lookupByAccessKey(explicitAccessKey);
   }
@@ -140,10 +150,10 @@ export class ExpensesService {
     }
   }
 
-  private extractExpenseData(dto: CreateExpenseDto, officialXml?: string): ExtractedExpenseData {
+  private async extractExpenseData(dto: CreateExpenseDto, officialXml?: string): Promise<ExtractedExpenseData> {
     const rawXml = officialXml ?? dto.rawXml;
     if (rawXml) {
-      return this.expenseExtractionService.extractFromXml(rawXml);
+      return this.enrichWithMerchantAlias(this.expenseExtractionService.extractFromXml(rawXml));
     }
 
     const extracted = this.expenseExtractionService.extractFromOcrJson(dto.rawOcrJson);
@@ -152,9 +162,11 @@ export class ExpensesService {
         documentType: extracted.documentType,
         sourceType: extracted.sourceType,
         xmlAccessKey: extracted.xmlAccessKey,
+        fiscalQrCodeUrl: extracted.fiscalQrCodeUrl,
+        merchantTaxId: extracted.merchantTaxId,
       };
     }
-    return extracted;
+    return this.enrichWithMerchantAlias(extracted);
   }
 
   private toEntityData(dto: CreateExpenseDto | UpdateExpenseDto): DeepPartial<ExpenseEntity> {
@@ -198,10 +210,52 @@ export class ExpensesService {
       correctedPaymentType: correctedPaymentType !== undefined ? correctedPaymentType : current.paymentType,
       createdByUserId: dto.updatedByUserId ?? null,
     });
+
+    if (correctedMerchantName) {
+      await this.recordMerchantAlias(current, correctedMerchantName);
+    }
   }
 
   private changedValue<T>(currentValue: T | null | undefined, nextValue: T | null | undefined): T | null | undefined {
     if (nextValue === undefined) return undefined;
     return currentValue === nextValue ? undefined : nextValue;
+  }
+
+  private async enrichWithMerchantAlias(extracted: ExtractedExpenseData): Promise<ExtractedExpenseData> {
+    const normalizedAliasName = this.normalizeMerchantAlias(extracted.merchantName);
+    const alias = await this.merchantAliasesDao.findBestMatch(NoTxn, extracted.merchantTaxId, normalizedAliasName);
+    if (!alias) return extracted;
+
+    return {
+      ...extracted,
+      merchantName: alias.canonicalName,
+      merchantTaxId: extracted.merchantTaxId ?? alias.merchantTaxId,
+    };
+  }
+
+  private async recordMerchantAlias(expense: ExpenseEntity, correctedMerchantName: string): Promise<void> {
+    const normalizedAliasName = this.normalizeMerchantAlias(expense.merchantName);
+    const canonicalName = correctedMerchantName.trim();
+    if (!canonicalName || canonicalName === expense.merchantName || (!normalizedAliasName && !expense.merchantTaxId)) return;
+
+    await this.merchantAliasesDao.upsertAlias(NoTxn, {
+      merchantTaxId: expense.merchantTaxId,
+      aliasName: expense.merchantName || canonicalName,
+      normalizedAliasName: normalizedAliasName || this.normalizeMerchantAlias(canonicalName) || canonicalName.toLowerCase(),
+      canonicalName,
+    });
+  }
+
+  private normalizeMerchantAlias(value?: string | null): string | null {
+    if (!value) return null;
+    const normalized = value
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, ' ')
+      .replace(/\b(ltda|eireli|me|epp|sa|s a)\b/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+    return normalized || null;
   }
 }

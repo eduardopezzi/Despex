@@ -142,6 +142,15 @@ describe('OCR Jobs Controller (e2e)', () => {
       expect(queueServiceMock.addToOcrQueue).toHaveBeenCalledWith(expect.objectContaining({ executionId: expect.any(Number) }));
     });
 
+    it('rejects OCR providers without configured credentials', async () => {
+      await TestHelpers.expectBadRequestUpload(
+        app,
+        '/ocr-jobs/upload',
+        { ocrProvider_0: OcrProvider.Gemini, jobName: 'Unavailable Provider Job' },
+        { name: 'file', filename: 'unavailable.jpg', content: fileData, contentType: MimeType.Jpeg },
+      );
+    });
+
     it('creates an execution for the file and queues it with the correct id', async () => {
       const body = await TestHelpers.expectUpload<{ id: number }>(
         app,

@@ -37,7 +37,7 @@ export class ConfigDialogComponent implements OnChanges {
       { label: this.translocoService.translate('config.providers.none'), value: undefined, icon: 'pi pi-question-circle' },
     ];
     const online: { label: string; value: OcrProvider | undefined; icon: string }[] = [];
-    for (const p of Object.values(OcrProvider)) {
+    for (const p of this.configService.availableOcrProviders()) {
       const opt = { label: this.translocoService.translate(`config.providers.${p}`), value: p, icon: OCR_PROVIDER_ICONS[p] };
       (LOCAL_PROVIDERS.has(p) ? local : online).push(opt);
     }
@@ -139,7 +139,8 @@ export class ConfigDialogComponent implements OnChanges {
   }
 
   resetToDefaults() {
-    this.configService.defaultOcrProvider.set(OcrProvider.PaddleOcrLocal);
+    const providers = this.configService.availableOcrProviders();
+    this.configService.defaultOcrProvider.set(providers.includes(OcrProvider.PaddleOcrLocal) ? OcrProvider.PaddleOcrLocal : providers[0]);
     this.configService.language.set('en');
     this.configService.theme.set('light');
     this.configService.sidebarCollapsed.set(false);

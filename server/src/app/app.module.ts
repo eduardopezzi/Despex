@@ -10,6 +10,7 @@ import { OcrJobsModule } from '@app/ocr-jobs/ocr-jobs.module';
 import { ExpensesModule } from '@app/expenses/expenses.module';
 import { FiscalDocumentsModule } from '@app/fiscal-documents/fiscal-documents.module';
 import { RecordsModule } from '@app/records/records.module';
+import { ConfigModule } from '@app/config/config.module';
 import { SecretProvider } from '@core/secrets/secret-provider.interface';
 import { AppSecret } from '@core/types/app-secret.enum';
 import { LoggingInterceptor } from '@core/interceptors/logging.interceptor';
@@ -34,6 +35,7 @@ const moduleImports: NestModuleImport[] = [
   ExpensesModule,
   FiscalDocumentsModule,
   RecordsModule,
+  ConfigModule,
 ];
 
 if (process.env[AppSecret.NodeEnv] === 'production') {

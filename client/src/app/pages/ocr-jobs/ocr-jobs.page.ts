@@ -31,6 +31,7 @@ import { PaginatorModule } from 'primeng/paginator';
 import { TableModule } from 'primeng/table';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { OcrOutputPipe } from '@app/pipes/ocr-output.pipe';
+import { ConfigService } from '@services/config.service';
 import { FormsModule } from '@angular/forms';
 import { marked } from 'marked';
 import { IconFieldModule } from 'primeng/iconfield';
@@ -73,6 +74,7 @@ export class OcrJobsPageComponent implements OnInit, OnDestroy {
   private confirmationService = inject(ConfirmationService);
   private sanitizer = inject(DomSanitizer);
   private ocrOutputParser = inject(OcrOutputParserService);
+  private configService = inject(ConfigService);
 
   private pollingSubscription?: Subscription;
   private detailPollingSubscription?: Subscription;
@@ -141,7 +143,7 @@ export class OcrJobsPageComponent implements OnInit, OnDestroy {
   }
 
   get providerGroups() {
-    const all = Object.values(OcrProvider);
+    const all = this.configService.availableOcrProviders();
     return [
       { label: 'Local', providers: all.filter((p) => LOCAL_PROVIDERS.has(p)) },
       { label: 'Online', providers: all.filter((p) => !LOCAL_PROVIDERS.has(p)) },

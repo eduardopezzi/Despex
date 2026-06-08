@@ -13,10 +13,12 @@ export interface Expense {
   rawOcrJson?: string | null;
   rawXml?: string | null;
   xmlAccessKey?: string | null;
+  fiscalQrCodeUrl?: string | null;
   officialLookupStatus: FiscalFetchStatus;
   officialLookupMessage?: string | null;
   officialLookupAt?: string | null;
   merchantName?: string | null;
+  merchantTaxId?: string | null;
   totalAmount?: number | null;
   expenseDate?: string | null;
   paymentType: PaymentType;

@@ -16,6 +16,8 @@ export interface ExpensePayload {
   isReimbursed?: boolean;
   description?: string | null;
   documentType?: FiscalDocumentType;
+  merchantTaxId?: string | null;
+  fiscalQrCodeUrl?: string | null;
 }
 
 export interface ExpenseFilters {

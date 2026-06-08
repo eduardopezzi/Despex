@@ -32,6 +32,7 @@ export class MockSecretProvider extends SecretProvider {
     if (key === AppSecret.DatabasePath) return this.dbPath;
     if (key === AppSecret.RedisHost) return 'localhost';
     if (key === AppSecret.RedisPort) return '6379';
+    if (key === AppSecret.PaddleOcrLocalEnabled) return 'true';
     if (key === AppSecret.StorageLocalPath) return path.join(os.tmpdir(), 'ocr-test-mocked-upload');
     return undefined;
   });

@@ -14,13 +14,13 @@
   "private": true,
   "packageManager": "npm@10.9.3",
   "dependencies": {
-    "@angular/animations": "21.2.5",
-    "@angular/common": "21.2.5",
-    "@angular/compiler": "21.2.5",
-    "@angular/core": "21.2.5",
-    "@angular/forms": "21.2.5",
-    "@angular/platform-browser": "21.2.5",
-    "@angular/router": "21.2.5",
+    "@angular/animations": "21.2.16",
+    "@angular/common": "21.2.16",
+    "@angular/compiler": "21.2.16",
+    "@angular/core": "21.2.16",
+    "@angular/forms": "21.2.16",
+    "@angular/platform-browser": "21.2.16",
+    "@angular/router": "21.2.16",
     "@jsverse/transloco": "^8.2.1",
     "@open-receipt-ocr/types": "*",
     "@primeuix/themes": "^2.0.3",
@@ -33,9 +33,9 @@
     "tslib": "^2.3.0"
   },
   "devDependencies": {
-    "@angular/build": "21.2.5",
-    "@angular/cli": "21.2.5",
-    "@angular/compiler-cli": "21.2.5",
+    "@angular/build": "21.2.14",
+    "@angular/cli": "21.2.14",
+    "@angular/compiler-cli": "21.2.16",
     "@eslint/js": "^10.0.1",
     "angular-eslint": "21.3.1",
     "autoprefixer": "^10.4.27",
@@ -46,6 +46,6 @@
     "tailwindcss": "^3.4.19",
     "typescript": "~5.9.2",
     "typescript-eslint": "8.56.1",
-    "vitest": "^4.0.8"
+    "vitest": "^4.1.8"
   }
 }

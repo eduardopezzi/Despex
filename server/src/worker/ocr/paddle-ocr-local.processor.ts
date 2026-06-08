@@ -6,6 +6,7 @@ import { OcrFileEntity } from '@core/database/entities/ocr-file.entity';
 import * as os from 'os';
 import { createRequire } from 'module';
 import { deflateSync } from 'zlib';
+import jsQR from 'jsqr';
 
 /** Native PaddleOCR result structure (isolated from library types) */
 interface PaddleOcrResult {
@@ -26,13 +27,14 @@ interface PaddleOcrServiceType {
 
 interface SharpInstance {
   metadata(): Promise<{ width?: number; height?: number }>;
-  resize(
-    width: number,
-    height: number,
-    options: { fit: string; withoutEnlargement: boolean },
-  ): {
-    png(): { toBuffer(): Promise<Buffer> };
-  };
+  rotate(): SharpInstance;
+  grayscale(): SharpInstance;
+  ensureAlpha(): SharpInstance;
+  normalize(): SharpInstance;
+  sharpen(): SharpInstance;
+  resize(width: number, height: number, options: { fit: string; withoutEnlargement: boolean }): SharpInstance;
+  png(): { toBuffer(): Promise<Buffer> };
+  raw(): { toBuffer(options: { resolveWithObject: true }): Promise<{ data: Buffer; info: { width: number; height: number } }> };
 }
 
 type SharpFactory = (input: Buffer) => SharpInstance;
@@ -203,20 +205,19 @@ export class PaddleOcrLocalProcessor implements OnModuleInit, OnModuleDestroy {
 
     try {
       let arrayBuffer = fileBuffer.buffer.slice(fileBuffer.byteOffset, fileBuffer.byteOffset + fileBuffer.byteLength) as ArrayBuffer;
+      const fiscalQrCodeUrl = await this.decodeQrCodeUrl(arrayBuffer);
 
-      // Optionally resize large images to speed up OCR
+      // Normalize image orientation/contrast and optionally resize large images to speed up OCR.
       const maxSizeStr = await this.secretProvider.getSecret(AppSecret.PaddleOcrMaxImageSize);
       const maxSize = maxSizeStr ? parseInt(maxSizeStr, 10) : 1280;
-      if (maxSize > 0) {
-        arrayBuffer = await this.resizeIfNeeded(arrayBuffer, maxSize);
-      }
+      arrayBuffer = await this.preprocessImage(arrayBuffer, maxSize);
 
       const start = performance.now();
       const results = await this.paddleOcr!.recognize(arrayBuffer);
       const elapsed = (performance.now() - start).toFixed(0);
       this.logger.log(`PaddleOCR inference for execution #${executionId} took ${elapsed}ms`);
 
-      const formattedResults = this.formatPaddleOcrResults(results);
+      const formattedResults = this.formatPaddleOcrResults(results, fiscalQrCodeUrl);
       return JSON.stringify(formattedResults);
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : String(error);
@@ -225,11 +226,11 @@ export class PaddleOcrLocalProcessor implements OnModuleInit, OnModuleDestroy {
   }
 
   /**
-   * Resizes an image if its dimensions exceed maxSize.
-   * Uses sharp if installed, otherwise skips resizing gracefully.
+   * Normalizes an image for OCR.
+   * Uses sharp if installed, otherwise skips preprocessing gracefully.
    */
 
-  private async resizeIfNeeded(arrayBuffer: ArrayBuffer, maxSize: number): Promise<ArrayBuffer> {
+  private async preprocessImage(arrayBuffer: ArrayBuffer, maxSize: number): Promise<ArrayBuffer> {
     // Dynamic require to avoid TS import errors when sharp is not installed
     let sharpFn: SharpFactory | null = null;
     try {
@@ -245,20 +246,49 @@ export class PaddleOcrLocalProcessor implements OnModuleInit, OnModuleDestroy {
       const metadata = await sharpFn(buffer).metadata();
       const width = metadata.width || 0;
       const height = metadata.height || 0;
+      let image = sharpFn(buffer).rotate().grayscale().normalize().sharpen();
 
-      if (width > maxSize || height > maxSize) {
+      if (maxSize > 0 && (width > maxSize || height > maxSize)) {
         this.logger.log(`Resizing image from ${width}x${height} to max ${maxSize}px`);
-        const resizedBuffer = await sharpFn(buffer)
-          .resize(maxSize, maxSize, { fit: 'inside' as const, withoutEnlargement: true })
-          .png()
-          .toBuffer();
-        return resizedBuffer.buffer.slice(resizedBuffer.byteOffset, resizedBuffer.byteOffset + resizedBuffer.byteLength) as ArrayBuffer;
+        image = image.resize(maxSize, maxSize, { fit: 'inside' as const, withoutEnlargement: true });
       }
+
+      const processedBuffer = await image.png().toBuffer();
+      return processedBuffer.buffer.slice(processedBuffer.byteOffset, processedBuffer.byteOffset + processedBuffer.byteLength) as ArrayBuffer;
     } catch {
-      this.logger.debug('Image resize failed, using original');
+      this.logger.debug('Image preprocessing failed, using original');
     }
 
     return arrayBuffer;
+  }
+
+  private async decodeQrCodeUrl(arrayBuffer: ArrayBuffer): Promise<string | null> {
+    let sharpFn: SharpFactory | null = null;
+    try {
+      const sharpModule = requireOptional('sharp') as SharpModule;
+      sharpFn = typeof sharpModule === 'function' ? sharpModule : sharpModule.default;
+    } catch {
+      this.logger.debug('sharp not available, skipping QR decode');
+      return null;
+    }
+
+    try {
+      const buffer = Buffer.from(arrayBuffer);
+      const { data, info } = await sharpFn(buffer)
+        .rotate()
+        .resize(1600, 1600, { fit: 'inside' as const, withoutEnlargement: true })
+        .ensureAlpha()
+        .raw()
+        .toBuffer({ resolveWithObject: true });
+      const code = jsQR(new Uint8ClampedArray(data.buffer, data.byteOffset, data.byteLength), info.width, info.height);
+      const value = code?.data?.trim();
+      if (!value || !/^https?:\/\//i.test(value)) return null;
+      this.logger.log('Fiscal QR Code detected before OCR');
+      return value;
+    } catch {
+      this.logger.debug('QR decode failed, continuing with OCR only');
+      return null;
+    }
   }
 
   private async streamToBuffer(stream: NodeJS.ReadableStream): Promise<Buffer> {
@@ -269,7 +299,7 @@ export class PaddleOcrLocalProcessor implements OnModuleInit, OnModuleDestroy {
     return Buffer.concat(chunks);
   }
 
-  private formatPaddleOcrResults(results: PaddleOcrResult): object {
+  private formatPaddleOcrResults(results: PaddleOcrResult, fiscalQrCodeUrl?: string | null): object {
     const textBlocks: { text: string; confidence: number; bbox: number[][] }[] = [];
 
     if (Array.isArray(results.lines)) {
@@ -292,6 +322,7 @@ export class PaddleOcrLocalProcessor implements OnModuleInit, OnModuleDestroy {
       pages,
       model: 'paddle-ocr',
       provider: 'paddle-ocr-local',
+      fiscalQrCodeUrl,
     };
   }
 }

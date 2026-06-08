@@ -38,6 +38,7 @@ export class ExpenseExtractionService {
       documentType,
       sourceType: ExpenseSourceType.Xml,
       merchantName: this.cleanMerchantName(this.getString(emit, 'xNome')),
+      merchantTaxId: this.normalizeTaxId(this.getString(emit, 'CNPJ') || this.getString(emit, 'CPF')),
       totalAmount: this.parseAmount(this.getString(total, 'vNF')),
       expenseDate: this.normalizeDate(this.getString(ide, 'dhEmi') || this.getString(ide, 'dEmi')),
       paymentType: this.paymentTypeFromXml(pag),
@@ -49,16 +50,19 @@ export class ExpenseExtractionService {
     if (!rawOcrJson) return {};
 
     const text = this.extractTextFromOcr(rawOcrJson);
-    const accessKey = extractFiscalAccessKey(text);
+    const qrCodeUrl = this.extractFiscalQrCodeUrl(text);
+    const accessKey = extractFiscalAccessKey(qrCodeUrl) ?? extractFiscalAccessKey(text);
 
     return {
       documentType: accessKey ? getFiscalDocumentTypeFromAccessKey(accessKey) : FiscalDocumentType.Unknown,
       sourceType: ExpenseSourceType.OcrJson,
       merchantName: this.extractMerchantNameFromText(text),
+      merchantTaxId: this.extractTaxIdFromText(text),
       totalAmount: this.extractTotalAmountFromText(text),
       expenseDate: this.extractDateFromText(text),
       paymentType: this.extractPaymentTypeFromText(text),
       xmlAccessKey: accessKey,
+      fiscalQrCodeUrl: qrCodeUrl,
     };
   }
 
@@ -125,6 +129,26 @@ export class ExpenseExtractionService {
   }
 
   private normalizeBBox(value: unknown): Array<{ x: number; y: number }> | null {
+    if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+      const record = value as Record<string, unknown>;
+      const x = record.x;
+      const y = record.y;
+      const width = record.width;
+      const height = record.height;
+      if ([x, y, width, height].every((item) => typeof item === 'number')) {
+        const left = x as number;
+        const top = y as number;
+        const right = left + (width as number);
+        const bottom = top + (height as number);
+        return [
+          { x: left, y: top },
+          { x: right, y: top },
+          { x: right, y: bottom },
+          { x: left, y: bottom },
+        ];
+      }
+    }
+
     if (!Array.isArray(value)) return null;
 
     if (value.length === 4 && value.every((item) => typeof item === 'number')) {
@@ -168,7 +192,11 @@ export class ExpenseExtractionService {
     const lines = this.normalizeLines(text);
     const tableStartIndex = lines.findIndex((line) => this.isItemsOrPaymentSectionLine(line));
     const headerLines = tableStartIndex >= 0 ? lines.slice(0, tableStartIndex) : lines;
-    const merchant = headerLines.find((line) => this.isMerchantCandidate(line)) ?? lines.find((line) => this.isMerchantCandidate(line));
+    const merchant =
+      headerLines.find((line) => this.isLikelyLegalName(line)) ??
+      headerLines.find((line) => this.isMerchantCandidate(line)) ??
+      lines.find((line) => this.isLikelyLegalName(line)) ??
+      lines.find((line) => this.isMerchantCandidate(line));
     return this.cleanMerchantName(merchant);
   }
 
@@ -193,10 +221,12 @@ export class ExpenseExtractionService {
     const isoMatch = text.match(/\b\d{4}-\d{2}-\d{2}\b/);
     if (isoMatch) return isoMatch[0];
 
-    const brMatch = text.match(/\b(\d{2})[/.\-\s](\d{2})[/.\-\s](\d{2}|\d{4})\b/);
+    const normalized = text.replace(/(\d{2})(\d{2})(\d{4})(?=\s+\d{1,2}[:h]\d{2})/g, '$1/$2/$3');
+    const brMatch = normalized.match(/\b(\d{2})[/.\-\s](\d{2})[/.\-\s](\d{2}|\d{4})\b/);
     if (!brMatch) return null;
     const [, day, month, rawYear] = brMatch;
     const year = rawYear.length === 2 ? `20${rawYear}` : rawYear;
+    if (!this.isValidDateParts(day, month, year)) return null;
     return `${year}-${month}-${day}`;
   }
 
@@ -217,6 +247,32 @@ export class ExpenseExtractionService {
     return PaymentType.Unknown;
   }
 
+  private extractTaxIdFromText(text: string): string | null {
+    const formatted = text.match(/\b\d{2}\.?\d{3}\.?\d{3}\/?\d{4}-?\d{2}\b/);
+    if (formatted) return this.normalizeTaxId(formatted[0]);
+
+    const cnpjAnchor = text.match(/cnpj\D{0,20}(\d[\d\s./-]{12,25}\d)/i);
+    if (cnpjAnchor) return this.normalizeTaxId(cnpjAnchor[1]);
+
+    return null;
+  }
+
+  private extractFiscalQrCodeUrl(text: string): string | null {
+    for (const line of this.normalizeLines(text)) {
+      const normalized = line.replace(/\s+/g, '');
+      const urlMatch = normalized.match(/https?:\/\/[^\s"'<>]+/i);
+      if (urlMatch) return this.cleanFiscalUrl(urlMatch[0]);
+
+      const sefazPath = normalized.match(/(?:www\.)?[a-z0-9.-]*sefaz[a-z0-9./?=&;:%-]+/i);
+      if (sefazPath) {
+        const value = sefazPath[0].startsWith('http') ? sefazPath[0] : `https://${sefazPath[0]}`;
+        return this.cleanFiscalUrl(value);
+      }
+    }
+
+    return null;
+  }
+
   private normalizeLines(text: string): string[] {
     return text
       .split(/\r?\n/)
@@ -233,14 +289,28 @@ export class ExpenseExtractionService {
     const normalized = this.removeAccents(line).toLowerCase().replace(/\s+/g, ' ').trim();
     const letters = normalized.replace(/[^a-z]/g, '');
 
-    if (letters.length < 3) return false;
+    if (letters.length < 4) return false;
     if (/^\d/.test(normalized)) return false;
     if ((normalized.match(/\d/g) ?? []).length > letters.length) return false;
+    if (this.looksLikeBrokenSingleWordHeader(normalized)) return false;
 
     const rejected =
-      /cnpj|cpf|endereco|telefone|chave|acesso|consulta|consulte|cupom|extrato|sat|nfc\s*-?\s*e|nf\s*-?\s*e|danfe|nota fiscal|documento auxiliar|docmento auxiliar|consumidor eletron|consumidor nao identificado|valor|total|forma|pagamento|dinheiro|cartao|credito|debito|protocolo|serie|data|hora|http|www|sefaz|receita|tribut|fisco|qtd|qtde|unit|un\b|buffet|refrigerante|coca|janta/;
+      /cnpj|cpf|fone|telefone|endereco|chave|acesso|consulta|consulte|cupom|extrato|sat|nfc\s*-?\s*e|nf\s*-?\s*e|danfe|nota fiscal|documento auxiliar|docmento auxiliar|consumidor eletron|consumidor nao identificado|valor|total|forma|pagamento|dinheiro|cartao|credito|debito|protocolo|serie|data|hora|http|www|sefaz|receita|tribut|fisco|qtd|qtde|unit|un\b|buffet|refrigerante|coca|janta|residencia|castelo|auxiliar/;
 
     return !rejected.test(normalized);
+  }
+
+  private isLikelyLegalName(line: string): boolean {
+    const normalized = this.removeAccents(line).toLowerCase();
+    if (!this.isMerchantCandidate(line)) return false;
+    return /\b(ltda|eireli|me|epp|sa|s\/a|comercio|restaurante|lancheria|churrascaria|mercado|posto|hotel|padaria)\b/.test(normalized);
+  }
+
+  private looksLikeBrokenSingleWordHeader(normalized: string): boolean {
+    const words = normalized.split(/\s+/).filter(Boolean);
+    if (words.length > 1) return false;
+    const word = words[0] ?? '';
+    return word.length <= 14 && /(residencia|scresidencia|foscresidencia|eletronica|consumidor)/.test(word);
   }
 
   private extractAmounts(text: string): number[] {
@@ -313,6 +383,25 @@ export class ExpenseExtractionService {
     if (!value) return null;
     const date = value.match(/\d{4}-\d{2}-\d{2}/)?.[0];
     return date ?? null;
+  }
+
+  private normalizeTaxId(value?: string | null): string | null {
+    if (!value) return null;
+    const digits = value.replace(/\D/g, '');
+    return digits.length === 14 || digits.length === 11 ? digits : null;
+  }
+
+  private cleanFiscalUrl(value: string): string {
+    return value.replace(/[),.;]+$/g, '');
+  }
+
+  private isValidDateParts(day: string, month: string, year: string): boolean {
+    const dayNumber = Number(day);
+    const monthNumber = Number(month);
+    const yearNumber = Number(year);
+    if (yearNumber < 2000 || yearNumber > 2100 || monthNumber < 1 || monthNumber > 12 || dayNumber < 1 || dayNumber > 31) return false;
+    const date = new Date(Date.UTC(yearNumber, monthNumber - 1, dayNumber));
+    return date.getUTCFullYear() === yearNumber && date.getUTCMonth() === monthNumber - 1 && date.getUTCDate() === dayNumber;
   }
 
   private cleanMerchantName(value?: string | null): string | null {

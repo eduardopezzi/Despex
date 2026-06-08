@@ -44,6 +44,9 @@ export class ExpenseEntity extends WithModificationDates {
   @Column({ name: 'xml_access_key', type: 'varchar', nullable: true })
   xmlAccessKey?: string | null;
 
+  @Column({ name: 'fiscal_qr_code_url', type: 'text', nullable: true })
+  fiscalQrCodeUrl?: string | null;
+
   @Column({ name: 'official_lookup_status', type: 'varchar', default: FiscalFetchStatus.NotAttempted })
   officialLookupStatus!: FiscalFetchStatus;
 
@@ -55,6 +58,9 @@ export class ExpenseEntity extends WithModificationDates {
 
   @Column({ name: 'merchant_name', type: 'varchar', nullable: true })
   merchantName?: string | null;
+
+  @Column({ name: 'merchant_tax_id', type: 'varchar', nullable: true })
+  merchantTaxId?: string | null;
 
   @Column({ name: 'total_amount', type: 'real', nullable: true })
   totalAmount?: number | null;

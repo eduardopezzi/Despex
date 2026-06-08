@@ -110,7 +110,7 @@ export class UploadDialogComponent {
   get ocrOptionGroups() {
     const local: { label: string; value: OcrProvider; icon: string }[] = [];
     const online: { label: string; value: OcrProvider; icon: string }[] = [];
-    for (const p of Object.values(OcrProvider)) {
+    for (const p of this.configService.availableOcrProviders()) {
       const opt = { label: this.translocoService.translate(`config.providers.${p}`), value: p, icon: OCR_PROVIDER_ICONS[p] };
       (LOCAL_PROVIDERS.has(p) ? local : online).push(opt);
     }
@@ -137,7 +137,7 @@ export class UploadDialogComponent {
 
   onSelect(event: { currentFiles?: File[]; files?: File[] }) {
     const newFiles: File[] = event.currentFiles || event.files || [];
-    const defaultProvider = this.configService.defaultOcrProvider();
+    const defaultProvider = this.getDefaultAvailableProvider();
 
     const current = this.filesWithProviders();
     const updated = [...current];
@@ -181,6 +181,13 @@ export class UploadDialogComponent {
 
   setProvider(item: FileWithProvider, provider: OcrProvider) {
     this.filesWithProviders.update((items) => items.map((i) => (i === item ? { ...i, ocrProvider: provider } : i)));
+  }
+
+  private getDefaultAvailableProvider(): OcrProvider | undefined {
+    const providers = this.configService.availableOcrProviders();
+    const configured = this.configService.defaultOcrProvider();
+    if (configured && providers.includes(configured)) return configured;
+    return providers[0];
   }
 
   removeFile(item: FileWithProvider) {

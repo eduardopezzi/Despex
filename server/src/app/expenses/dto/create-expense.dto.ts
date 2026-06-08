@@ -35,6 +35,10 @@ export class CreateExpenseDto {
   xmlAccessKey?: string | null;
 
   @IsOptional()
+  @IsString()
+  fiscalQrCodeUrl?: string | null;
+
+  @IsOptional()
   @IsEnum(FiscalFetchStatus)
   officialLookupStatus?: FiscalFetchStatus;
 
@@ -49,6 +53,10 @@ export class CreateExpenseDto {
   @IsOptional()
   @IsString()
   merchantName?: string | null;
+
+  @IsOptional()
+  @IsString()
+  merchantTaxId?: string | null;
 
   @IsOptional()
   @IsNumber()

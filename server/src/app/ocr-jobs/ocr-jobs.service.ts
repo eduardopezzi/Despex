@@ -19,6 +19,7 @@ import { OcrJobEntity } from '@core/database/entities/ocr-job.entity';
 import { OcrExecutionEntity } from '@core/database/entities/ocr-execution.entity';
 import { OcrExecutionStatus, OcrFileStatus, OcrJobStatus, SortOrder } from '@open-receipt-ocr/types';
 import { OcrFileEntity } from '@core/database/entities/ocr-file.entity';
+import { ConfigService } from '@app/config/config.service';
 
 @Injectable()
 export class OcrJobsService {
@@ -31,6 +32,7 @@ export class OcrJobsService {
     private readonly queueService: QueueService,
     private readonly secretProvider: SecretProvider,
     private readonly dbService: DbService,
+    private readonly configService: ConfigService,
     @Inject(StorageProvider) private readonly storage: StorageProvider,
   ) {}
 
@@ -66,6 +68,7 @@ export class OcrJobsService {
     };
 
     const files: FileAndOcrProvider[] = [];
+    const availableProviders = new Set((await this.configService.getOcrProviderAvailability()).availableProviders);
 
     for (const [idx, file] of parseResult.files.entries()) {
       let ocrProvider: OcrProvider | undefined;
@@ -75,11 +78,11 @@ export class OcrJobsService {
         ocrProvider = parseResult.fields[providerField] as OcrProvider;
       }
 
-      if (ocrProvider) {
+      if (ocrProvider && availableProviders.has(ocrProvider)) {
         files.push({ file, ocrProvider });
       } else {
         this.logger.warn(
-          `The given ocr provider for the file named ${file.originalName}, does not exist. Given: ${parseResult.fields[providerField]}. List of allowed OCR Providers is: ${Object.values(OcrProvider).join(', ')}`,
+          `The given ocr provider for the file named ${file.originalName} is not available. Given: ${parseResult.fields[providerField]}. Available OCR Providers are: ${Array.from(availableProviders).join(', ')}`,
         );
         try {
           await this.storage.delete(file.key);
@@ -141,6 +144,8 @@ export class OcrJobsService {
   }
 
   async retry(fileId: number, ocrProvider: OcrProvider): Promise<OcrExecutionEntity> {
+    await this.assertOcrProviderAvailable(ocrProvider);
+
     const execution = await this.dbService.transaction(async (em) => {
       const txn = WithTxn(em);
       const file = await this.ocrFilesDao.getOneByPkOrFail(txn, fileId);
@@ -161,6 +166,13 @@ export class OcrJobsService {
     await this.queueService.addToOcrQueue({ executionId: execution.id });
     this.logger.log(`New execution #${execution.id} for File #${fileId} queued for OCR (retry)`);
     return execution;
+  }
+
+  private async assertOcrProviderAvailable(ocrProvider: OcrProvider): Promise<void> {
+    const availableProviders = (await this.configService.getOcrProviderAvailability()).availableProviders;
+    if (!availableProviders.includes(ocrProvider)) {
+      throw new BadRequestException(`OCR provider "${ocrProvider}" is not available. Configure the required API credentials first.`);
+    }
   }
 
   async getFileStream(key: string): Promise<Readable> {

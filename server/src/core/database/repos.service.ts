@@ -6,6 +6,7 @@ import { OcrFileEntity } from '@core/database/entities/ocr-file.entity';
 import { OcrExecutionEntity } from '@core/database/entities/ocr-execution.entity';
 import { ExpenseEntity } from '@core/database/entities/expense.entity';
 import { ExpenseExtractionFeedbackEntity } from '@core/database/entities/expense-extraction-feedback.entity';
+import { MerchantAliasEntity } from '@core/database/entities/merchant-alias.entity';
 import { RecordEntity } from '@core/database/entities/record.entity';
 
 @Injectable()
@@ -21,6 +22,8 @@ export class ReposService {
     public readonly expense: Repository<ExpenseEntity>,
     @InjectRepository(ExpenseExtractionFeedbackEntity)
     public readonly expenseExtractionFeedback: Repository<ExpenseExtractionFeedbackEntity>,
+    @InjectRepository(MerchantAliasEntity)
+    public readonly merchantAlias: Repository<MerchantAliasEntity>,
     @InjectRepository(RecordEntity)
     public readonly record: Repository<RecordEntity>,
   ) {}

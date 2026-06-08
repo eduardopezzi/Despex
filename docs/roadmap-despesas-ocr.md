@@ -5,11 +5,11 @@
 | Feature | Progresso | Concluido | Observacao |
 | :--- | :---: | :---: | :--- |
 | Upload, storage e fila de OCR | 80% |  | Fluxo base ja existe com `ocr_jobs`, `ocr_files`, `ocr_executions`, storage local, Redis/BullMQ e worker. |
-| OCR bruto e providers | 70% |  | Projeto ja suporta multiplos providers e armazena OCR em `ocr_executions.ocr_data`; falta integrar com despesas. |
+| OCR bruto e providers | 75% |  | Projeto ja suporta multiplos providers, armazena OCR em `ocr_executions.ocr_data` e aplica preprocessamento local para Paddle OCR; falta decodificacao visual direta de QR Code. |
 | Dominio de despesas | 100% | [x] | `expenses`, CRUD, filtros, tipos compartilhados, relacoes com OCR e criacao minima apos OCR concluido implementados. |
 | Consulta fiscal oficial e baixa de XML | 60% |  | Modulo fiscal, deteccao de chave, configs, provider SEFAZ preparado/stub seguro, status de consulta e integracao com despesas/OCR implementados; falta SOAP/mTLS real. |
-| Extracao estruturada XML/OCR | 85% |  | Parser XML NF-e 55 e heuristicas OCR JSON extraem estabelecimento, valor, data e pagamento; inclui agrupamento visual por bbox e busca tolerante a erro de OCR; falta ampliar cobertura com notas reais e confidencia por campo. |
-| Aprendizado por correcoes e melhoria continua | 20% |  | Planejado no roadmap e inicio implementado com tabela de feedback de extracao, registro de correcoes manuais e endpoint de consulta da base corrigida. |
+| Extracao estruturada XML/OCR | 90% |  | Parser XML NF-e 55 e heuristicas OCR JSON extraem estabelecimento, CNPJ/CPF emissor, valor, data, pagamento, chave e URL fiscal; inclui agrupamento visual por bbox e busca tolerante a erro de OCR; falta ampliar cobertura com notas reais e confianca por campo. |
+| Aprendizado por correcoes e melhoria continua | 35% |  | Feedback de extracao, reextracao, visualizacao do bruto e aliases de estabelecimento por CNPJ/nome corrigido implementados; falta painel de erros recorrentes, metricas e reprocessamento batch. |
 | Cadastros de clientes e tipos de gasto | 100% | [x] | `records` com tipos `client` e `expense_type`, CRUD, filtros, soft delete e validacao nas despesas implementados. |
 | Usuarios, login e permissoes | 0% |  | Criar autenticacao, roles, admin e regras de acesso por usuario. |
 | Frontend de autenticacao | 0% |  | Criar login, criar usuario, alterar senha, guards e sessao. |
@@ -61,6 +61,7 @@ Criar entidades novas:
 - `UserEntity`
 - `ExpenseEntity`
 - `RecordEntity`
+- `MerchantAliasEntity`, para reaproveitar correcoes manuais de estabelecimento por CNPJ ou alias ruim lido pelo OCR
 - `ReportSnapshotEntity` opcional, se for necessario historico de relatorios gerados
 - `FiscalDocumentFetchEntity` opcional, para registrar tentativas de consulta/baixa oficial
 - `ExpenseExtractionFeedbackEntity`, para registrar diferencas entre campos extraidos automaticamente e correcoes manuais do usuario
@@ -390,6 +391,11 @@ Tarefas:
 8. No frontend, mostrar dados brutos do OCR/XML na edicao da despesa para facilitar a correcao pelo usuario.
 9. Adicionar acao de reextrair campos da despesa a partir do rawOcrJson/rawXml armazenado.
 10. Documentar no roadmap que a proxima evolucao sera criar painel de erros recorrentes, aliases de estabelecimento e avaliacao automatica de acuracia.
+11. Extrair CNPJ/CPF do emissor do XML/OCR e persistir em `expenses.merchant_tax_id`.
+12. Criar `MerchantAliasEntity` para vincular nomes ruins lidos pelo OCR a um nome canonico corrigido pelo usuario.
+13. Ao criar ou reextrair uma despesa, consultar aliases por CNPJ ou alias normalizado antes de aceitar o nome capturado pelo OCR.
+14. Capturar URL/QR fiscal textual quando disponivel no OCR e persistir em `expenses.fiscal_qr_code_url`.
+15. Melhorar preprocessamento local do Paddle OCR com orientacao EXIF, tons de cinza, normalizacao de contraste e nitidez leve.
 
 Regras:
 - Nao sobrescrever correcoes manuais sem acao explicita do usuario.
@@ -402,9 +408,10 @@ Regras:
 Proximas tarefas desta fase:
 
 - Criar painel administrativo de feedbacks e erros recorrentes.
-- Criar tabela de aliases/regras aprendidas por estabelecimento.
+- Evoluir aliases/regras aprendidas por estabelecimento com tela de revisao e merge de nomes.
 - Medir acuracia por campo antes e depois das melhorias.
 - Criar rotina batch para reextrair despesas antigas.
+- Adicionar decodificacao visual direta de QR Code a partir da imagem original, antes do OCR.
 - Avaliar uso de LLM para extracao JSON estruturada quando OCR bruto estiver completo, mas as heuristicas falharem.
 
 ### Fase 4: Cadastros Genericos

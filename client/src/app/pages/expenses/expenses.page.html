@@ -215,12 +215,20 @@
                 <div class="font-medium break-all">{{ editingExpense?.xmlAccessKey || '-' }}</div>
               </div>
               <div>
+                <div class="text-xs uppercase tracking-widest text-surface-400">CNPJ/CPF emissor</div>
+                <div class="font-medium break-all">{{ editingExpense?.merchantTaxId || '-' }}</div>
+              </div>
+              <div>
                 <div class="text-xs uppercase tracking-widest text-surface-400">Consulta oficial</div>
                 <div class="font-medium">{{ editingExpense?.officialLookupStatus || '-' }}</div>
               </div>
               <div>
                 <div class="text-xs uppercase tracking-widest text-surface-400">Origem</div>
                 <div class="font-medium">{{ sourceLabel(editingExpense) }}</div>
+              </div>
+              <div class="md:col-span-3">
+                <div class="text-xs uppercase tracking-widest text-surface-400">QR/URL fiscal</div>
+                <div class="font-medium break-all">{{ editingExpense?.fiscalQrCodeUrl || '-' }}</div>
               </div>
             </div>
 
